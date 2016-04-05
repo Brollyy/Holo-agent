@@ -11,7 +11,17 @@ namespace Engine
     public class GameObject
     {
 
-        // TODO: Implement Instantiate and Destroy static functions.
+        // TODO: Implement Instantiate and Destroy static functions (maybe?).
+
+        private Scene scene;
+
+        public Scene Scene
+        {
+            get
+            {
+                return scene;
+            }
+        }
 
         /// <summary>
         /// Stores name of this object.
@@ -57,9 +67,9 @@ namespace Engine
                 localRotation = GlobalRotation;
                 localScale = GlobalScale;
                 // Next, change the transform matrix.
-                localToWorldMatrix = Matrix.CreateScale(localScale) *
-                                     Matrix.CreateTranslation(localPosition) *
-                                     Matrix.CreateFromQuaternion(localRotation);
+                localToWorldMatrix = Matrix.CreateTranslation(localPosition) *
+                                     Matrix.CreateFromQuaternion(localRotation) * 
+                                     Matrix.CreateScale(localScale);
                 // Set local transform data through global transform.
                 GlobalPosition = localPosition;
                 GlobalRotation = localRotation;
