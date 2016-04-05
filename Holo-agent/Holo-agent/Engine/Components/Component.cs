@@ -21,15 +21,11 @@ namespace Engine.Components
             {
                 return go;
             }
-            set
-            {
-                go = value;
-            }
         }
 
-        public bool IsType(Type type)
+        public bool IsType<T>() where T : Component
         {
-            return GetType().Equals(type);
+            return this is T;
         }
 
         /// <summary>

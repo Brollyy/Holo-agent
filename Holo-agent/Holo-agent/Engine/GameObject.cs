@@ -1,5 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
+using System;
 using System.Collections.Generic;
+using Engine.Components;
 
 namespace Engine
 {
@@ -72,7 +74,7 @@ namespace Engine
         /// <summary>
         /// Stores references to children of this object.
         /// </summary>
-        private SortedSet<GameObject> children;
+        private SortedList<string, GameObject> children;
 
         /// <summary>
         /// Adds child to set of this object's children. Called automatically when changing parent.
@@ -81,7 +83,7 @@ namespace Engine
         private void AddChild(GameObject child)
         {
             // TODO: Think about exceptions.
-            children.Add(child);
+            children.Add(child.name, child);
         }
 
         /// <summary>
@@ -91,7 +93,30 @@ namespace Engine
         private void RemoveChild(GameObject child)
         {
             // TODO: Think about exceptions.
-            children.Remove(child);
+            children.Remove(child.name);
+        }
+
+        /// <summary>
+        /// Finds and returns child object with specified name. Returns null if no object was found.
+        /// </summary>
+        /// <param name="name">Name of the child object.</param>
+        public GameObject GetChild(string name)
+        {
+            GameObject child = null;
+            bool success = children.TryGetValue(name, out child);
+            if (success) return child;
+            else return null;
+        }
+
+        /// <summary>
+        /// Returns child object at specified index. Return null if index was incorrect.
+        /// </summary>
+        /// <param name="index"></param>
+        /// <returns></returns>
+        public GameObject GetChild(int index)
+        {
+            if (index < 0 || index >= children.Count) return null;
+            return children.Values[index];
         }
         
         /// <summary>
@@ -235,6 +260,94 @@ namespace Engine
             }
         }
 
+        /// <summary>
+        /// Stores object's components.
+        /// </summary>
+        private List<Component> components;
+
+        /// <summary>
+        /// Adds component to the object.
+        /// </summary>
+        /// <param name="comp">Component to be added.</param>
+        public void AddComponent(Component comp)
+        {
+            components.Add(comp);
+            comp.GetType().GetProperty("go").SetValue(comp, this);
+        }
+
+        /// <summary>
+        /// Creates new component of specified type and adds it to the object.
+        /// Returns newly created component.
+        /// </summary>
+        /// <typeparam name="T">Type of the new component</typeparam>
+        public T AddNewComponent<T>() where T : Component, new()
+        {
+            T comp = new T();
+            components.Add(comp);
+            comp.GetType().GetProperty("go").SetValue(comp, this);
+            return comp;
+        }
+
+        /// <summary>
+        /// Removes specified component from the object. Returns false if component was not found.
+        /// </summary>
+        /// <param name="comp">Component to be removed.</param>
+        /// <returns></returns>
+        public bool RemoveComponent(Component comp)
+        {
+            bool success = components.Remove(comp);
+            if(success) comp.GetType().GetProperty("go").SetValue(comp, null);
+            return success;
+        }
+
+        /// <summary>
+        /// Finds first component of the object with specified type. Returns null if no component was found.
+        /// </summary>
+        /// <typeparam name="T">Type of the component to get.</typeparam>
+        public T GetComponent<T>() where T : Component
+        {
+            return (T)components.Find(comp => comp.IsType<T>());
+        }
+
+        public List<T> GetComponents<T>() where T : Component
+        {
+            return components.FindAll(comp => comp.IsType<T>()).ConvertAll<T>(comp => (T)comp);
+        }
+
+        /// <summary>
+        /// Default constructor for GameObject. Sets unnamed, parentless object at point (0,0,0), without any rotation and scale.
+        /// </summary>
+        public GameObject() : this(null, Vector3.Zero, Quaternion.Identity, Vector3.One)
+        {
+        }
+
+        /// <summary>
+        /// Partial constructor for GameObject. Uses the same default values except as default constructor, except it gives object name.
+        /// </summary>
+        /// <param name="name">Name of the object.</param>
+        public GameObject(string name) : this(name, Vector3.Zero, Quaternion.Identity, Vector3.One)
+        {
+        }
+
+        /// <summary>
+        /// Full constructor for GameObject.
+        /// </summary>
+        /// <param name="name">Name of the object.</param>
+        /// <param name="position">Local position of the object.</param>
+        /// <param name="rotation">Local rotation of the object.</param>
+        /// <param name="scale">Local scale of the object.</param>
+        /// <param name="parent">Scene parent of the object (optional).</param>
+        public GameObject(string name, Vector3 position, Quaternion rotation, Vector3 scale, GameObject parent = null)
+        {
+            localPosition = position;
+            localRotation = rotation;
+            localScale = scale;
+            localToWorldMatrix = Matrix.Identity;
+            this.Parent = parent;
+            children = new SortedList<string, GameObject>();
+            components = new List<Component>();
+            this.name = name;
+        }
 
     }
 }
