@@ -50,12 +50,18 @@ namespace Engine
             }
             set
             {
-                // First set global space transform data.
+                // Save world transform data temporarly.
                 localPosition = GlobalPosition;
                 localRotation = GlobalRotation;
                 localScale = GlobalScale;
-                // Next, use new parent global space transform to get local space again.
-                // TODO: Implement that.
+                // Next, change the transform matrix.
+                localToWorldMatrix = Matrix.CreateScale(localScale) *
+                                     Matrix.CreateTranslation(localPosition) *
+                                     Matrix.CreateFromQuaternion(localRotation);
+                // Set local transform data through global transform.
+                GlobalPosition = localPosition;
+                GlobalRotation = localRotation;
+                GlobalScale = localScale;
                 // Finally, swap the references and informs parents about the children changes.
                 if(parent != null) parent.RemoveChild(this);
                 parent = value;
@@ -157,21 +163,44 @@ namespace Engine
         }
 
         /// <summary>
+        /// Stores local to world coordinates transform matrix.
+        /// </summary>
+        private Matrix localToWorldMatrix;
+
+        /// <summary>
+        /// Transform matrix used to transform points from local coordinates to global.
+        /// </summary>
+        public Matrix LocalToWorldMatrix
+        {
+            get
+            {
+                return localToWorldMatrix;
+            }
+        }
+
+        /// <summary>
+        /// Transform matrix used to transform points from global coordinates to local.
+        /// </summary>
+        public Matrix WorldToLocalMatrix
+        {
+            get
+            {
+                return Matrix.Invert(localToWorldMatrix);
+            }
+        }
+
+        /// <summary>
         /// Global position property of the object.
         /// </summary>
         public Vector3 GlobalPosition
         {
             get
             {
-                return Vector3.Add(localPosition, parent.GlobalPosition);
+                return Vector3.Transform(localPosition, LocalToWorldMatrix);
             }
             set
             {
-                localPosition = value;
-                if(parent != null)
-                {
-                    localPosition -= parent.GlobalPosition;
-                }
+                localPosition = Vector3.Transform(value, WorldToLocalMatrix);
             }
         }
 
@@ -182,17 +211,11 @@ namespace Engine
         {
             get
             {
-                return Quaternion.Multiply(localRotation, parent.GlobalRotation);
+                return localRotation * LocalToWorldMatrix.Rotation;
             }
             set
             {
-                localRotation = value;
-                if(parent != null)
-                {
-                    localRotation = Quaternion.Multiply(
-                                        Quaternion.Inverse(parent.GlobalRotation), 
-                                        localRotation);
-                }
+                localRotation = value * WorldToLocalMatrix.Rotation;
             }
         }
 
@@ -202,8 +225,16 @@ namespace Engine
         public Vector3 GlobalScale
         {
             // TODO: Implement global scale conversions.
-            get;
-            set;
+            get
+            {
+                return (LocalToWorldMatrix * Matrix.CreateScale(localScale)).Scale;
+            }
+            set
+            {
+                localScale = (WorldToLocalMatrix * Matrix.CreateScale(value)).Scale;
+            }
         }
+
+
     }
 }

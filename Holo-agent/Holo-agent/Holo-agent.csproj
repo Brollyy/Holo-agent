@@ -38,6 +38,7 @@
     <ApplicationIcon>Icon.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Engine\Components\Component.cs" />
     <Compile Include="Engine\GameObject.cs" />
     <Compile Include="Game1.cs" />
     <Compile Include="Program.cs" />
