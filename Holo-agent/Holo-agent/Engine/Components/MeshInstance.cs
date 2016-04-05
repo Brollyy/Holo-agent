@@ -44,6 +44,20 @@ namespace Engine.Components
             }
         }
 
+        protected override void InitializeNewOwner(GameObject newOwner)
+        {
+            base.InitializeNewOwner(newOwner);
+            foreach (ModelMesh mesh in model.Meshes)
+            {
+                foreach (BasicEffect effect in mesh.Effects)
+                {
+                    effect.Projection = newOwner.Scene.Camera.GetComponent<Camera>().ProjectionMatrix;
+                    effect.View = newOwner.Scene.Camera.GetComponent<Camera>().ViewMatrix;
+                    effect.World = newOwner.LocalToWorldMatrix;
+                }
+            }
+        }
+
         public override void Draw(GameTime gameTime)
         {
             foreach (ModelMesh mesh in model.Meshes)
@@ -86,15 +100,6 @@ namespace Engine.Components
             this.model = model;
             GlobalTexture = globalTexture;
             textures = new Dictionary<ModelMesh, Texture2D>();
-            foreach (ModelMesh mesh in model.Meshes)
-            {
-                foreach (BasicEffect effect in mesh.Effects)
-                {
-                    effect.Projection = Owner.Scene.Camera.GetComponent<Camera>().ProjectionMatrix;
-                    effect.View = Owner.Scene.Camera.GetComponent<Camera>().ViewMatrix;
-                    effect.World = Owner.LocalToWorldMatrix;
-                }
-            }
         }
     }
 }

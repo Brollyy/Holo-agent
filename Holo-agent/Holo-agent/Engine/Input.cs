@@ -6,8 +6,6 @@ namespace Engine
 {
     public class Input
     {
-        private static Dictionary<InputAction, >
-        public static void StartTrackingAction
     }
 
     public enum InputAction

@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using Engine.Components;
+using System.Reflection;
 
 namespace Engine
 {
@@ -67,9 +68,18 @@ namespace Engine
                 localRotation = GlobalRotation;
                 localScale = GlobalScale;
                 // Next, change the transform matrix.
-                localToWorldMatrix = Matrix.CreateTranslation(localPosition) *
-                                     Matrix.CreateFromQuaternion(localRotation) * 
-                                     Matrix.CreateScale(localScale);
+                if(value != null)
+                {
+                    localToWorldMatrix = value.localToWorldMatrix*
+                                         Matrix.CreateTranslation(value.localPosition) *
+                                         Matrix.CreateFromQuaternion(value.localRotation) *
+                                         Matrix.CreateScale(value.localScale);
+                }
+                else
+                {
+                    localToWorldMatrix = Matrix.Identity;
+                }
+                                     
                 // Set local transform data through global transform.
                 GlobalPosition = localPosition;
                 GlobalRotation = localRotation;
@@ -177,8 +187,50 @@ namespace Engine
         public Vector3 LocalEulerRotation
         {
             // TODO: implement conversion between quaternions and Euler angles.
-            get;
-            set;
+            get
+            {
+                Vector3 YawPitchRoll = Vector3.Zero;
+                Matrix RotationMatrix = Matrix.CreateFromQuaternion(localRotation);
+                double ForwardY = -RotationMatrix.M32;
+                if (ForwardY <= -1.0f)
+                {
+                    YawPitchRoll.Y = MathHelper.ToDegrees(-MathHelper.PiOver2);
+                }
+                else if (ForwardY >= 1.0f)
+                {
+                    YawPitchRoll.Y = MathHelper.ToDegrees(MathHelper.PiOver2);
+                }
+                else
+                {
+                    YawPitchRoll.Y = MathHelper.ToDegrees((float)Math.Asin(ForwardY));
+                }
+
+                //Gimbal lock
+                if (ForwardY > 0.9999f)
+                {
+                    YawPitchRoll.X = 0f;
+                    YawPitchRoll.Z = MathHelper.ToDegrees((float)Math.Atan2(RotationMatrix.M13, RotationMatrix.M11));
+                }
+                else
+                {
+                    YawPitchRoll.X = MathHelper.ToDegrees((float)Math.Atan2(RotationMatrix.M31, RotationMatrix.M33));
+                    YawPitchRoll.Z = MathHelper.ToDegrees((float)Math.Atan2(RotationMatrix.M12, RotationMatrix.M22));
+                }
+
+                while (YawPitchRoll.X > 360) YawPitchRoll.X -= 360;
+                while (YawPitchRoll.X < 0) YawPitchRoll.X += 360;
+                while (YawPitchRoll.Y > 360) YawPitchRoll.Y -= 360;
+                while (YawPitchRoll.Y < 0) YawPitchRoll.Y += 360;
+                while (YawPitchRoll.Z > 360) YawPitchRoll.Z -= 360;
+                while (YawPitchRoll.Z < 0) YawPitchRoll.Z += 360;
+                return YawPitchRoll;
+            }
+            set
+            {
+                localRotation = Quaternion.CreateFromYawPitchRoll(MathHelper.ToRadians(value.X), 
+                                                                  MathHelper.ToRadians(value.Y), 
+                                                                  MathHelper.ToRadians(value.Z));
+            }
         }
 
         /// <summary>
@@ -282,7 +334,9 @@ namespace Engine
         public void AddComponent(Component comp)
         {
             components.Add(comp);
-            comp.GetType().GetProperty("go").SetValue(comp, this);
+            MethodInfo mi = comp.GetType().GetMethod("InitializeNewOwner", BindingFlags.NonPublic | BindingFlags.InvokeMethod | BindingFlags.Instance);
+            object[] args = { this };
+            mi.Invoke(comp, args);
         }
 
         /// <summary>
@@ -294,7 +348,9 @@ namespace Engine
         {
             T comp = new T();
             components.Add(comp);
-            comp.GetType().GetProperty("go").SetValue(comp, this);
+            MethodInfo mi = comp.GetType().GetMethod("InitializeNewOwner", BindingFlags.NonPublic | BindingFlags.InvokeMethod | BindingFlags.Instance);
+            object[] args = { this };
+            mi.Invoke(comp, args);
             return comp;
         }
 
@@ -306,7 +362,7 @@ namespace Engine
         public bool RemoveComponent(Component comp)
         {
             bool success = components.Remove(comp);
-            if(success) comp.GetType().GetProperty("go").SetValue(comp, null);
+            if(success) comp.GetType().GetProperty("go", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(comp, null);
             return success;
         }
 
@@ -322,6 +378,22 @@ namespace Engine
         public List<T> GetComponents<T>() where T : Component
         {
             return components.FindAll(comp => comp.IsType<T>()).ConvertAll<T>(comp => (T)comp);
+        }
+
+        public void Update(GameTime gameTime)
+        {
+            foreach(Component comp in components)
+            {
+                comp.Update(gameTime);
+            }
+        }
+
+        public void Draw(GameTime gameTime)
+        {
+            foreach(Component comp in components)
+            {
+                comp.Draw(gameTime);
+            }
         }
 
         /// <summary>
@@ -347,13 +419,14 @@ namespace Engine
         /// <param name="rotation">Local rotation of the object.</param>
         /// <param name="scale">Local scale of the object.</param>
         /// <param name="parent">Scene parent of the object (optional).</param>
-        public GameObject(string name, Vector3 position, Quaternion rotation, Vector3 scale, GameObject parent = null)
+        public GameObject(string name, Vector3 position, Quaternion rotation, Vector3 scale, Scene scene = null, GameObject parent = null)
         {
             localPosition = position;
             localRotation = rotation;
             localScale = scale;
             localToWorldMatrix = Matrix.Identity;
             this.Parent = parent;
+            this.scene = scene;
             children = new SortedList<string, GameObject>();
             components = new List<Component>();
             this.name = name;

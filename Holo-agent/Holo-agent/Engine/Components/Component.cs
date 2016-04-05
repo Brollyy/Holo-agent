@@ -23,6 +23,11 @@ namespace Engine.Components
             }
         }
 
+        protected virtual void InitializeNewOwner(GameObject newOwner)
+        {
+            go = newOwner;
+        }
+
         public bool IsType<T>() where T : Component
         {
             return this is T;

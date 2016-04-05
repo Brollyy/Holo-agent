@@ -15,5 +15,10 @@ namespace Engine
                 return activeCamera;
             }
         }
+
+        public Scene(GameObject camera)
+        {
+            activeCamera = camera;
+        }
     }
 }
