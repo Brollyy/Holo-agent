@@ -275,7 +275,7 @@ namespace Engine
         {
             get
             {
-                return Matrix.Invert(localToWorldMatrix);
+                return Matrix.Invert(LocalToWorldMatrix);
             }
         }
 

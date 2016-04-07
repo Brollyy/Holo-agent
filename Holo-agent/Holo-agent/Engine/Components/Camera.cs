@@ -36,7 +36,7 @@ namespace Engine.Components
         {
             base.InitializeNewOwner(newOwner);
             Matrix worldMatrix = newOwner.LocalToWorldMatrix;
-            viewMatrix = Matrix.CreateLookAt(Vector3.Zero, worldMatrix.Forward, worldMatrix.Up);
+            viewMatrix = Matrix.CreateLookAt(newOwner.LocalPosition, newOwner.LocalPosition + worldMatrix.Forward, worldMatrix.Up);
         }
 
         public override void Update(GameTime gameTime)
@@ -111,7 +111,7 @@ namespace Engine.Components
             }
             Owner.LocalEulerRotation = rot;
             Matrix worldMatrix = Owner.LocalToWorldMatrix;
-            viewMatrix = Matrix.CreateLookAt(Vector3.Zero, worldMatrix.Forward, worldMatrix.Up);
+            viewMatrix = Matrix.CreateLookAt(Owner.LocalPosition, Owner.LocalPosition + worldMatrix.Forward, worldMatrix.Up);
             currentMouseState = Mouse.GetState();
         }
 
