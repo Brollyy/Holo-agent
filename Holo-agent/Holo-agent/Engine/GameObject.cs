@@ -261,7 +261,10 @@ namespace Engine
         {
             get
             {
-                return localToWorldMatrix;
+                return localToWorldMatrix *
+                       Matrix.CreateScale(localScale) *
+                       Matrix.CreateTranslation(localPosition) *
+                       Matrix.CreateFromQuaternion(localRotation);
             }
         }
 
@@ -283,11 +286,11 @@ namespace Engine
         {
             get
             {
-                return Vector3.Transform(localPosition, LocalToWorldMatrix);
+                return Vector3.Transform(localPosition, localToWorldMatrix);
             }
             set
             {
-                localPosition = Vector3.Transform(value, WorldToLocalMatrix);
+                localPosition = Vector3.Transform(value, Matrix.Invert(localToWorldMatrix));
             }
         }
 
@@ -298,11 +301,11 @@ namespace Engine
         {
             get
             {
-                return localRotation * LocalToWorldMatrix.Rotation;
+                return localRotation * localToWorldMatrix.Rotation;
             }
             set
             {
-                localRotation = value * WorldToLocalMatrix.Rotation;
+                localRotation = value * Matrix.Invert(localToWorldMatrix).Rotation;
             }
         }
 
@@ -314,11 +317,11 @@ namespace Engine
             // TODO: Implement global scale conversions.
             get
             {
-                return (LocalToWorldMatrix * Matrix.CreateScale(localScale)).Scale;
+                return (localToWorldMatrix * Matrix.CreateScale(localScale)).Scale;
             }
             set
             {
-                localScale = (WorldToLocalMatrix * Matrix.CreateScale(value)).Scale;
+                localScale = (Matrix.Invert(localToWorldMatrix) * Matrix.CreateScale(value)).Scale;
             }
         }
 
