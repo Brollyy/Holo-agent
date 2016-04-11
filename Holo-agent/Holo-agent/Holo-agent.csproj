@@ -38,7 +38,12 @@
     <ApplicationIcon>Icon.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Engine\Bounding Volumes\BoundingBox.cs" />
+    <Compile Include="Engine\Bounding Volumes\BoundingCylinder.cs" />
+    <Compile Include="Engine\Bounding Volumes\BoundingSphere.cs" />
+    <Compile Include="Engine\Bounding Volumes\BoundingVolume.cs" />
     <Compile Include="Engine\Components\Camera.cs" />
+    <Compile Include="Engine\Components\Collider.cs" />
     <Compile Include="Engine\Components\Component.cs" />
     <Compile Include="Engine\Components\MeshInstance.cs" />
     <Compile Include="Engine\GameObject.cs" />
