@@ -143,14 +143,17 @@ namespace Engine
         /// Stores position of the object in local space.
         /// </summary>
         private Vector3 localPosition;
+        private Vector3 lastLocalPosition;
         /// <summary>
         /// Stores rotation of the object in local space.
         /// </summary>
         private Quaternion localRotation;
+        private Quaternion lastLocalRotation;
         /// <summary>
         /// Stores scale of the object in local space.
         /// </summary>
         private Vector3 localScale;
+        private Vector3 lastLocalScale;
 
         /// <summary>
         /// Local position property of the object.
@@ -250,6 +253,16 @@ namespace Engine
         }
 
         /// <summary>
+        /// Reverts object to his position, rotation and scale from previous frame.
+        /// </summary>
+        public void RevertLastMovement()
+        {
+            localPosition = lastLocalPosition;
+            localRotation = lastLocalRotation;
+            localScale = lastLocalScale;
+        }
+
+        /// <summary>
         /// Stores local to world coordinates transform matrix.
         /// </summary>
         private Matrix localToWorldMatrix;
@@ -261,7 +274,10 @@ namespace Engine
         {
             get
             {
-                return localToWorldMatrix;
+                return localToWorldMatrix *
+                       Matrix.CreateScale(localScale) *
+                       Matrix.CreateTranslation(localPosition) *
+                       Matrix.CreateFromQuaternion(localRotation);
             }
         }
 
@@ -272,7 +288,7 @@ namespace Engine
         {
             get
             {
-                return Matrix.Invert(localToWorldMatrix);
+                return Matrix.Invert(LocalToWorldMatrix);
             }
         }
 
@@ -283,11 +299,11 @@ namespace Engine
         {
             get
             {
-                return Vector3.Transform(localPosition, LocalToWorldMatrix);
+                return Vector3.Transform(localPosition, localToWorldMatrix);
             }
             set
             {
-                localPosition = Vector3.Transform(value, WorldToLocalMatrix);
+                localPosition = Vector3.Transform(value, Matrix.Invert(localToWorldMatrix));
             }
         }
 
@@ -298,11 +314,11 @@ namespace Engine
         {
             get
             {
-                return localRotation * LocalToWorldMatrix.Rotation;
+                return localRotation * localToWorldMatrix.Rotation;
             }
             set
             {
-                localRotation = value * WorldToLocalMatrix.Rotation;
+                localRotation = value * Matrix.Invert(localToWorldMatrix).Rotation;
             }
         }
 
@@ -314,11 +330,11 @@ namespace Engine
             // TODO: Implement global scale conversions.
             get
             {
-                return (LocalToWorldMatrix * Matrix.CreateScale(localScale)).Scale;
+                return (localToWorldMatrix * Matrix.CreateScale(localScale)).Scale;
             }
             set
             {
-                localScale = (WorldToLocalMatrix * Matrix.CreateScale(value)).Scale;
+                localScale = (Matrix.Invert(localToWorldMatrix) * Matrix.CreateScale(value)).Scale;
             }
         }
 
@@ -382,6 +398,9 @@ namespace Engine
 
         public void Update(GameTime gameTime)
         {
+            lastLocalPosition = localPosition;
+            lastLocalRotation = localRotation;
+            lastLocalScale = localScale;
             foreach(Component comp in components)
             {
                 comp.Update(gameTime);
@@ -422,8 +441,11 @@ namespace Engine
         public GameObject(string name, Vector3 position, Quaternion rotation, Vector3 scale, Scene scene = null, GameObject parent = null)
         {
             localPosition = position;
+            lastLocalPosition = position;
             localRotation = rotation;
+            lastLocalRotation = rotation;
             localScale = scale;
+            lastLocalScale = scale;
             localToWorldMatrix = Matrix.Identity;
             this.Parent = parent;
             this.scene = scene;

@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Engine;
 using Engine.Components;
+using Engine.Bounding_Volumes;
 
 namespace Holo_agent
 {
@@ -19,6 +20,7 @@ namespace Holo_agent
         SpriteFont font;
         Scene scene;
         GameObject robot;
+        int collision = 0;
 
         public Game1()
         {
@@ -38,9 +40,12 @@ namespace Holo_agent
             GameObject camera = new GameObject("Camera", new Vector3(0, 18, 100), Quaternion.Identity, Vector3.One);
             Camera cameraComp = new Camera(45, graphics.GraphicsDevice.Viewport.AspectRatio, 1, 1000);
             camera.AddComponent(cameraComp);
+            Collider cameraCol = camera.AddNewComponent<Collider>();
+            cameraCol.bound = new Engine.Bounding_Volumes.BoundingSphere(cameraCol, Vector3.Zero, 18.0f);
             scene = new Scene(camera);
-            robot = new GameObject("Robot", new Vector3(0, 5, 0), Quaternion.Identity, new Vector3(2, 2, 2), scene);
-
+            robot = new GameObject("Robot", new Vector3(0, 15, 0), Quaternion.Identity, Vector3.One, scene);
+            Collider robotCol = robot.AddNewComponent<Collider>();
+            robotCol.bound = new Engine.Bounding_Volumes.BoundingBox(robotCol, new Vector3(Vector2.Zero, 5.0f), 5.0f*Vector3.One);
             Mouse.SetPosition(graphics.PreferredBackBufferWidth / 2, graphics.PreferredBackBufferHeight / 2);
             base.Initialize();
         }
@@ -83,8 +88,11 @@ namespace Holo_agent
                 Exit();
 
             scene.Camera.Update(gameTime);
-            robot.Update(gameTime);
-
+            collision = scene.Camera.GetComponent<Collider>().Collide(robot.GetComponent<Collider>());
+            if (collision != 0)
+            {
+                scene.Camera.RevertLastMovement();
+            }
 
             base.Update(gameTime);
         }
@@ -98,6 +106,39 @@ namespace Holo_agent
             GraphicsDevice.Clear(Color.CornflowerBlue);
 
             robot.Draw(gameTime);
+
+                    RasterizerState originalState = GraphicsDevice.RasterizerState;
+
+                    RasterizerState rasterizerState = new RasterizerState();
+                    rasterizerState.FillMode = FillMode.WireFrame;
+                    GraphicsDevice.RasterizerState = rasterizerState;
+
+            BasicEffect effect = new BasicEffect(graphics.GraphicsDevice);
+            effect.World = Matrix.Identity;
+            effect.View = scene.Camera.GetComponent<Camera>().ViewMatrix;
+            effect.Projection = scene.Camera.GetComponent<Camera>().ProjectionMatrix;
+            effect.CurrentTechnique.Passes[0].Apply();
+
+            Engine.Bounding_Volumes.BoundingBox box = (robot.GetComponent<Collider>().bound as Engine.Bounding_Volumes.BoundingBox);
+            Vector3[] corners = box.Corners();      
+
+                    VertexPosition[] vertices = new VertexPosition[8];
+                    for(int i = 0; i < 8; ++i)
+                    {
+                        vertices[i].Position = corners[i];
+                    }
+                    short[] indexes = new short[24]
+                    {
+                        0, 1, 1, 2, 2, 3, 3, 0,
+                        4, 5, 5, 6, 6, 7, 7, 4,
+                        0, 4, 1, 5, 2, 6, 3, 7
+                    };
+                    
+                    graphics.GraphicsDevice.DrawUserIndexedPrimitives<VertexPosition>(PrimitiveType.LineList, 
+                                                                                      vertices, 0, 8,
+                                                                                      indexes, 0, 12);
+                    GraphicsDevice.RasterizerState = originalState;
+
             DrawSprite(200, 200, Vector3.Zero, new Vector3(-90, 0, 0), groundTexture, 20, false);
             for (int i = -1; i < 2; i++)
                 DrawSprite(30, 30, new Vector3(100 * i, 30, -150), new Vector3(0, 0, 0), treeTexture, 1, true);
@@ -106,6 +147,7 @@ namespace Holo_agent
             spriteBatch.DrawString(font, scene.Camera.LocalPosition.ToString(), new Vector2(50, 50), Color.Black);
             spriteBatch.DrawString(font, scene.Camera.LocalQuaternionRotation.ToString(), new Vector2(50, 100), Color.Black);
             spriteBatch.DrawString(font, scene.Camera.LocalEulerRotation.ToString(), new Vector2(50, 150), Color.Black);
+            spriteBatch.DrawString(font, collision.ToString(), new Vector2(50, 200), Color.Black);
             spriteBatch.End();
 
             base.Draw(gameTime);
