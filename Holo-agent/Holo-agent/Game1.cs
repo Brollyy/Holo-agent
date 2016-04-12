@@ -21,6 +21,7 @@ namespace Holo_agent
         GameObject ladder;
         GameObject tile;
         GameObject[] walls;
+        GameObject[] doors;
         int collision = 0;
         Texture2D groundTexture;
 
@@ -41,6 +42,7 @@ namespace Holo_agent
             // TODO: Add your initialization logic here
             columns = new GameObject[8];
             walls = new GameObject[7];
+            doors = new GameObject[2];
             GameObject camera = new GameObject("Camera", new Vector3(30, 18, -25), Quaternion.Identity, Vector3.One);
             Camera cameraComp = new Camera(45, graphics.GraphicsDevice.Viewport.AspectRatio, 1, 1000);
             camera.AddComponent(cameraComp);
@@ -60,7 +62,10 @@ namespace Holo_agent
                 walls[i] = new GameObject("Wall" + i, new Vector3(178.5f, 30, 39 + (2*(i%2) -1)*159), Quaternion.CreateFromYawPitchRoll(MathHelper.ToRadians(90), 0, 0), new Vector3(3.7425f, 0.5f, 1), scene);
             }
             walls[6] = new GameObject("Ceiling", new Vector3(40, 178.5f, 60), Quaternion.CreateFromYawPitchRoll(0, MathHelper.ToRadians(270), 0), new Vector3(2.7f, 3.66f, 1f), scene);
-
+            for(int i = 0; i < 2; ++i)
+            {
+                doors[i] = new GameObject("Doors" + i, new Vector3(-(2 * (i%2) - 1)*40, 29, -(2 * (i % 2) - 1) * 40 - ((i+1)%2)*440), Quaternion.CreateFromYawPitchRoll(MathHelper.ToRadians((i%2)*180), 0, 0), new Vector3(0.1f, 0.165f, 0.1f), scene);
+            }
             //Collider robotCol = robot.AddNewComponent<Collider>();
             //robotCol.bound = new Engine.Bounding_Volumes.BoundingBox(robotCol, new Vector3(Vector2.Zero, 5.0f), 5.0f*Vector3.One);
             Mouse.SetPosition(graphics.PreferredBackBufferWidth / 2, graphics.PreferredBackBufferHeight / 2);
@@ -89,6 +94,9 @@ namespace Holo_agent
             tile.AddComponent(new MeshInstance(tileModel, null));
             for (int i = 0; i < 7; ++i)
                 walls[i].AddComponent(new MeshInstance(tileModel, null));
+            Model doorModel = Content.Load<Model>("Models/door_001");
+            for (int i = 0; i < 2; ++i)
+                doors[i].AddComponent(new MeshInstance(doorModel, null));
         }
 
         /// <summary>
@@ -135,6 +143,8 @@ namespace Holo_agent
             tile.Draw(gameTime);
             for (int i = 0; i < 7; ++i)
                 walls[i].Draw(gameTime);
+            for (int i = 0; i < 2; ++i)
+                doors[i].Draw(gameTime);
             /*
                     RasterizerState originalState = GraphicsDevice.RasterizerState;
 
