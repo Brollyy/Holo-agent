@@ -98,6 +98,13 @@ namespace Engine.Components
         public MeshInstance(Model model, Texture2D globalTexture)
         {
             this.model = model;
+            foreach(ModelMesh mesh in model.Meshes)
+            {
+                foreach(BasicEffect effect in mesh.Effects)
+                {
+                    effect.EnableDefaultLighting();
+                }
+            }
             GlobalTexture = globalTexture;
             textures = new Dictionary<ModelMesh, Texture2D>();
         }

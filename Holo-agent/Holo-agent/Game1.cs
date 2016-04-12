@@ -14,13 +14,15 @@ namespace Holo_agent
     {
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
-        Texture2D groundTexture;
         Texture2D crosshairTexture;
-        Texture2D treeTexture;
         SpriteFont font;
         Scene scene;
-        GameObject robot;
+        GameObject[] columns;
+        GameObject ladder;
+        GameObject tile;
+        GameObject[] walls;
         int collision = 0;
+        Texture2D groundTexture;
 
         public Game1()
         {
@@ -37,15 +39,30 @@ namespace Holo_agent
         protected override void Initialize()
         {
             // TODO: Add your initialization logic here
-            GameObject camera = new GameObject("Camera", new Vector3(0, 18, 100), Quaternion.Identity, Vector3.One);
+            columns = new GameObject[8];
+            walls = new GameObject[7];
+            GameObject camera = new GameObject("Camera", new Vector3(30, 18, -25), Quaternion.Identity, Vector3.One);
             Camera cameraComp = new Camera(45, graphics.GraphicsDevice.Viewport.AspectRatio, 1, 1000);
             camera.AddComponent(cameraComp);
             Collider cameraCol = camera.AddNewComponent<Collider>();
             cameraCol.bound = new Engine.Bounding_Volumes.BoundingSphere(cameraCol, Vector3.Zero, 18.0f);
             scene = new Scene(camera);
-            robot = new GameObject("Robot", new Vector3(0, 15, 0), Quaternion.Identity, Vector3.One, scene);
-            Collider robotCol = robot.AddNewComponent<Collider>();
-            robotCol.bound = new Engine.Bounding_Volumes.BoundingBox(robotCol, new Vector3(Vector2.Zero, 5.0f), 5.0f*Vector3.One);
+            for(int i = 0; i < 8; ++i)
+                columns[i] = new GameObject("Column" + i, new Vector3(80*(i%2), 120*(i/2), 0), Quaternion.CreateFromYawPitchRoll(0,MathHelper.ToRadians(270),0),new Vector3(0.1f, 0.1f, 0.2f), scene);
+            ladder = new GameObject("Ladder", new Vector3(-100, 0, 15), Quaternion.CreateFromYawPitchRoll(MathHelper.ToRadians(225), MathHelper.ToRadians(270), 0), new Vector3(0.15f, 0.15f, 0.15f), scene);
+            tile = new GameObject("Ceiling panel", new Vector3(-80, -10, 0.05f), Quaternion.CreateFromYawPitchRoll(MathHelper.ToRadians(225), MathHelper.ToRadians(270), 0), new Vector3(0.1f, 0.1f, 0.1f), scene);
+            for(int i = 0; i < 4; ++i)
+            {
+                walls[i] = new GameObject("Wall" + i, new Vector3(-60 + (i % 2) * 200, 30, 40 - (i / 2) * 440), Quaternion.CreateFromYawPitchRoll(0, 0, 0), new Vector3(1, 0.5f, 1), scene);
+            }
+            for(int i = 4; i < 6; ++i)
+            {
+                walls[i] = new GameObject("Wall" + i, new Vector3(178.5f, 30, 39 + (2*(i%2) -1)*159), Quaternion.CreateFromYawPitchRoll(MathHelper.ToRadians(90), 0, 0), new Vector3(3.7425f, 0.5f, 1), scene);
+            }
+            walls[6] = new GameObject("Ceiling", new Vector3(40, 178.5f, 60), Quaternion.CreateFromYawPitchRoll(0, MathHelper.ToRadians(270), 0), new Vector3(2.7f, 3.66f, 1f), scene);
+
+            //Collider robotCol = robot.AddNewComponent<Collider>();
+            //robotCol.bound = new Engine.Bounding_Volumes.BoundingBox(robotCol, new Vector3(Vector2.Zero, 5.0f), 5.0f*Vector3.One);
             Mouse.SetPosition(graphics.PreferredBackBufferWidth / 2, graphics.PreferredBackBufferHeight / 2);
             base.Initialize();
         }
@@ -58,14 +75,20 @@ namespace Holo_agent
         {
             // Create a new SpriteBatch, which can be used to draw textures.
             spriteBatch = new SpriteBatch(GraphicsDevice);
-            groundTexture = Content.Load<Texture2D>("Textures/Grass");
-            Model model = Content.Load<Model>("Models/Model");
+            Model columnModel = Content.Load<Model>("Models/column_001");
+            groundTexture = Content.Load<Texture2D>("Textures/Ground");
             crosshairTexture = Content.Load<Texture2D>("Textures/Crosshair");
-            treeTexture = Content.Load<Texture2D>("Textures/Tree");
             font = Content.Load<SpriteFont>("Textures/Arial");
 
-            MeshInstance mesh = new MeshInstance(model, null);
-            robot.AddComponent(mesh);
+            for(int i = 0; i < 8; ++i)
+                columns[i].AddComponent(new MeshInstance(columnModel, null));
+
+            Model ladderModel = Content.Load<Model>("Models/ladder");
+            ladder.AddComponent(new MeshInstance(ladderModel, null));
+            Model tileModel = Content.Load<Model>("Models/panel_ceiling");
+            tile.AddComponent(new MeshInstance(tileModel, null));
+            for (int i = 0; i < 7; ++i)
+                walls[i].AddComponent(new MeshInstance(tileModel, null));
         }
 
         /// <summary>
@@ -88,11 +111,11 @@ namespace Holo_agent
                 Exit();
 
             scene.Camera.Update(gameTime);
-            collision = scene.Camera.GetComponent<Collider>().Collide(robot.GetComponent<Collider>());
+            /*collision = scene.Camera.GetComponent<Collider>().Collide(robot.GetComponent<Collider>());
             if (collision != 0)
             {
                 scene.Camera.RevertLastMovement();
-            }
+            }*/
 
             base.Update(gameTime);
         }
@@ -105,8 +128,14 @@ namespace Holo_agent
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
 
-            robot.Draw(gameTime);
+            for(int i = 0; i < 8; ++i)
+                columns[i].Draw(gameTime);
 
+            ladder.Draw(gameTime);
+            tile.Draw(gameTime);
+            for (int i = 0; i < 7; ++i)
+                walls[i].Draw(gameTime);
+            /*
                     RasterizerState originalState = GraphicsDevice.RasterizerState;
 
                     RasterizerState rasterizerState = new RasterizerState();
@@ -138,10 +167,8 @@ namespace Holo_agent
                                                                                       vertices, 0, 8,
                                                                                       indexes, 0, 12);
                     GraphicsDevice.RasterizerState = originalState;
-
-            DrawSprite(200, 200, Vector3.Zero, new Vector3(-90, 0, 0), groundTexture, 20, false);
-            for (int i = -1; i < 2; i++)
-                DrawSprite(30, 30, new Vector3(100 * i, 30, -150), new Vector3(0, 0, 0), treeTexture, 1, true);
+            */
+            DrawSprite(160, 220, new Vector3(40,180,0), new Vector3(-90, 0, 0), groundTexture, 20, false);
             spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.AnisotropicWrap, DepthStencilState.Default, RasterizerState.CullNone);
             spriteBatch.Draw(crosshairTexture, new Vector2((graphics.PreferredBackBufferWidth / 2) - (crosshairTexture.Width / 2), (graphics.PreferredBackBufferHeight / 2) - (crosshairTexture.Height / 2)));
             spriteBatch.DrawString(font, scene.Camera.LocalPosition.ToString(), new Vector2(50, 50), Color.Black);
