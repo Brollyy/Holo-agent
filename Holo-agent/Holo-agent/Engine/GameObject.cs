@@ -276,8 +276,8 @@ namespace Engine
             {
                 return localToWorldMatrix *
                        Matrix.CreateScale(localScale) *
-                       Matrix.CreateTranslation(localPosition) *
-                       Matrix.CreateFromQuaternion(localRotation);
+                       Matrix.CreateFromQuaternion(localRotation) *
+                       Matrix.CreateTranslation(localPosition);
             }
         }
 

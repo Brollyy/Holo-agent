@@ -43,14 +43,14 @@ namespace Engine.Bounding_Volumes
             // Corners: 0 - right upper front, 1 - left upper front, 2 - left lower front,
             // 3 - right lower front, 4 - right upper back, 5 - left upper back,
             // 6 - left lower back, 7 - right lower back.
-            int[] ind = new int[18]
+            int[] ind = new int[24]
             {
-                1, 0, 2,
-                5, 4, 6,
-                1, 2, 5,
-                0, 3, 4,
-                0, 1, 4,
-                2, 3, 6
+                0, 1, 2, 3,
+                4, 5, 6, 7,
+                5, 1, 2, 6,
+                4, 0, 3, 7,
+                0, 1, 5, 4,
+                3, 2, 6, 7
             };
             for (int i = 0; i < 6; ++i)
             {
@@ -58,15 +58,38 @@ namespace Engine.Bounding_Volumes
                 if (t > 0.0f) inside = false;
                 if (Math.Abs(t) <= radius)
                 {
+                    // Check if circle created by casting sphere on plane intersect with box's face.
                     Vector3 intersect = center + t * planes[i].Normal;
-                    float dot1 = Vector3.Dot(intersect, faceCorners[ind[3 * i + 1]] - faceCorners[ind[3*i]]);
-                    float dot2 = Vector3.Dot(intersect, faceCorners[ind[3 * i + 2]] - faceCorners[ind[3 * i]]);
-                    if (Vector3.Dot(faceCorners[ind[3 * i]], faceCorners[ind[3 * i + 1]] - faceCorners[ind[3 * i]]) <= dot1 &&
-                        Vector3.Dot(faceCorners[ind[3 * i + 1]], faceCorners[ind[3 * i + 1]] - faceCorners[ind[3 * i]]) >= dot1 &&
-                        Vector3.Dot(faceCorners[ind[3 * i]], faceCorners[ind[3 * i + 2]] - faceCorners[ind[3 * i]]) <= dot2 &&
-                        Vector3.Dot(faceCorners[ind[3 * i + 2]], faceCorners[ind[3 * i + 2]] - faceCorners[ind[3 * i]]) >= dot2)
+                    float interRadius = (float)Math.Sqrt(radius * radius - t * t);
+                    // Trivial check.
+                    Vector3 faceCenter = (faceCorners[ind[4 * i]] + faceCorners[ind[4 * i + 2]]) / 2.0f;
+                    if (interRadius + Vector3.Distance(faceCenter, faceCorners[ind[4 * i]]) < Vector3.Distance(intersect, faceCenter))
+                        continue;
+                    // Intersection if circle's center lies in rectangle.
+                    // 0 <= AP*AB <= AB*AB && 0 <= AP*AD <= AD*AD
+                    Vector3 AP = intersect - faceCorners[ind[4*i]];
+                    Vector3 AB = faceCorners[ind[4 * i + 1]] - faceCorners[ind[4 * i]];
+                    Vector3 AD = faceCorners[ind[4 * i + 3]] - faceCorners[ind[4 * i]];
+                    float APAB = Vector3.Dot(AP, AB);
+                    float APAD = Vector3.Dot(AP, AD);
+                    if (APAB >= 0 && APAB <= AB.LengthSquared() && APAD >= 0 && APAD <= AD.LengthSquared())
                     {
-                        return i+1;
+                        return i + 1;
+                    }
+                    // Intersection if any edge lies close enough and shares at least one point with circle.
+                    for(int j = 0; j < 4; ++j)
+                    {
+                        AP = intersect - faceCorners[ind[4 * i + j]];
+                        AB = faceCorners[ind[4 * i + ((j+1) % 4)]] - faceCorners[ind[4 * i + j]];
+                        float t1 = Vector3.Dot(AP, AB) / AB.LengthSquared();
+                        if(t1 > 0.0f && t1 < 1.0f)
+                        {
+                            Vector3 X = faceCorners[ind[4 * i + j]] + t1 * AB;
+                            if ((X - intersect).LengthSquared() <= interRadius) return i + 1;
+                        }
+                        // Check vertices of the edge.
+                        if (AP.LengthSquared() <= interRadius) return i + 1;
+                        if ((faceCorners[ind[4 * i + ((j + 1) % 4)]] - intersect).LengthSquared() <= interRadius) return i + 1;
                     }
                 }
             }

@@ -47,24 +47,28 @@ namespace Holo_agent
             Camera cameraComp = new Camera(45, graphics.GraphicsDevice.Viewport.AspectRatio, 1, 1000);
             camera.AddComponent(cameraComp);
             Collider cameraCol = camera.AddNewComponent<Collider>();
-            cameraCol.bound = new Engine.Bounding_Volumes.BoundingSphere(cameraCol, Vector3.Zero, 18.0f);
+            cameraCol.bound = new Engine.Bounding_Volumes.BoundingSphere(cameraCol, Vector3.Zero, 10.0f);
             scene = new Scene(camera);
-            for(int i = 0; i < 8; ++i)
-                columns[i] = new GameObject("Column" + i, new Vector3(80*(i%2), 120*(i/2), 0), Quaternion.CreateFromYawPitchRoll(0,MathHelper.ToRadians(270),0),new Vector3(0.1f, 0.1f, 0.2f), scene);
-            ladder = new GameObject("Ladder", new Vector3(-100, 0, 15), Quaternion.CreateFromYawPitchRoll(MathHelper.ToRadians(225), MathHelper.ToRadians(270), 0), new Vector3(0.15f, 0.15f, 0.15f), scene);
-            tile = new GameObject("Ceiling panel", new Vector3(-80, -10, 0.05f), Quaternion.CreateFromYawPitchRoll(MathHelper.ToRadians(225), MathHelper.ToRadians(270), 0), new Vector3(0.1f, 0.1f, 0.1f), scene);
+            for (int i = 0; i < 8; ++i)
+            {
+                columns[i] = new GameObject("Column" + i, new Vector3(80 * (i % 2), 0, -120 * (i / 2)), Quaternion.CreateFromYawPitchRoll(0, MathHelper.ToRadians(270), 0), new Vector3(0.1f, 0.1f, 0.2f), scene);
+                Collider columnCol = columns[i].AddNewComponent<Collider>();
+                columnCol.bound = new Engine.Bounding_Volumes.BoundingBox(columnCol, new Vector3(0,0,150), new Vector3(60,60,150));
+            }
+            ladder = new GameObject("Ladder", new Vector3(60, 15, -60), Quaternion.CreateFromYawPitchRoll(MathHelper.ToRadians(225), MathHelper.ToRadians(270), 0), new Vector3(0.15f, 0.15f, 0.15f), scene);
+            tile = new GameObject("Ceiling panel", new Vector3(40, 0.05f, -60), Quaternion.CreateFromYawPitchRoll(MathHelper.ToRadians(225), MathHelper.ToRadians(270), 0), new Vector3(0.1f, 0.1f, 0.1f), scene);
             for(int i = 0; i < 4; ++i)
             {
-                walls[i] = new GameObject("Wall" + i, new Vector3(-60 + (i % 2) * 200, 30, 40 - (i / 2) * 440), Quaternion.CreateFromYawPitchRoll(0, 0, 0), new Vector3(1, 0.5f, 1), scene);
+                walls[i] = new GameObject("Wall" + i, new Vector3(-60 + (i % 2) * 200, 30, 40 - 440*(i/2)), Quaternion.CreateFromYawPitchRoll(0, 0, 0), new Vector3(1, 0.5f, 1), scene);
             }
             for(int i = 4; i < 6; ++i)
             {
-                walls[i] = new GameObject("Wall" + i, new Vector3(178.5f, 30, 39 + (2*(i%2) -1)*159), Quaternion.CreateFromYawPitchRoll(MathHelper.ToRadians(90), 0, 0), new Vector3(3.7425f, 0.5f, 1), scene);
+                walls[i] = new GameObject("Wall" + i, new Vector3(200 - 320*(i%2), 30, -180), Quaternion.CreateFromYawPitchRoll(MathHelper.ToRadians(90), 0, 0), new Vector3(3.75f, 0.5f, 1), scene);
             }
-            walls[6] = new GameObject("Ceiling", new Vector3(40, 178.5f, 60), Quaternion.CreateFromYawPitchRoll(0, MathHelper.ToRadians(270), 0), new Vector3(2.7f, 3.66f, 1f), scene);
+            walls[6] = new GameObject("Ceiling", new Vector3(40, 60, -180), Quaternion.CreateFromYawPitchRoll(0, MathHelper.ToRadians(270), 0), new Vector3(2.7f, 3.66f, 1f), scene);
             for(int i = 0; i < 2; ++i)
             {
-                doors[i] = new GameObject("Doors" + i, new Vector3(-(2 * (i%2) - 1)*40, 29, -(2 * (i % 2) - 1) * 40 - ((i+1)%2)*440), Quaternion.CreateFromYawPitchRoll(MathHelper.ToRadians((i%2)*180), 0, 0), new Vector3(0.1f, 0.165f, 0.1f), scene);
+                doors[i] = new GameObject("Doors" + i, new Vector3(40, 30, 42.5f - ((i+1)%2)*442.5f), Quaternion.CreateFromYawPitchRoll(MathHelper.ToRadians((i%2)*180), 0, 0), new Vector3(0.1f, 0.165f, 0.1f), scene);
             }
             //Collider robotCol = robot.AddNewComponent<Collider>();
             //robotCol.bound = new Engine.Bounding_Volumes.BoundingBox(robotCol, new Vector3(Vector2.Zero, 5.0f), 5.0f*Vector3.One);
@@ -119,11 +123,14 @@ namespace Holo_agent
                 Exit();
 
             scene.Camera.Update(gameTime);
-            /*collision = scene.Camera.GetComponent<Collider>().Collide(robot.GetComponent<Collider>());
-            if (collision != 0)
+            for (int i = 0; i < 8; ++i)
             {
-                scene.Camera.RevertLastMovement();
-            }*/
+                collision = scene.Camera.GetComponent<Collider>().Collide(columns[i].GetComponent<Collider>());
+                if (collision != 0)
+                {
+                    scene.Camera.RevertLastMovement();
+                }
+            }
 
             base.Update(gameTime);
         }
@@ -145,39 +152,41 @@ namespace Holo_agent
                 walls[i].Draw(gameTime);
             for (int i = 0; i < 2; ++i)
                 doors[i].Draw(gameTime);
-            /*
-                    RasterizerState originalState = GraphicsDevice.RasterizerState;
 
-                    RasterizerState rasterizerState = new RasterizerState();
-                    rasterizerState.FillMode = FillMode.WireFrame;
-                    GraphicsDevice.RasterizerState = rasterizerState;
 
+            RasterizerState originalState = GraphicsDevice.RasterizerState;
+            RasterizerState rasterizerState = new RasterizerState();
+            rasterizerState.FillMode = FillMode.WireFrame;
+            GraphicsDevice.RasterizerState = rasterizerState;
             BasicEffect effect = new BasicEffect(graphics.GraphicsDevice);
             effect.World = Matrix.Identity;
             effect.View = scene.Camera.GetComponent<Camera>().ViewMatrix;
             effect.Projection = scene.Camera.GetComponent<Camera>().ProjectionMatrix;
             effect.CurrentTechnique.Passes[0].Apply();
 
-            Engine.Bounding_Volumes.BoundingBox box = (robot.GetComponent<Collider>().bound as Engine.Bounding_Volumes.BoundingBox);
-            Vector3[] corners = box.Corners();      
+            for (int i = 0; i < 8; ++i)
+            {
+                Engine.Bounding_Volumes.BoundingBox box = (columns[i].GetComponent<Collider>().bound as Engine.Bounding_Volumes.BoundingBox);
+                Vector3[] corners = box.Corners();
 
-                    VertexPosition[] vertices = new VertexPosition[8];
-                    for(int i = 0; i < 8; ++i)
-                    {
-                        vertices[i].Position = corners[i];
-                    }
-                    short[] indexes = new short[24]
-                    {
-                        0, 1, 1, 2, 2, 3, 3, 0,
-                        4, 5, 5, 6, 6, 7, 7, 4,
-                        0, 4, 1, 5, 2, 6, 3, 7
-                    };
-                    
-                    graphics.GraphicsDevice.DrawUserIndexedPrimitives<VertexPosition>(PrimitiveType.LineList, 
-                                                                                      vertices, 0, 8,
-                                                                                      indexes, 0, 12);
-                    GraphicsDevice.RasterizerState = originalState;
-            */
+                VertexPosition[] vertices = new VertexPosition[8];
+                for (int j = 0; j < 8; ++j)
+                {
+                    vertices[j].Position = corners[j];
+                }
+                short[] indexes = new short[24]
+                {
+                    0, 1, 1, 2, 2, 3, 3, 0,
+                    4, 5, 5, 6, 6, 7, 7, 4,
+                    0, 4, 1, 5, 2, 6, 3, 7
+                };
+
+                graphics.GraphicsDevice.DrawUserIndexedPrimitives<VertexPosition>(PrimitiveType.LineList,
+                                                                                  vertices, 0, 8,
+                                                                                  indexes, 0, 12);
+            }
+            GraphicsDevice.RasterizerState = originalState;
+
             DrawSprite(160, 220, new Vector3(40,180,0), new Vector3(-90, 0, 0), groundTexture, 20, false);
             spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.AnisotropicWrap, DepthStencilState.Default, RasterizerState.CullNone);
             spriteBatch.Draw(crosshairTexture, new Vector2((graphics.PreferredBackBufferWidth / 2) - (crosshairTexture.Width / 2), (graphics.PreferredBackBufferHeight / 2) - (crosshairTexture.Height / 2)));

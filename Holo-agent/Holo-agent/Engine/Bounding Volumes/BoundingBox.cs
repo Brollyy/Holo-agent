@@ -49,20 +49,6 @@ namespace Engine.Bounding_Volumes
             return halfLengths.Length();
         }
 
-        public Plane FrontFace()
-        {
-            Matrix world;
-            if (Collider == null || Collider.Owner == null)
-            {
-                world = Matrix.Identity;
-            }
-            else
-            {
-                world = Collider.Owner.LocalToWorldMatrix;
-            }
-            return new Plane(Vector3.TransformNormal(Vector3.Forward, world), halfLengths.Z);
-        }
-
         public Vector3[] Corners()
         {
             Matrix world;
@@ -77,12 +63,28 @@ namespace Engine.Bounding_Volumes
             Vector3[] corners = new Vector3[8];
             for (int i = 0; i < 8; ++i)
             {
-                corners[i] = Vector3.Transform(new Vector3(HalfLength * (i%4==0 || i%4==3 ? 1 : -1), 
-                                                           HalfHeight * (i/2==0 || i/2==2 ? 1 : -1), 
-                                                           HalfWidth * (i/4==0 ? -1 : 1)) + Center, world);
+                corners[i] = Vector3.Transform(new Vector3(HalfLength * (i % 4 == 0 || i % 4 == 3 ? 1 : -1),
+                                                           HalfHeight * (i / 2 == 0 || i / 2 == 2 ? 1 : -1),
+                                                           HalfWidth * (i / 4 == 0 ? -1 : 1)) + Center, world);
             }
             return corners;
-        } 
+        }
+
+        public Plane FrontFace()
+        {
+            Matrix world;
+            if (Collider == null || Collider.Owner == null)
+            {
+                world = Matrix.Identity;
+            }
+            else
+            {
+                world = Collider.Owner.LocalToWorldMatrix;
+            }
+            Vector3 normal = Vector3.TransformNormal(Vector3.Forward, world);
+            normal.Normalize();
+            return new Plane(normal, Vector3.Dot(normal, Vector3.Transform(halfLengths.Z * Vector3.Forward, world)));
+        }
 
         public Plane BackFace()
         {
@@ -95,7 +97,9 @@ namespace Engine.Bounding_Volumes
             {
                 world = Collider.Owner.LocalToWorldMatrix;
             }
-            return new Plane(Vector3.TransformNormal(Vector3.Backward, world), -halfLengths.Z);
+            Vector3 normal = Vector3.TransformNormal(Vector3.Backward, world);
+            normal.Normalize();
+            return new Plane(normal, Vector3.Dot(normal, Vector3.Transform(halfLengths.Z * Vector3.Backward, world)));
         }
 
         public Plane LeftFace()
@@ -109,7 +113,9 @@ namespace Engine.Bounding_Volumes
             {
                 world = Collider.Owner.LocalToWorldMatrix;
             }
-            return new Plane(Vector3.TransformNormal(Vector3.Left, world), halfLengths.X);
+            Vector3 normal = Vector3.TransformNormal(Vector3.Left, world);
+            normal.Normalize();
+            return new Plane(normal, Vector3.Dot(normal, Vector3.Transform(halfLengths.X * Vector3.Left, world)));
         }
 
         public Plane RightFace()
@@ -123,7 +129,9 @@ namespace Engine.Bounding_Volumes
             {
                 world = Collider.Owner.LocalToWorldMatrix;
             }
-            return new Plane(Vector3.TransformNormal(Vector3.Right, world), -halfLengths.X);
+            Vector3 normal = Vector3.TransformNormal(Vector3.Right, world);
+            normal.Normalize();
+            return new Plane(normal, Vector3.Dot(normal, Vector3.Transform(halfLengths.X * Vector3.Right, world)));
         }
 
         public Plane UpFace()
@@ -137,7 +145,9 @@ namespace Engine.Bounding_Volumes
             {
                 world = Collider.Owner.LocalToWorldMatrix;
             }
-            return new Plane(Vector3.TransformNormal(Vector3.Up, world), -halfLengths.Y);
+            Vector3 normal = Vector3.TransformNormal(Vector3.Up, world);
+            normal.Normalize();
+            return new Plane(normal, Vector3.Dot(normal, Vector3.Transform(halfLengths.Y * Vector3.Up, world)));
         }
 
         public Plane DownFace()
@@ -151,7 +161,9 @@ namespace Engine.Bounding_Volumes
             {
                 world = Collider.Owner.LocalToWorldMatrix;
             }
-            return new Plane(Vector3.TransformNormal(Vector3.Down, world), halfLengths.Y);
+            Vector3 normal = Vector3.TransformNormal(Vector3.Down, world);
+            normal.Normalize();
+            return new Plane(normal, Vector3.Dot(normal, Vector3.Transform(halfLengths.Y * Vector3.Down, world)));
         }
 
         protected override int IsOverlappingBox(BoundingBox other)
