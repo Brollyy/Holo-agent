@@ -23,15 +23,18 @@ namespace Engine.Bounding_Volumes
         protected override int IsOverlappingBox(BoundingBox other)
         {
             // First trivial case.
+            #region SPHERE_CHECK
             BoundingSphere sphere = new BoundingSphere();
             sphere.Center = other.GlobalCenter();
             sphere.Radius = other.HalfDiagonal();
 
             if (sphere.IsOverlapping(this) == 0) return 0;
+            #endregion
 
             // Need to check if any of the faces of the cube are intersecting sphere.
             bool inside = true;
-            // First find intersection point with plane of the face, then check if point lies on face.
+            // First find intersection point with plane of the face, then check if casted circle intersects face.
+            #region PLANES_VERTICES_DEFINITION
             Vector3[] faceCorners = other.Corners();
             Vector3 center = GlobalCenter();
             Plane[] planes = new Plane[6] 
@@ -52,21 +55,26 @@ namespace Engine.Bounding_Volumes
                 0, 1, 5, 4,
                 3, 2, 6, 7
             };
+            #endregion
+
             for (int i = 0; i < 6; ++i)
             {
                 float t = planes[i].D - Vector3.Dot(planes[i].Normal, center);
-                if (t > 0.0f) inside = false;
+                if (t < 0.0f) inside = false;
                 if (Math.Abs(t) <= radius)
                 {
                     // Check if circle created by casting sphere on plane intersect with box's face.
                     Vector3 intersect = center + t * planes[i].Normal;
                     float interRadius = (float)Math.Sqrt(radius * radius - t * t);
                     // Trivial check.
+                    #region CIRCLE_CHECK
                     Vector3 faceCenter = (faceCorners[ind[4 * i]] + faceCorners[ind[4 * i + 2]]) / 2.0f;
                     if (interRadius + Vector3.Distance(faceCenter, faceCorners[ind[4 * i]]) < Vector3.Distance(intersect, faceCenter))
                         continue;
+                    #endregion
                     // Intersection if circle's center lies in rectangle.
                     // 0 <= AP*AB <= AB*AB && 0 <= AP*AD <= AD*AD
+                    #region CIRCLE_CENTER_INSIDE_FACE
                     Vector3 AP = intersect - faceCorners[ind[4*i]];
                     Vector3 AB = faceCorners[ind[4 * i + 1]] - faceCorners[ind[4 * i]];
                     Vector3 AD = faceCorners[ind[4 * i + 3]] - faceCorners[ind[4 * i]];
@@ -76,9 +84,11 @@ namespace Engine.Bounding_Volumes
                     {
                         return i + 1;
                     }
+                    #endregion
                     // Intersection if any edge lies close enough and shares at least one point with circle.
-                    for(int j = 0; j < 4; ++j)
+                    for (int j = 0; j < 4; ++j)
                     {
+                        #region EDGE_INTERSECT_CIRCLE
                         AP = intersect - faceCorners[ind[4 * i + j]];
                         AB = faceCorners[ind[4 * i + ((j+1) % 4)]] - faceCorners[ind[4 * i + j]];
                         float t1 = Vector3.Dot(AP, AB) / AB.LengthSquared();
@@ -90,6 +100,7 @@ namespace Engine.Bounding_Volumes
                         // Check vertices of the edge.
                         if (AP.LengthSquared() <= interRadius) return i + 1;
                         if ((faceCorners[ind[4 * i + ((j + 1) % 4)]] - intersect).LengthSquared() <= interRadius) return i + 1;
+                        #endregion
                     }
                 }
             }

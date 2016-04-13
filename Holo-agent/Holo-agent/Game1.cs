@@ -47,7 +47,7 @@ namespace Holo_agent
             Camera cameraComp = new Camera(45, graphics.GraphicsDevice.Viewport.AspectRatio, 1, 1000);
             camera.AddComponent(cameraComp);
             Collider cameraCol = camera.AddNewComponent<Collider>();
-            cameraCol.bound = new Engine.Bounding_Volumes.BoundingSphere(cameraCol, Vector3.Zero, 10.0f);
+            cameraCol.bound = new Engine.Bounding_Volumes.BoundingBox(cameraCol, Vector3.Zero, 10f*Vector3.One);
             scene = new Scene(camera);
             for (int i = 0; i < 8; ++i)
             {
