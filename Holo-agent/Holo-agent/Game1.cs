@@ -3,7 +3,6 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Engine;
 using Engine.Components;
-using Engine.Bounding_Volumes;
 
 namespace Holo_agent
 {
@@ -24,7 +23,6 @@ namespace Holo_agent
         GameObject[] doors;
         int collision = 0;
         Texture2D groundTexture;
-
         public Game1()
         {
             graphics = new GraphicsDeviceManager(this);
@@ -73,6 +71,7 @@ namespace Holo_agent
             //Collider robotCol = robot.AddNewComponent<Collider>();
             //robotCol.bound = new Engine.Bounding_Volumes.BoundingBox(robotCol, new Vector3(Vector2.Zero, 5.0f), 5.0f*Vector3.One);
             Mouse.SetPosition(graphics.PreferredBackBufferWidth / 2, graphics.PreferredBackBufferHeight / 2);
+            Input.Initialize();
             base.Initialize();
         }
 
@@ -119,6 +118,7 @@ namespace Holo_agent
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Update(GameTime gameTime)
         {
+            Input.Update();
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
 
@@ -131,7 +131,6 @@ namespace Holo_agent
                     scene.Camera.RevertLastMovement();
                 }
             }
-
             base.Update(gameTime);
         }
 
