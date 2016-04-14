@@ -60,12 +60,13 @@ namespace Engine.Bounding_Volumes
             {
                 world = Collider.Owner.LocalToWorldMatrix;
             }
+            world *= Matrix.CreateTranslation(Center);
             Vector3[] corners = new Vector3[8];
             for (int i = 0; i < 8; ++i)
             {
                 corners[i] = Vector3.Transform(new Vector3(HalfLength * (i % 4 == 0 || i % 4 == 3 ? 1 : -1),
                                                            HalfHeight * (i / 2 == 0 || i / 2 == 2 ? 1 : -1),
-                                                           HalfWidth * (i / 4 == 0 ? -1 : 1)) + Center, world);
+                                                           HalfWidth * (i / 4 == 0 ? -1 : 1)), world);
             }
             return corners;
         }
@@ -81,6 +82,7 @@ namespace Engine.Bounding_Volumes
             {
                 world = Collider.Owner.LocalToWorldMatrix;
             }
+            world *= Matrix.CreateTranslation(Center);
             Vector3 normal = Vector3.TransformNormal(Vector3.Forward, world);
             normal.Normalize();
             return new Plane(normal, Vector3.Dot(normal, Vector3.Transform(halfLengths.Z * Vector3.Forward, world)));
@@ -97,6 +99,7 @@ namespace Engine.Bounding_Volumes
             {
                 world = Collider.Owner.LocalToWorldMatrix;
             }
+            world *= Matrix.CreateTranslation(Center);
             Vector3 normal = Vector3.TransformNormal(Vector3.Backward, world);
             normal.Normalize();
             return new Plane(normal, Vector3.Dot(normal, Vector3.Transform(halfLengths.Z * Vector3.Backward, world)));
@@ -113,6 +116,7 @@ namespace Engine.Bounding_Volumes
             {
                 world = Collider.Owner.LocalToWorldMatrix;
             }
+            world *= Matrix.CreateTranslation(Center);
             Vector3 normal = Vector3.TransformNormal(Vector3.Left, world);
             normal.Normalize();
             return new Plane(normal, Vector3.Dot(normal, Vector3.Transform(halfLengths.X * Vector3.Left, world)));
@@ -129,6 +133,7 @@ namespace Engine.Bounding_Volumes
             {
                 world = Collider.Owner.LocalToWorldMatrix;
             }
+            world *= Matrix.CreateTranslation(Center);
             Vector3 normal = Vector3.TransformNormal(Vector3.Right, world);
             normal.Normalize();
             return new Plane(normal, Vector3.Dot(normal, Vector3.Transform(halfLengths.X * Vector3.Right, world)));
@@ -145,6 +150,7 @@ namespace Engine.Bounding_Volumes
             {
                 world = Collider.Owner.LocalToWorldMatrix;
             }
+            world *= Matrix.CreateTranslation(Center);
             Vector3 normal = Vector3.TransformNormal(Vector3.Up, world);
             normal.Normalize();
             return new Plane(normal, Vector3.Dot(normal, Vector3.Transform(halfLengths.Y * Vector3.Up, world)));
@@ -161,6 +167,7 @@ namespace Engine.Bounding_Volumes
             {
                 world = Collider.Owner.LocalToWorldMatrix;
             }
+            world *= Matrix.CreateTranslation(Center);
             Vector3 normal = Vector3.TransformNormal(Vector3.Down, world);
             normal.Normalize();
             return new Plane(normal, Vector3.Dot(normal, Vector3.Transform(halfLengths.Y * Vector3.Down, world)));
@@ -231,15 +238,17 @@ namespace Engine.Bounding_Volumes
                 {
                     Vector3 N = Vector3.Cross(planes1[i].Normal, planes2[j].Normal);
                     // Find common part of the planes.
-                    if (N.LengthSquared() < 0.0001f)
+                    if (N.LengthSquared() < 0.05f)
                     {
-                        // Planes are parallel.
-                        if ((planes1[i].Normal - planes2[j].Normal).LengthSquared() < 0.0001f && Math.Abs(planes1[i].D - planes2[j].D) < 0.0001f || 
-                            Math.Abs(planes1[i].D + planes2[j].D) < 0.0001f)
+                        // Planes are (kinda, about 10 degrees of error) parallel.
+                        if (((planes1[i].Normal - planes2[j].Normal).LengthSquared() < 0.01f && Math.Abs(planes1[i].D - planes2[j].D) < 1.5f) ||
+                            ((planes1[i].Normal + planes2[j].Normal).LengthSquared() < 0.01f && Math.Abs(planes1[i].D + planes2[j].D) < 1.5f))
                         {
                             #region PARALLEL_PLANES_SAT
                             // Planes of both faces are the same.
-                            // This is case of 2D intersection. Use SAT to detect intersection.
+                            // This is case of 2D intersection. We should use SAT to detect intersection.
+                            // After testing, it seems that we can never realistically use this case in discreet collision,
+                            // unless we set large error for planes alignment.
                             bool intersectSAT = true;
                             Vector3[] separatingAxes = new Vector3[4]
                             {
@@ -260,7 +269,7 @@ namespace Engine.Bounding_Volumes
                                     if (proj2 > maxProj2) maxProj2 = proj2;
                                 }
 
-                                if (Math.Max(minProj1, minProj2) <= Math.Min(maxProj1, maxProj2))
+                                if (Math.Max(minProj1, minProj2) > Math.Min(maxProj1, maxProj2))
                                 {
                                     intersectSAT = false;
                                     break;
@@ -270,17 +279,14 @@ namespace Engine.Bounding_Volumes
                             if (intersectSAT) return 6 * i + j + 1;
                             #endregion
                         }
-                        else
-                        {
-                            // Faces are on two different parallel planes, there's no intersection.
-                            return 0;
-                        }
+                        // Faces are on two different parallel planes, there's no intersection.
                     }
                     else
                     {
                         // Find the line that comes from intersection of two planes.
                         // To get the point on the line, we add third plane with normal N and D = 0 and find the point of 3 planes intersection.
-                        Vector3 linePoint = Vector3.Cross(planes2[j].D * planes1[i].Normal - planes1[i].D * planes2[j].Normal, N) / N.LengthSquared();
+                        Vector3 linePoint = Vector3.Cross(planes1[i].D * planes2[j].Normal - planes2[j].D * planes1[i].Normal, N) / N.LengthSquared();
+                        N.Normalize();
 
                         float[,] inter1 = new float[4,2];
                         float[,] inter2 = new float[4,2];
@@ -295,9 +301,20 @@ namespace Engine.Bounding_Volumes
                             if(Math.Abs(Vector3.Dot(u, linePoint - A)) < 0.0001f)
                             {
                                 // Lines cross at one point.
-                                u = Vector3.Cross(N, u);
-                                inter1[k, 0] = Vector3.Dot(u, linePoint - A) / Vector3.Dot(u, AB);
-                                inter1[k, 1] = float.NaN;
+                                Vector3 v = Vector3.Cross(N, u);
+                                float t2 = Vector3.Dot(v, linePoint - A) / Vector3.Dot(v, AB);
+                                if (t2 > -0.0001f && t2 < 1.0001f)
+                                {
+                                    v = Vector3.Cross(AB, u);
+                                    inter1[k, 0] = Vector3.Dot(v, A - linePoint) / Vector3.Dot(v, N);
+                                    inter1[k, 1] = float.NaN;
+                                }
+                                else
+                                {
+                                    // Point of intersection doesn't lie on edge.
+                                    inter1[k, 0] = float.NaN;
+                                    inter1[k, 1] = float.NaN;
+                                }
                             }
                             else
                             {
@@ -305,8 +322,8 @@ namespace Engine.Bounding_Volumes
                                 if (Vector3.Cross(linePoint - A, N).LengthSquared() < 0.0001f) 
                                 {
                                     // Lines are essentially the same, so we'll take the intersection as the whole edge of the face.
-                                    inter1[k, 0] = 0.0f;
-                                    inter1[k, 1] = 1.0f;
+                                    inter1[k, 0] = Vector3.Dot(A - linePoint, N);
+                                    inter1[k, 1] = Vector3.Dot(AB + A - linePoint, N);
                                 }
                                 else
                                 {
@@ -323,9 +340,20 @@ namespace Engine.Bounding_Volumes
                             if (Math.Abs(Vector3.Dot(u, linePoint - A)) < 0.0001f)
                             {
                                 // Lines cross at one point.
-                                u = Vector3.Cross(N, u);
-                                inter2[k, 0] = Vector3.Dot(u, linePoint - A) / Vector3.Dot(u, AB);
-                                inter2[k, 1] = float.NaN;
+                                Vector3 v = Vector3.Cross(N, u);
+                                float t2 = Vector3.Dot(v, linePoint - A) / Vector3.Dot(v, AB);
+                                if (t2 > -0.0001f && t2 < 1.0001f)
+                                {
+                                    v = Vector3.Cross(AB, u);
+                                    inter2[k, 0] = Vector3.Dot(v, A - linePoint) / Vector3.Dot(v, N);
+                                    inter2[k, 1] = float.NaN;
+                                }
+                                else
+                                {
+                                    // Lines do not intersect.
+                                    inter2[k, 0] = float.NaN;
+                                    inter2[k, 1] = float.NaN;
+                                }
                             }
                             else
                             {
@@ -333,8 +361,8 @@ namespace Engine.Bounding_Volumes
                                 if (Vector3.Cross(linePoint - A, N).LengthSquared() < 0.0001f)
                                 {
                                     // Lines are essentially the same, so we'll take the intersection as the whole edge of the face.
-                                    inter2[k, 0] = 0.0f;
-                                    inter2[k, 1] = 1.0f;
+                                    inter2[k, 0] = Vector3.Dot(A - linePoint, N);
+                                    inter2[k, 1] = Vector3.Dot(AB + A - linePoint, N);
                                 }
                                 else
                                 {
@@ -346,80 +374,31 @@ namespace Engine.Bounding_Volumes
                             #endregion
                         }
 
+                        if (i == 0 && j == 4)
+                        { }
+
                         // Check if faces share any intersecting points.
-                        for(int k = 0; k < 4; ++k)
+                        float A1 = float.PositiveInfinity, A2 = float.PositiveInfinity;
+                        float B1 = float.NegativeInfinity, B2 = float.NegativeInfinity;
+                        for (int k = 0; k < 4; ++k)
                         {
-                            for(int l = 0; l < 4; ++l)
+                            for (int l = 0; l < 2; ++l)
                             {
-                                if (float.IsNaN(inter1[k, 0]) || float.IsNaN(inter2[l, 0])) continue;
+                                if (float.IsNaN(inter1[k, l])) continue;
 
-                                #region EDGE_ON_EDGE_INTERSECTION_CHECK
-                                if (!float.IsNaN(inter1[k, 1]) && !float.IsNaN(inter2[l, 1])) 
-                                {
-                                    // Check between two ranges of points.
-                                    // Since these ranges can only contain edges, this is basically checking if these two edges
-                                    // overlap on the line.
-                                    float A1 = Vector3.Dot(linePoint - cornersFirst[ind[4 * i + k]], N);
-                                    float B1 = Vector3.Dot(linePoint - cornersFirst[ind[4 * i + (k + 1) % 4]], N);
-                                    float A2 = Vector3.Dot(linePoint - cornersSecond[ind[4 * j + l]], N);
-                                    float B2 = Vector3.Dot(linePoint - cornersSecond[ind[4 * j + (l + 1) % 4]], N);
-                                    // Order them properly.
-                                    if(A1 > B1)
-                                    {
-                                        float temp = A1;
-                                        A1 = B1;
-                                        B1 = temp;
-                                    }
-                                    if(A2 > B2)
-                                    {
-                                        float temp = A2;
-                                        A2 = B2;
-                                        B2 = temp;
-                                    }
+                                if (inter1[k, l] < A1) A1 = inter1[k, l];
+                                if (inter1[k, l] > B1) B1 = inter1[k, l];   
+                            }
+                            for (int l = 0; l < 2; ++l)
+                            {
+                                if (float.IsNaN(inter2[k, l])) continue;
 
-                                    if (Math.Max(A1, A2) < Math.Min(B1, B2)) return 6 * i + j + 1;
-                                }
-                                #endregion
-
-                                #region POINT_ON_EDGE_INTERSECTION_CHECK
-                                if(float.IsNaN(inter1[k,1]) && !float.IsNaN(inter2[l, 1]))
-                                {
-                                    // Check between one point and range of points.
-                                    if (inter1[k, 0] < 0.0f || inter1[k, 0] > 1.0f) continue;
-
-                                    float A2 = Vector3.Dot(linePoint - cornersSecond[ind[4 * j + l]], N);
-                                    float B2 = Vector3.Dot(linePoint - cornersSecond[ind[4 * j + (l + 1) % 4]], N);
-                                    Vector3 C = cornersFirst[ind[4 * i + k]] + inter1[k, 0] * (cornersFirst[ind[4 * i + (k+1)%4]] - cornersFirst[ind[4 * i + k]]);
-                                    float C1 = Vector3.Dot(C, N);
-                                    if (Math.Min(A2, B2) < C1 && Math.Max(A2, B2) > C1) return 6 * i + j + 1;
-                                }
-                                #endregion
-
-                                #region EDGE_ON_POINT_INTERSECTION_CHECK
-                                if (!float.IsNaN(inter1[k, 1]) && float.IsNaN(inter2[l, 1]))
-                                {
-                                    // Check between one point and range of points.
-                                    if (inter2[l, 0] < 0.0f || inter2[l, 0] > 1.0f) continue;
-
-                                    float A1 = Vector3.Dot(linePoint - cornersFirst[ind[4 * i + k]], N);
-                                    float B1 = Vector3.Dot(linePoint - cornersFirst[ind[4 * i + (k + 1) % 4]], N);
-                                    Vector3 C = cornersSecond[ind[4 * j + l]] + inter2[l, 0] * (cornersSecond[ind[4 * j + (l + 1) % 4]] - cornersSecond[ind[4 * j + l]]);
-                                    float C1 = Vector3.Dot(C, N);
-                                    if (Math.Min(A1, B1) < C1 && Math.Max(A1, B1) > C1) return 6 * i + j + 1;
-                                }
-                                #endregion
-
-                                #region POINT_ON_POINT_INTERSECTION_CHECK
-                                if (float.IsNaN(inter1[k, 1]) && float.IsNaN(inter2[l, 1]))
-                                {
-                                    // Check between two points.
-                                    Vector3 C1 = cornersFirst[ind[4 * i + k]] + inter1[k, 0] * (cornersFirst[ind[4 * i + (k + 1) % 4]] - cornersFirst[ind[4 * i + k]]);
-                                    Vector3 C2 = cornersSecond[ind[4 * j + l]] + inter2[l, 0] * (cornersSecond[ind[4 * j + (l + 1) % 4]] - cornersSecond[ind[4 * j + l]]);
-                                    if ((C2 - C1).LengthSquared() < 0.0001f) return 6 * i + j + 1;
-                                }
-                                #endregion
+                                if (inter2[k, l] < A2) A2 = inter2[k, l];
+                                if (inter2[k, l] > B2) B2 = inter2[k, l];
                             }
                         }
+                        if (A1 > B1 || A2 > B2) continue;
+                        if (Math.Max(A1, A2) < Math.Min(B1, B2)) return 6 * i + j + 1;
                     }
                 }
             }
@@ -445,7 +424,7 @@ namespace Engine.Bounding_Volumes
             }
 
             #endregion
-            return (inside1 || inside2) ? 7 : 0;
+            return (!inside1 || !inside2) ? 0 : 7;
         }
 
         protected override int IsOverlappingCylinder(BoundingCylinder other)
