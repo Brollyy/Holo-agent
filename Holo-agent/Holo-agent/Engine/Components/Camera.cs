@@ -35,22 +35,22 @@ namespace Engine.Components
             // TODO: Change this so it uses Input class rather than input mechanisms directly.
             if (Input.KEY_STATE.IsKeyDown(Input.MOVE_FORWARD))
             {
-                Owner.LocalPosition += Vector3.Transform(Vector3.Forward, Matrix.CreateRotationY(MathHelper.ToRadians(Owner.LocalEulerRotation.X))) * 
+                Owner.LocalPosition += Vector3.Transform(Vector3.Forward, Matrix.CreateRotationY(MathHelper.ToRadians(Owner.LocalEulerRotation.X))) *
                                        (float)(cameraSpeed * gameTime.ElapsedGameTime.TotalSeconds);
             }
             if (Input.KEY_STATE.IsKeyDown(Input.MOVE_BACKWARD))
             {
-                Owner.LocalPosition += Vector3.Transform(Vector3.Backward, Matrix.CreateRotationY(MathHelper.ToRadians(Owner.LocalEulerRotation.X))) * 
+                Owner.LocalPosition += Vector3.Transform(Vector3.Backward, Matrix.CreateRotationY(MathHelper.ToRadians(Owner.LocalEulerRotation.X))) *
                                        (float)(cameraSpeed * gameTime.ElapsedGameTime.TotalSeconds);
             }
             if (Input.KEY_STATE.IsKeyDown(Input.STRAFE_LEFT))
             {
-                Owner.LocalPosition += Vector3.Transform(Vector3.Left, Matrix.CreateRotationY(MathHelper.ToRadians(Owner.LocalEulerRotation.X))) * 
+                Owner.LocalPosition += Vector3.Transform(Vector3.Left, Matrix.CreateRotationY(MathHelper.ToRadians(Owner.LocalEulerRotation.X))) *
                                        (float)(cameraSpeed * gameTime.ElapsedGameTime.TotalSeconds);
             }
             if (Input.KEY_STATE.IsKeyDown(Input.STRAFE_RIGHT))
             {
-                Owner.LocalPosition += Vector3.Transform(Vector3.Right, Matrix.CreateRotationY(MathHelper.ToRadians(Owner.LocalEulerRotation.X))) * 
+                Owner.LocalPosition += Vector3.Transform(Vector3.Right, Matrix.CreateRotationY(MathHelper.ToRadians(Owner.LocalEulerRotation.X))) *
                                        (float)(cameraSpeed * gameTime.ElapsedGameTime.TotalSeconds);
             }
             if (Input.KEY_STATE.IsKeyDown(Input.JUMP))
@@ -70,24 +70,24 @@ namespace Engine.Components
                 cameraSpeed = 75;
             }
             Vector3 rot = Owner.LocalEulerRotation;
-            if (Input.MOUSE_ROTATION_X < 0)
+            if (Input.MOUSE_AXIS_X < 0)
             {
-                rot.X += (float)(mouseSpeed * gameTime.ElapsedGameTime.TotalSeconds);  
+                rot.X += (float)(mouseSpeed * gameTime.ElapsedGameTime.TotalSeconds);
             }
-            if (Input.MOUSE_ROTATION_X > 0)
+            if (Input.MOUSE_AXIS_X > 0)
             {
                 rot.X -= (float)(mouseSpeed * gameTime.ElapsedGameTime.TotalSeconds);
             }
-            if (Input.MOUSE_ROTATION_Y < 0)
+            if (Input.MOUSE_AXIS_Y < 0)
             {
                 if (rot.Y < 75f || rot.Y > 285f)
                 {
                     float newRot = rot.Y + (float)(mouseSpeed * gameTime.ElapsedGameTime.TotalSeconds);
-                    if(newRot < 75f || newRot > 285f)
+                    if (newRot < 75f || newRot > 285f)
                         rot.Y += (float)(mouseSpeed * gameTime.ElapsedGameTime.TotalSeconds);
                 }
             }
-            if (Input.MOUSE_ROTATION_Y > 0)
+            if (Input.MOUSE_AXIS_Y > 0)
             {
                 if (rot.Y < 75f || rot.Y > 285f)
                 {
@@ -100,11 +100,9 @@ namespace Engine.Components
             Matrix worldMatrix = Owner.LocalToWorldMatrix;
             viewMatrix = Matrix.CreateLookAt(Owner.LocalPosition, Owner.LocalPosition + worldMatrix.Forward, worldMatrix.Up);
         }
-
-        public Camera() : this(45.0f, 4.0f/3.0f, 1, 1000)
+        public Camera() : this(45.0f, 4.0f / 3.0f, 1, 1000)
         {
         }
-
         public Camera(float fieldOfView, float aspectRatio, float nearPlaneDistance, float farPlaneDistance)
         {
             projectionMatrix = Matrix.CreatePerspectiveFieldOfView(MathHelper.ToRadians(fieldOfView), aspectRatio, nearPlaneDistance, farPlaneDistance);
