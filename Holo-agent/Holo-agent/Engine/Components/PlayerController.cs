@@ -9,36 +9,18 @@ namespace Engine.Components
 {
     public class PlayerController : CharacterController
     {
+        private bool interactPressed;
         private float turnSpeed;
 
         private void Turn(GameTime gameTime)
         {
             Vector3 rot = Owner.LocalEulerRotation;
-            if (Input.MOUSE_AXIS_X < 0)
+            rot.X -= (float)(turnSpeed * Input.MOUSE_AXIS_X * gameTime.ElapsedGameTime.TotalMilliseconds);
+            if (rot.Y < 75f || rot.Y > 285f)
             {
-                rot.X += (float)(turnSpeed * gameTime.ElapsedGameTime.TotalSeconds);
-            }
-            if (Input.MOUSE_AXIS_X > 0)
-            {
-                rot.X -= (float)(turnSpeed * gameTime.ElapsedGameTime.TotalSeconds);
-            }
-            if (Input.MOUSE_AXIS_Y < 0)
-            {
-                if (rot.Y < 75f || rot.Y > 285f)
-                {
-                    float newRot = rot.Y + (float)(turnSpeed * gameTime.ElapsedGameTime.TotalSeconds);
-                    if (newRot < 75f || newRot > 285f)
-                        rot.Y += (float)(turnSpeed * gameTime.ElapsedGameTime.TotalSeconds);
-                }
-            }
-            if (Input.MOUSE_AXIS_Y > 0)
-            {
-                if (rot.Y < 75f || rot.Y > 285f)
-                {
-                    float newRot = rot.Y - (float)(turnSpeed * gameTime.ElapsedGameTime.TotalSeconds);
-                    if (newRot < 75f || newRot > 285f)
-                        rot.Y -= (float)(turnSpeed * gameTime.ElapsedGameTime.TotalSeconds);
-                }
+                float newRot = rot.Y - (float)(turnSpeed * Input.MOUSE_AXIS_Y * gameTime.ElapsedGameTime.TotalMilliseconds);
+                if (newRot < 75f || newRot > 285f)
+                    rot.Y = newRot;
             }
             Owner.LocalEulerRotation = Vector3.Lerp(Owner.LocalEulerRotation, rot, 0.75f);
         }
@@ -85,13 +67,18 @@ namespace Engine.Components
             }
 
             // Check if previous state ended.
-            if (movement == Movement.CROUCH && Input.KEY_STATE.IsKeyUp(Input.CROUCH)) movement = Movement.WALK;
+            if (movement == Movement.CROUCH && Input.KEY_STATE.IsKeyUp(Input.CROUCH))
+            {
+                movement = Movement.WALK;
+                Owner.LocalPosition = Owner.LocalPosition + new Vector3(0, 9, 0);
+            }
             if (movement == Movement.RUN && Input.KEY_STATE.IsKeyUp(Input.RUN)) movement = Movement.WALK;
 
             // Check if new state occured.
             if (movement == Movement.WALK && Input.KEY_STATE.IsKeyDown(Input.CROUCH))
             {
                 movement = Movement.CROUCH;
+                Owner.LocalPosition = Owner.LocalPosition - new Vector3(0, 9, 0);
                 return;
             }
             if(movement == Movement.WALK && Input.KEY_STATE.IsKeyDown(Input.RUN))
@@ -106,10 +93,20 @@ namespace Engine.Components
             UpdateMovementState();
             Turn(gameTime);
             Move(gameTime);
+
+            if (Input.KEY_STATE.IsKeyDown(Input.INTERACT))
+            {
+                if (!interactPressed)
+                {
+                    interactPressed = true;
+                    // Interaction ray.
+                }
+            }
+            else if (interactPressed) interactPressed = false;
         }
 
         public PlayerController() : 
-            this(75.0f, 0.5f, 125.0f, 1.0f, 50.0f, 0.0f, 200.0f)
+            this(75.0f, 0.5f, 125.0f, 1.0f, 50.0f, 0.0f, 20.0f)
         {
         }
 
@@ -117,6 +114,7 @@ namespace Engine.Components
             base(walkSpeed, walkVolume, runSpeed, runVolume, crouchSpeed, crouchVolume)
         {
             this.turnSpeed = turnSpeed;
+            interactPressed = false;
         }
     }
 }
