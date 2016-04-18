@@ -167,6 +167,10 @@ namespace Engine
             set
             {
                 localPosition = value;
+                foreach(GameObject child in children.Values)
+                {
+                    child.UpdateLocalToWorldMatrix(LocalToWorldMatrix);
+                }
             }
         }
         /// <summary>
@@ -181,6 +185,10 @@ namespace Engine
             set
             {
                 localRotation = value;
+                foreach (GameObject child in children.Values)
+                {
+                    child.UpdateLocalToWorldMatrix(LocalToWorldMatrix);
+                }
             }
         }
 
@@ -233,6 +241,10 @@ namespace Engine
                 localRotation = Quaternion.CreateFromYawPitchRoll(MathHelper.ToRadians(value.X), 
                                                                   MathHelper.ToRadians(value.Y), 
                                                                   MathHelper.ToRadians(value.Z));
+                foreach (GameObject child in children.Values)
+                {
+                    child.UpdateLocalToWorldMatrix(LocalToWorldMatrix);
+                }
             }
         }
 
@@ -249,6 +261,10 @@ namespace Engine
             set
             {
                 localScale = value;
+                foreach (GameObject child in children.Values)
+                {
+                    child.UpdateLocalToWorldMatrix(LocalToWorldMatrix);
+                }
             }
         }
 
@@ -266,6 +282,15 @@ namespace Engine
         /// Stores local to world coordinates transform matrix.
         /// </summary>
         private Matrix localToWorldMatrix;
+
+        private void UpdateLocalToWorldMatrix(Matrix parentLocalToWorldMatrix)
+        {
+            localToWorldMatrix = parentLocalToWorldMatrix;
+            foreach(GameObject child in children.Values)
+            {
+                child.UpdateLocalToWorldMatrix(LocalToWorldMatrix);
+            }
+        }
 
         /// <summary>
         /// Transform matrix used to transform points from local coordinates to global.
@@ -304,6 +329,10 @@ namespace Engine
             set
             {
                 localPosition = Vector3.Transform(value, Matrix.Invert(localToWorldMatrix));
+                foreach (GameObject child in children.Values)
+                {
+                    child.UpdateLocalToWorldMatrix(LocalToWorldMatrix);
+                }
             }
         }
 
@@ -319,6 +348,10 @@ namespace Engine
             set
             {
                 localRotation = value * Matrix.Invert(localToWorldMatrix).Rotation;
+                foreach (GameObject child in children.Values)
+                {
+                    child.UpdateLocalToWorldMatrix(LocalToWorldMatrix);
+                }
             }
         }
 
@@ -335,6 +368,10 @@ namespace Engine
             set
             {
                 localScale = (Matrix.Invert(localToWorldMatrix) * Matrix.CreateScale(value)).Scale;
+                foreach (GameObject child in children.Values)
+                {
+                    child.UpdateLocalToWorldMatrix(LocalToWorldMatrix);
+                }
             }
         }
 
@@ -440,18 +477,18 @@ namespace Engine
         /// <param name="parent">Scene parent of the object (optional).</param>
         public GameObject(string name, Vector3 position, Quaternion rotation, Vector3 scale, Scene scene = null, GameObject parent = null)
         {
+            this.name = name;
+            this.scene = scene;
+            components = new List<Component>();
+            localToWorldMatrix = Matrix.Identity;
+            children = new SortedList<string, GameObject>();
+            this.Parent = parent;
             localPosition = position;
             lastLocalPosition = position;
             localRotation = rotation;
             lastLocalRotation = rotation;
             localScale = scale;
             lastLocalScale = scale;
-            localToWorldMatrix = Matrix.Identity;
-            this.Parent = parent;
-            this.scene = scene;
-            children = new SortedList<string, GameObject>();
-            components = new List<Component>();
-            this.name = name;
         }
 
     }

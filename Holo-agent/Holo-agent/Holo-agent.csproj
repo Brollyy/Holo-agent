@@ -43,13 +43,16 @@
     <Compile Include="Engine\Bounding Volumes\BoundingSphere.cs" />
     <Compile Include="Engine\Bounding Volumes\BoundingVolume.cs" />
     <Compile Include="Engine\Components\Camera.cs" />
+    <Compile Include="Engine\Components\CharacterController.cs" />
     <Compile Include="Engine\Components\Collider.cs" />
     <Compile Include="Engine\Components\Component.cs" />
-    <Compile Include="Engine\Components\Intreaction.cs" />
+    <Compile Include="Engine\Components\Interaction.cs" />
     <Compile Include="Engine\Components\MeshInstance.cs" />
+    <Compile Include="Engine\Components\PlayerController.cs" />
     <Compile Include="Engine\GameObject.cs" />
     <Compile Include="Engine\Input.cs" />
     <Compile Include="Engine\Scene.cs" />
+    <Compile Include="Engine\Utilities\FrameCounter.cs" />
     <Compile Include="Game1.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -67,6 +70,7 @@
   <ItemGroup>
     <MonoGameContentReference Include="Content\Content.mgcb" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(MSBuildExtensionsPath)\MonoGame\v3.0\MonoGame.Content.Builder.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
