@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
+using Engine.Utilities;
 
 namespace Engine.Components
 {
@@ -100,6 +101,35 @@ namespace Engine.Components
                 {
                     interactPressed = true;
                     // Interaction ray.
+                    Raycast ray = new Raycast(Owner.GlobalPosition, Owner.LocalToWorldMatrix.Forward, 100.0f);
+                    List<GameObject> objects = Owner.Scene.GetObjects();
+                    float? closest = null;
+                    GameObject closestGo = null;
+                    foreach(GameObject go in objects)
+                    {
+                        if (go == Owner) continue;
+                        Collider col = go.GetComponent<Collider>();
+                        if(col != null)
+                        {
+                            float? distance = ray.Intersect(col.bound);
+                            if(distance != null)
+                            {
+                                if(closest == null || distance < closest)
+                                {
+                                    closest = distance;
+                                    closestGo = go;
+                                }
+                            }
+                        }
+                    }
+                    if(closestGo != null)
+                    {
+                        System.Console.WriteLine(closestGo.Name + " " + closest);
+                    }
+                    else
+                    {
+                        System.Console.WriteLine("No object found in radius.");
+                    }
                 }
             }
             else if (interactPressed) interactPressed = false;

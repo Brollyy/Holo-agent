@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Engine.Components
 {
-   public abstract class Intreaction : Component
+   public abstract class Interaction : Component
     {
         /// <summary>
         /// 

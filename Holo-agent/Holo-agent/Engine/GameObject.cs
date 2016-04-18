@@ -479,6 +479,7 @@ namespace Engine
         {
             this.name = name;
             this.scene = scene;
+            if (scene != null) scene.AddObject(this);
             components = new List<Component>();
             localToWorldMatrix = Matrix.Identity;
             children = new SortedList<string, GameObject>();

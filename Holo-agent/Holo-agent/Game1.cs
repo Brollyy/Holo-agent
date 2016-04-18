@@ -30,6 +30,7 @@ namespace Holo_agent
         {
             graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
+            // Uncomment to enable 60+ FPS.
             /*graphics.SynchronizeWithVerticalRetrace = false;
             this.IsFixedTimeStep = false;*/
         }
@@ -47,14 +48,15 @@ namespace Holo_agent
             columns = new GameObject[8];
             walls = new GameObject[7];
             doors = new GameObject[2];
-            player = new GameObject("Player", new Vector3(30, 18, -25), Quaternion.Identity, Vector3.One);
+            scene = new Scene();
+            player = new GameObject("Player", new Vector3(30, 18, -25), Quaternion.Identity, Vector3.One, scene);
             player.AddNewComponent<PlayerController>();
-            GameObject camera = new GameObject("Camera", Vector3.Zero, Quaternion.Identity, Vector3.One, null, player);
+            Collider playerCol = player.AddNewComponent<Collider>();
+            playerCol.bound = new Engine.Bounding_Volumes.BoundingBox(playerCol, Vector3.Zero, 10f * Vector3.One);
+            GameObject camera = new GameObject("Camera", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, player);
             Camera cameraComp = new Camera(45, graphics.GraphicsDevice.Viewport.AspectRatio, 1, 1000);
             camera.AddComponent(cameraComp);
-            Collider cameraCol = camera.AddNewComponent<Collider>();
-            cameraCol.bound = new Engine.Bounding_Volumes.BoundingBox(cameraCol, Vector3.Zero, 10f*Vector3.One);
-            scene = new Scene(camera);
+            scene.Camera = camera;
             for (int i = 0; i < 8; ++i)
             {
                 columns[i] = new GameObject("Column" + i, new Vector3(80 * (i % 2), 0, -120 * (i / 2)), Quaternion.CreateFromYawPitchRoll(0, MathHelper.ToRadians(270), 0), new Vector3(0.1f, 0.1f, 0.2f), scene);
@@ -135,7 +137,7 @@ namespace Holo_agent
             scene.Camera.Update(gameTime);
             for (int i = 0; i < 8; ++i)
             {
-                collision = scene.Camera.GetComponent<Collider>().Collide(columns[i].GetComponent<Collider>());
+                collision = player.GetComponent<Collider>().Collide(columns[i].GetComponent<Collider>());
                 if (collision != 0)
                 {
                     player.RevertLastMovement();
@@ -194,6 +196,13 @@ namespace Holo_agent
                                                                                   vertices, 0, 8,
                                                                                   indexes, 0, 12);
             }
+
+            //Ray
+            VertexPosition[] line = new VertexPosition[2];
+            line[0].Position = player.GlobalPosition - new Vector3(0, 1, 0);
+            line[1].Position = line[0].Position + player.LocalToWorldMatrix.Forward * 100.0f;
+            graphics.GraphicsDevice.DrawUserPrimitives<VertexPosition>(PrimitiveType.LineList, line, 0, 1);
+
             GraphicsDevice.RasterizerState = originalState;
 
             DrawSprite(160, 220, new Vector3(40,180,0), new Vector3(-90, 0, 0), groundTexture, 20, false);
