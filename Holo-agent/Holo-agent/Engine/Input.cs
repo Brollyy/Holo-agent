@@ -10,8 +10,8 @@ namespace Engine
         public static MouseState MOUSE_STATE;
         public static ButtonState BUTTON_PRESSED, BUTTON_RELEASED;
         public static MouseButtons FIRE, ZOOM;
-        public static Keys MOVE_FORWARD, MOVE_BACKWARD, STRAFE_LEFT, STRAFE_RIGHT, RUN, JUMP, CROUCH;
-        public static int MOUSE_AXIS_X, MOUSE_AXIS_Y;
+        public static Keys MOVE_FORWARD, MOVE_BACKWARD, STRAFE_LEFT, STRAFE_RIGHT, RUN, JUMP, CROUCH, INTERACT;
+        public static float MOUSE_AXIS_X, MOUSE_AXIS_Y;
         private static int inversionFactorX, inversionFactorY;
         /// <summary>
         /// Initializes controls.
@@ -25,6 +25,7 @@ namespace Engine
             RUN = Keys.LeftShift;
             JUMP = Keys.Space;
             CROUCH = Keys.C;
+            INTERACT = Keys.E;
             FIRE = MouseButtons.Left;
             ZOOM = MouseButtons.Right;
             BUTTON_PRESSED = ButtonState.Pressed;
@@ -41,8 +42,8 @@ namespace Engine
             // Handle mouse input and set mouse pointer so it's not going off the screen.
             // TODO: design better way to handle this, this feels janky.
             MOUSE_STATE = Mouse.GetState();
-            MOUSE_AXIS_X = (MOUSE_STATE.X - graphics.PreferredBackBufferWidth/2) * inversionFactorX;
-            MOUSE_AXIS_Y = (MOUSE_STATE.Y - graphics.PreferredBackBufferHeight/2) * inversionFactorY;
+            MOUSE_AXIS_X = (float)(MOUSE_STATE.X - graphics.PreferredBackBufferWidth / 2) / (float)graphics.PreferredBackBufferWidth * inversionFactorX;
+            MOUSE_AXIS_Y = (float)(MOUSE_STATE.Y - graphics.PreferredBackBufferHeight / 2) / (float)graphics.PreferredBackBufferHeight * inversionFactorY;
             Mouse.SetPosition(graphics.PreferredBackBufferWidth / 2, graphics.PreferredBackBufferHeight / 2);
         }
         /// <summary>

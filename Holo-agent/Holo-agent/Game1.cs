@@ -30,6 +30,8 @@ namespace Holo_agent
         {
             graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
+            /*graphics.SynchronizeWithVerticalRetrace = false;
+            this.IsFixedTimeStep = false;*/
         }
 
         /// <summary>
@@ -202,6 +204,7 @@ namespace Holo_agent
             spriteBatch.DrawString(font, player.GlobalPosition.ToString(), new Vector2(50, 100), Color.Black);
             spriteBatch.DrawString(font, player.GlobalRotation.ToString(), new Vector2(50, 125), Color.Black);*/
             spriteBatch.DrawString(font, frameCounter.AverageFramesPerSecond.ToString(), new Vector2(50, 50), Color.Black);
+            spriteBatch.DrawString(font, Input.MOUSE_AXIS_X.ToString() + " " + Input.MOUSE_AXIS_Y.ToString(), new Vector2(50, 75), Color.Black);
             spriteBatch.End();
 
             base.Draw(gameTime);
