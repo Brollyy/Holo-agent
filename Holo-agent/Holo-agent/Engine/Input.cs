@@ -1,4 +1,6 @@
-﻿using Microsoft.Xna.Framework.Input;
+﻿using System;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Input;
 
 namespace Engine
 {
@@ -33,13 +35,15 @@ namespace Engine
         /// <summary>
         /// Gets keyboard and mouse states.
         /// </summary>
-        public static void Update()
+        public static void Update(GraphicsDeviceManager graphics)
         {
             KEY_STATE = Keyboard.GetState();
-            MouseState oldMouseState = MOUSE_STATE;
+            // Handle mouse input and set mouse pointer so it's not going off the screen.
+            // TODO: design better way to handle this, this feels janky.
             MOUSE_STATE = Mouse.GetState();
-            MOUSE_AXIS_X = (MOUSE_STATE.X - oldMouseState.X) * inversionFactorX;
-            MOUSE_AXIS_Y = (MOUSE_STATE.Y - oldMouseState.Y) * inversionFactorY;
+            MOUSE_AXIS_X = (MOUSE_STATE.X - graphics.PreferredBackBufferWidth/2) * inversionFactorX;
+            MOUSE_AXIS_Y = (MOUSE_STATE.Y - graphics.PreferredBackBufferHeight/2) * inversionFactorY;
+            Mouse.SetPosition(graphics.PreferredBackBufferWidth / 2, graphics.PreferredBackBufferHeight / 2);
         }
         /// <summary>
         /// Allows to change key binding.
