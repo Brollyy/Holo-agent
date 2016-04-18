@@ -53,6 +53,7 @@
     <Compile Include="Engine\Input.cs" />
     <Compile Include="Engine\Scene.cs" />
     <Compile Include="Engine\Utilities\FrameCounter.cs" />
+    <Compile Include="Engine\Utilities\Raycast.cs" />
     <Compile Include="Game1.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
