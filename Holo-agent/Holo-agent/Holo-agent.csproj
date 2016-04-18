@@ -45,6 +45,7 @@
     <Compile Include="Engine\Components\Camera.cs" />
     <Compile Include="Engine\Components\Collider.cs" />
     <Compile Include="Engine\Components\Component.cs" />
+    <Compile Include="Engine\Components\Intreaction.cs" />
     <Compile Include="Engine\Components\MeshInstance.cs" />
     <Compile Include="Engine\GameObject.cs" />
     <Compile Include="Engine\Input.cs" />
