@@ -45,13 +45,13 @@ namespace Holo_agent
             Camera cameraComp = new Camera(45, graphics.GraphicsDevice.Viewport.AspectRatio, 1, 1000);
             camera.AddComponent(cameraComp);
             Collider cameraCol = camera.AddNewComponent<Collider>();
-            cameraCol.bound = new Engine.Bounding_Volumes.BoundingSphere(cameraCol, Vector3.Zero, 10.0f);
+            cameraCol.bound = new Engine.Bounding_Volumes.BoundingBox(cameraCol, Vector3.Zero, 10f*Vector3.One);
             scene = new Scene(camera);
             for (int i = 0; i < 8; ++i)
             {
                 columns[i] = new GameObject("Column" + i, new Vector3(80 * (i % 2), 0, -120 * (i / 2)), Quaternion.CreateFromYawPitchRoll(0, MathHelper.ToRadians(270), 0), new Vector3(0.1f, 0.1f, 0.2f), scene);
                 Collider columnCol = columns[i].AddNewComponent<Collider>();
-                columnCol.bound = new Engine.Bounding_Volumes.BoundingBox(columnCol, new Vector3(0,0,150), new Vector3(60,60,150));
+                columnCol.bound = new Engine.Bounding_Volumes.BoundingBox(columnCol, new Vector3(0,30,0), new Vector3(60,60,150));
             }
             ladder = new GameObject("Ladder", new Vector3(60, 15, -60), Quaternion.CreateFromYawPitchRoll(MathHelper.ToRadians(225), MathHelper.ToRadians(270), 0), new Vector3(0.15f, 0.15f, 0.15f), scene);
             tile = new GameObject("Ceiling panel", new Vector3(40, 0.05f, -60), Quaternion.CreateFromYawPitchRoll(MathHelper.ToRadians(225), MathHelper.ToRadians(270), 0), new Vector3(0.1f, 0.1f, 0.1f), scene);
