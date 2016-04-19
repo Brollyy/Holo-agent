@@ -85,6 +85,7 @@ namespace Holo_agent
                 doors[i] = new GameObject("Doors" + i, new Vector3(40, 30, 42.5f - ((i+1)%2)*442.5f), Quaternion.CreateFromYawPitchRoll(MathHelper.ToRadians((i%2)*180), 0, 0), new Vector3(0.1f, 0.165f, 0.1f), scene);
                 Collider doorCol = doors[i].AddNewComponent<Collider>();
                 doorCol.bound = new Engine.Bounding_Volumes.BoundingBox(doorCol, new Vector3(0, 0, 0), new Vector3(450, 180, 30));
+                doors[i].AddNewComponent<DoorInteraction>();
             }
             Mouse.SetPosition(graphics.PreferredBackBufferWidth / 2, graphics.PreferredBackBufferHeight / 2);
             Input.Initialize();
