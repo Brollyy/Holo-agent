@@ -46,6 +46,7 @@
     <Compile Include="Engine\Components\CharacterController.cs" />
     <Compile Include="Engine\Components\Collider.cs" />
     <Compile Include="Engine\Components\Component.cs" />
+    <Compile Include="Engine\Components\DoorInteraction.cs" />
     <Compile Include="Engine\Components\Interaction.cs" />
     <Compile Include="Engine\Components\MeshInstance.cs" />
     <Compile Include="Engine\Components\PlayerController.cs" />
