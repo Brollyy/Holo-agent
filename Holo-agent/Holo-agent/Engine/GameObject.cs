@@ -70,10 +70,7 @@ namespace Engine
                 // Next, change the transform matrix.
                 if(value != null)
                 {
-                    localToWorldMatrix = value.localToWorldMatrix*
-                                         Matrix.CreateTranslation(value.localPosition) *
-                                         Matrix.CreateFromQuaternion(value.localRotation) *
-                                         Matrix.CreateScale(value.localScale);
+                    localToWorldMatrix = value.LocalToWorldMatrix;
                 }
                 else
                 {
@@ -299,10 +296,12 @@ namespace Engine
         {
             get
             {
-                return localToWorldMatrix *
-                       Matrix.CreateScale(localScale) *
-                       Matrix.CreateFromQuaternion(localRotation) *
-                       Matrix.CreateTranslation(localPosition);
+                if(name.Equals("Ladder"))
+                { }
+                Matrix localWorld = Matrix.CreateScale(localScale);
+                localWorld *= Matrix.CreateFromQuaternion(localRotation);
+                localWorld *= Matrix.CreateTranslation(localPosition);
+                return localWorld * localToWorldMatrix;
             }
         }
 
