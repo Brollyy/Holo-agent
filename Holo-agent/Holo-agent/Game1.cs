@@ -1,9 +1,11 @@
-﻿using Microsoft.Xna.Framework;
+﻿//#define DRAW_DEBUG_WIREFRAME
+
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Engine;
 using Engine.Components;
-using Engine.Bounding_Volumes;
+using Engine.Utilities;
 
 namespace Holo_agent
 {
@@ -16,7 +18,9 @@ namespace Holo_agent
         SpriteBatch spriteBatch;
         Texture2D crosshairTexture;
         SpriteFont font;
+        FrameCounter frameCounter;
         Scene scene;
+        GameObject player;
         GameObject[] columns;
         GameObject ladder;
         GameObject tile;
@@ -24,11 +28,13 @@ namespace Holo_agent
         GameObject[] doors;
         int collision = 0;
         Texture2D groundTexture;
-
         public Game1()
         {
             graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
+            // Uncomment to enable 60+ FPS.
+            /*graphics.SynchronizeWithVerticalRetrace = false;
+            this.IsFixedTimeStep = false;*/
         }
 
         /// <summary>
@@ -40,15 +46,19 @@ namespace Holo_agent
         protected override void Initialize()
         {
             // TODO: Add your initialization logic here
+            frameCounter = new FrameCounter();
             columns = new GameObject[8];
             walls = new GameObject[7];
             doors = new GameObject[2];
-            GameObject camera = new GameObject("Camera", new Vector3(30, 18, -25), Quaternion.Identity, Vector3.One);
+            scene = new Scene();
+            player = new GameObject("Player", new Vector3(30, 18, -25), Quaternion.Identity, Vector3.One, scene);
+            player.AddNewComponent<PlayerController>();
+            Collider playerCol = player.AddNewComponent<Collider>();
+            playerCol.bound = new Engine.Bounding_Volumes.BoundingBox(playerCol, Vector3.Zero, 10f * Vector3.One);
+            GameObject camera = new GameObject("Camera", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, player);
             Camera cameraComp = new Camera(45, graphics.GraphicsDevice.Viewport.AspectRatio, 1, 1000);
             camera.AddComponent(cameraComp);
-            Collider cameraCol = camera.AddNewComponent<Collider>();
-            cameraCol.bound = new Engine.Bounding_Volumes.BoundingBox(cameraCol, Vector3.Zero, 10f*Vector3.One);
-            scene = new Scene(camera);
+            scene.Camera = camera;
             for (int i = 0; i < 8; ++i)
             {
                 columns[i] = new GameObject("Column" + i, new Vector3(80 * (i % 2), 0, -120 * (i / 2)), Quaternion.CreateFromYawPitchRoll(0, MathHelper.ToRadians(270), 0), new Vector3(0.1f, 0.1f, 0.2f), scene);
@@ -60,19 +70,25 @@ namespace Holo_agent
             for(int i = 0; i < 4; ++i)
             {
                 walls[i] = new GameObject("Wall" + i, new Vector3(-60 + (i % 2) * 200, 30, 40 - 440*(i/2)), Quaternion.CreateFromYawPitchRoll(0, 0, 0), new Vector3(1, 0.5f, 1), scene);
+                Collider wallCol = walls[i].AddNewComponent<Collider>();
+                wallCol.bound = new Engine.Bounding_Volumes.BoundingBox(wallCol, new Vector3(0, 0, 1.5f), new Vector3(60, 60, 2));
             }
             for(int i = 4; i < 6; ++i)
             {
                 walls[i] = new GameObject("Wall" + i, new Vector3(200 - 320*(i%2), 30, -180), Quaternion.CreateFromYawPitchRoll(MathHelper.ToRadians(90), 0, 0), new Vector3(3.75f, 0.5f, 1), scene);
+                Collider wallCol = walls[i].AddNewComponent<Collider>();
+                wallCol.bound = new Engine.Bounding_Volumes.BoundingBox(wallCol, new Vector3(1.5f, 0, 0), new Vector3(60, 60, 2));
             }
             walls[6] = new GameObject("Ceiling", new Vector3(40, 60, -180), Quaternion.CreateFromYawPitchRoll(0, MathHelper.ToRadians(270), 0), new Vector3(2.7f, 3.66f, 1f), scene);
             for(int i = 0; i < 2; ++i)
             {
                 doors[i] = new GameObject("Doors" + i, new Vector3(40, 30, 42.5f - ((i+1)%2)*442.5f), Quaternion.CreateFromYawPitchRoll(MathHelper.ToRadians((i%2)*180), 0, 0), new Vector3(0.1f, 0.165f, 0.1f), scene);
+                Collider doorCol = doors[i].AddNewComponent<Collider>();
+                doorCol.bound = new Engine.Bounding_Volumes.BoundingBox(doorCol, new Vector3(0, 0, 0), new Vector3(450, 180, 30));
+                doors[i].AddNewComponent<DoorInteraction>();
             }
-            //Collider robotCol = robot.AddNewComponent<Collider>();
-            //robotCol.bound = new Engine.Bounding_Volumes.BoundingBox(robotCol, new Vector3(Vector2.Zero, 5.0f), 5.0f*Vector3.One);
             Mouse.SetPosition(graphics.PreferredBackBufferWidth / 2, graphics.PreferredBackBufferHeight / 2);
+            Input.Initialize();
             base.Initialize();
         }
 
@@ -119,19 +135,39 @@ namespace Holo_agent
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Update(GameTime gameTime)
         {
+            frameCounter.Update(gameTime);
+
+            Input.Update(graphics);
+
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
 
+            player.Update(gameTime);
             scene.Camera.Update(gameTime);
             for (int i = 0; i < 8; ++i)
             {
-                collision = scene.Camera.GetComponent<Collider>().Collide(columns[i].GetComponent<Collider>());
+                collision = player.GetComponent<Collider>().Collide(columns[i].GetComponent<Collider>());
                 if (collision != 0)
                 {
-                    scene.Camera.RevertLastMovement();
+                    player.RevertLastMovement();
                 }
             }
-
+            for (int i = 0; i < 6; ++i)
+            {
+                collision = player.GetComponent<Collider>().Collide(walls[i].GetComponent<Collider>());
+                if (collision != 0)
+                {
+                    player.RevertLastMovement();
+                }
+            }
+            for (int i = 0; i < 2; ++i)
+            {
+                collision = player.GetComponent<Collider>().Collide(doors[i].GetComponent<Collider>());
+                if (collision != 0)
+                {
+                    player.RevertLastMovement();
+                }
+            }
             base.Update(gameTime);
         }
 
@@ -153,7 +189,7 @@ namespace Holo_agent
             for (int i = 0; i < 2; ++i)
                 doors[i].Draw(gameTime);
 
-
+#if DRAW_DEBUG_WIREFRAME
             RasterizerState originalState = GraphicsDevice.RasterizerState;
             RasterizerState rasterizerState = new RasterizerState();
             rasterizerState.FillMode = FillMode.WireFrame;
@@ -163,6 +199,12 @@ namespace Holo_agent
             effect.View = scene.Camera.GetComponent<Camera>().ViewMatrix;
             effect.Projection = scene.Camera.GetComponent<Camera>().ProjectionMatrix;
             effect.CurrentTechnique.Passes[0].Apply();
+            short[] indexes = new short[24]
+            {
+                0, 1, 1, 2, 2, 3, 3, 0,
+                4, 5, 5, 6, 6, 7, 7, 4,
+                0, 4, 1, 5, 2, 6, 3, 7
+            };
 
             for (int i = 0; i < 8; ++i)
             {
@@ -174,26 +216,59 @@ namespace Holo_agent
                 {
                     vertices[j].Position = corners[j];
                 }
-                short[] indexes = new short[24]
-                {
-                    0, 1, 1, 2, 2, 3, 3, 0,
-                    4, 5, 5, 6, 6, 7, 7, 4,
-                    0, 4, 1, 5, 2, 6, 3, 7
-                };
 
                 graphics.GraphicsDevice.DrawUserIndexedPrimitives<VertexPosition>(PrimitiveType.LineList,
                                                                                   vertices, 0, 8,
                                                                                   indexes, 0, 12);
             }
-            GraphicsDevice.RasterizerState = originalState;
+            for (int i = 0; i < 6; ++i)
+            {
+                Engine.Bounding_Volumes.BoundingBox box = (walls[i].GetComponent<Collider>().bound as Engine.Bounding_Volumes.BoundingBox);
+                Vector3[] corners = box.Corners();
 
+                VertexPosition[] vertices = new VertexPosition[8];
+                for (int j = 0; j < 8; ++j)
+                {
+                    vertices[j].Position = corners[j];
+                }
+
+                graphics.GraphicsDevice.DrawUserIndexedPrimitives<VertexPosition>(PrimitiveType.LineList,
+                                                                                  vertices, 0, 8,
+                                                                                  indexes, 0, 12);
+            }
+            for (int i = 0; i < 2; ++i)
+            {
+                Engine.Bounding_Volumes.BoundingBox box = (doors[i].GetComponent<Collider>().bound as Engine.Bounding_Volumes.BoundingBox);
+                Vector3[] corners = box.Corners();
+
+                VertexPosition[] vertices = new VertexPosition[8];
+                for (int j = 0; j < 8; ++j)
+                {
+                    vertices[j].Position = corners[j];
+                }
+
+                graphics.GraphicsDevice.DrawUserIndexedPrimitives<VertexPosition>(PrimitiveType.LineList,
+                                                                                  vertices, 0, 8,
+                                                                                  indexes, 0, 12);
+            }
+
+            //Ray
+            VertexPosition[] line = new VertexPosition[2];
+            line[0].Position = player.GlobalPosition - new Vector3(0, 1, 0);
+            line[1].Position = line[0].Position + player.LocalToWorldMatrix.Forward * 100.0f;
+            graphics.GraphicsDevice.DrawUserPrimitives<VertexPosition>(PrimitiveType.LineList, line, 0, 1);
+
+            GraphicsDevice.RasterizerState = originalState;
+#endif
             DrawSprite(160, 220, new Vector3(40,180,0), new Vector3(-90, 0, 0), groundTexture, 20, false);
             spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.AnisotropicWrap, DepthStencilState.Default, RasterizerState.CullNone);
             spriteBatch.Draw(crosshairTexture, new Vector2((graphics.PreferredBackBufferWidth / 2) - (crosshairTexture.Width / 2), (graphics.PreferredBackBufferHeight / 2) - (crosshairTexture.Height / 2)));
-            spriteBatch.DrawString(font, scene.Camera.LocalPosition.ToString(), new Vector2(50, 50), Color.Black);
-            spriteBatch.DrawString(font, scene.Camera.LocalQuaternionRotation.ToString(), new Vector2(50, 100), Color.Black);
-            spriteBatch.DrawString(font, scene.Camera.LocalEulerRotation.ToString(), new Vector2(50, 150), Color.Black);
-            spriteBatch.DrawString(font, collision.ToString(), new Vector2(50, 200), Color.Black);
+            /*spriteBatch.DrawString(font, scene.Camera.GlobalPosition.ToString(), new Vector2(50, 50), Color.Black);
+            spriteBatch.DrawString(font, scene.Camera.GlobalRotation.ToString(), new Vector2(50, 75), Color.Black);
+            spriteBatch.DrawString(font, player.GlobalPosition.ToString(), new Vector2(50, 100), Color.Black);
+            spriteBatch.DrawString(font, player.GlobalRotation.ToString(), new Vector2(50, 125), Color.Black);*/
+            spriteBatch.DrawString(font, frameCounter.AverageFramesPerSecond.ToString(), new Vector2(50, 50), Color.Black);
+            spriteBatch.DrawString(font, Input.MOUSE_AXIS_X.ToString() + " " + Input.MOUSE_AXIS_Y.ToString(), new Vector2(50, 75), Color.Black);
             spriteBatch.End();
 
             base.Draw(gameTime);

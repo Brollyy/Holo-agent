@@ -70,10 +70,7 @@ namespace Engine
                 // Next, change the transform matrix.
                 if(value != null)
                 {
-                    localToWorldMatrix = value.localToWorldMatrix*
-                                         Matrix.CreateTranslation(value.localPosition) *
-                                         Matrix.CreateFromQuaternion(value.localRotation) *
-                                         Matrix.CreateScale(value.localScale);
+                    localToWorldMatrix = value.LocalToWorldMatrix;
                 }
                 else
                 {
@@ -167,6 +164,10 @@ namespace Engine
             set
             {
                 localPosition = value;
+                foreach(GameObject child in children.Values)
+                {
+                    child.UpdateLocalToWorldMatrix(LocalToWorldMatrix);
+                }
             }
         }
         /// <summary>
@@ -181,6 +182,10 @@ namespace Engine
             set
             {
                 localRotation = value;
+                foreach (GameObject child in children.Values)
+                {
+                    child.UpdateLocalToWorldMatrix(LocalToWorldMatrix);
+                }
             }
         }
 
@@ -233,6 +238,10 @@ namespace Engine
                 localRotation = Quaternion.CreateFromYawPitchRoll(MathHelper.ToRadians(value.X), 
                                                                   MathHelper.ToRadians(value.Y), 
                                                                   MathHelper.ToRadians(value.Z));
+                foreach (GameObject child in children.Values)
+                {
+                    child.UpdateLocalToWorldMatrix(LocalToWorldMatrix);
+                }
             }
         }
 
@@ -249,6 +258,10 @@ namespace Engine
             set
             {
                 localScale = value;
+                foreach (GameObject child in children.Values)
+                {
+                    child.UpdateLocalToWorldMatrix(LocalToWorldMatrix);
+                }
             }
         }
 
@@ -267,6 +280,15 @@ namespace Engine
         /// </summary>
         private Matrix localToWorldMatrix;
 
+        private void UpdateLocalToWorldMatrix(Matrix parentLocalToWorldMatrix)
+        {
+            localToWorldMatrix = parentLocalToWorldMatrix;
+            foreach(GameObject child in children.Values)
+            {
+                child.UpdateLocalToWorldMatrix(LocalToWorldMatrix);
+            }
+        }
+
         /// <summary>
         /// Transform matrix used to transform points from local coordinates to global.
         /// </summary>
@@ -274,10 +296,10 @@ namespace Engine
         {
             get
             {
-                return localToWorldMatrix *
-                       Matrix.CreateScale(localScale) *
+                return Matrix.CreateScale(localScale) *
                        Matrix.CreateFromQuaternion(localRotation) *
-                       Matrix.CreateTranslation(localPosition);
+                       Matrix.CreateTranslation(localPosition) *
+                       localToWorldMatrix;
             }
         }
 
@@ -304,6 +326,10 @@ namespace Engine
             set
             {
                 localPosition = Vector3.Transform(value, Matrix.Invert(localToWorldMatrix));
+                foreach (GameObject child in children.Values)
+                {
+                    child.UpdateLocalToWorldMatrix(LocalToWorldMatrix);
+                }
             }
         }
 
@@ -319,6 +345,10 @@ namespace Engine
             set
             {
                 localRotation = value * Matrix.Invert(localToWorldMatrix).Rotation;
+                foreach (GameObject child in children.Values)
+                {
+                    child.UpdateLocalToWorldMatrix(LocalToWorldMatrix);
+                }
             }
         }
 
@@ -335,6 +365,10 @@ namespace Engine
             set
             {
                 localScale = (Matrix.Invert(localToWorldMatrix) * Matrix.CreateScale(value)).Scale;
+                foreach (GameObject child in children.Values)
+                {
+                    child.UpdateLocalToWorldMatrix(LocalToWorldMatrix);
+                }
             }
         }
 
@@ -440,18 +474,19 @@ namespace Engine
         /// <param name="parent">Scene parent of the object (optional).</param>
         public GameObject(string name, Vector3 position, Quaternion rotation, Vector3 scale, Scene scene = null, GameObject parent = null)
         {
+            this.name = name;
+            this.scene = scene;
+            if (scene != null) scene.AddObject(this);
+            components = new List<Component>();
+            localToWorldMatrix = Matrix.Identity;
+            children = new SortedList<string, GameObject>();
+            this.Parent = parent;
             localPosition = position;
             lastLocalPosition = position;
             localRotation = rotation;
             lastLocalRotation = rotation;
             localScale = scale;
             lastLocalScale = scale;
-            localToWorldMatrix = Matrix.Identity;
-            this.Parent = parent;
-            this.scene = scene;
-            children = new SortedList<string, GameObject>();
-            components = new List<Component>();
-            this.name = name;
         }
 
     }
