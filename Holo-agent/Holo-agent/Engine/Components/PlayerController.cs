@@ -122,8 +122,11 @@ namespace Engine.Components
                             }
                         }
                     }
+                    
                     if(closestGo != null)
                     {
+                        Interaction interact = closestGo.GetComponent<Interaction>();
+                        if (interact != null) interact.Interact(Owner);
                         System.Console.WriteLine(closestGo.Name + " " + closest);
                     }
                     else
