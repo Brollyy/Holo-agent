@@ -45,6 +45,7 @@ namespace Holo_agent
         /// </summary>
         protected override void Initialize()
         {
+            Input.Initialize();
             // TODO: Add your initialization logic here
             frameCounter = new FrameCounter();
             columns = new GameObject[8];
@@ -88,7 +89,6 @@ namespace Holo_agent
                 doors[i].AddNewComponent<DoorInteraction>();
             }
             Mouse.SetPosition(graphics.PreferredBackBufferWidth / 2, graphics.PreferredBackBufferHeight / 2);
-            Input.Initialize();
             base.Initialize();
         }
 
@@ -137,7 +137,7 @@ namespace Holo_agent
         {
             frameCounter.Update(gameTime);
 
-            Input.Update(graphics);
+            Input.Update(gameTime, graphics);
 
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
@@ -268,7 +268,6 @@ namespace Holo_agent
             spriteBatch.DrawString(font, player.GlobalPosition.ToString(), new Vector2(50, 100), Color.Black);
             spriteBatch.DrawString(font, player.GlobalRotation.ToString(), new Vector2(50, 125), Color.Black);*/
             spriteBatch.DrawString(font, frameCounter.AverageFramesPerSecond.ToString(), new Vector2(50, 50), Color.Black);
-            spriteBatch.DrawString(font, Input.MOUSE_AXIS_X.ToString() + " " + Input.MOUSE_AXIS_Y.ToString(), new Vector2(50, 75), Color.Black);
             spriteBatch.End();
 
             base.Draw(gameTime);
