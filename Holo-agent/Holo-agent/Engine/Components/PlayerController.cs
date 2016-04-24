@@ -11,6 +11,9 @@ namespace Engine.Components
     public class PlayerController : CharacterController
     {
         private float turnSpeed;
+        private bool hologramRecording;
+        private HologramPath? recordedPath;
+        private GameObject player;
 
         private void Turn(float xMove, float yMove, GameTime gameTime)
         {
@@ -118,7 +121,7 @@ namespace Engine.Components
         }
 
         private void StopRunning(ReleasedActionArgs args)
-        { 
+        {
             if (movement == Movement.RUN) movement = Movement.WALK;
         }
 
@@ -159,9 +162,74 @@ namespace Engine.Components
             }
         }
 
+        private void RecordingButton(PressedActionArgs args)
+        {
+            if (!hologramRecording)
+            {
+                GameObject hologramRecording = new GameObject("HologramRecorder", Owner.LocalPosition, Owner.LocalQuaternionRotation, 
+                                                              Owner.LocalScale, Owner.Scene, Owner.Parent);
+                player = Owner;
+                Owner.RemoveComponent(this);
+                hologramRecording.AddComponent(this);
+                hologramRecording.AddComponent(new HologramRecorder(5.0f, 100, StopRecording));
+                MeshInstance mesh = Owner.GetComponent<MeshInstance>();
+                if(mesh != null) hologramRecording.AddComponent(new MeshInstance(mesh));
+                Owner.Scene.Camera.Parent = hologramRecording;
+                this.hologramRecording = true;
+            }
+        }
+
+        private void StopRecording(HologramPath path)
+        {
+            this.hologramRecording = false;
+            recordedPath = path;
+            System.Console.WriteLine(path.GlobalPositions.Count);
+            System.Console.WriteLine(path.GlobalRotations.Count);
+            System.Console.WriteLine(path.Duration + " " + path.NumberOfSteps);
+            Owner.RemoveComponent(this);
+            if (player != null) player.AddComponent(this);
+            Vector3 cameraPosition = Owner.Scene.Camera.LocalPosition;
+            Quaternion cameraRotation = Owner.Scene.Camera.LocalQuaternionRotation;
+            Owner.Scene.Camera.Parent = Owner;
+            Owner.Scene.Camera.LocalPosition = cameraPosition;
+            Owner.Scene.Camera.LocalQuaternionRotation = cameraRotation;
+        }
+
+        private void PlaybackButton(PressedActionArgs args)
+        {
+
+        }
+
+        private void StopPlayback()
+        {
+
+        }
+
         public override void Update(GameTime gameTime)
         {
             
+        }
+
+        public override void Destroy()
+        {
+            Input.UnbindActionContinuousPress(GameAction.MOVE_FORWARD, MoveForward);
+            Input.UnbindActionContinuousPress(GameAction.MOVE_BACKWARD, MoveBackward);
+            Input.UnbindActionContinuousPress(GameAction.STRAFE_LEFT, MoveLeft);
+            Input.UnbindActionContinuousPress(GameAction.STRAFE_RIGHT, MoveRight);
+            Input.UnbindActionPress(GameAction.INTERACT, Interact);
+            Input.UnbindActionPress(GameAction.CROUCH, Crouch);
+            Input.UnbindActionRelease(GameAction.CROUCH, StopCrouching);
+            Input.UnbindActionPress(GameAction.RUN, Run);
+            Input.UnbindActionRelease(GameAction.RUN, StopRunning);
+            Input.UnbindActionPress(GameAction.RECORD_HOLOGRAM, RecordingButton);
+            Input.UnbindMouseMovement(Turn);
+        }
+
+        public PlayerController(PlayerController other):
+            this(other.walkSpeed, other.walkVolume, other.runSpeed, other.runVolume, 
+                 other.crouchSpeed, other.crouchVolume, other.turnSpeed)
+        {
+            movement = other.movement;
         }
 
         public PlayerController() : 
@@ -173,6 +241,9 @@ namespace Engine.Components
             base(walkSpeed, walkVolume, runSpeed, runVolume, crouchSpeed, crouchVolume)
         {
             this.turnSpeed = turnSpeed;
+            recordedPath = null;
+            hologramRecording = false;
+            player = null;
 
             // Bind actions to input.
             Input.BindActionContinuousPress(GameAction.MOVE_FORWARD, MoveForward);
@@ -184,6 +255,7 @@ namespace Engine.Components
             Input.BindActionRelease(GameAction.CROUCH, StopCrouching);
             Input.BindActionPress(GameAction.RUN, Run);
             Input.BindActionRelease(GameAction.RUN, StopRunning);
+            Input.BindActionPress(GameAction.RECORD_HOLOGRAM, RecordingButton);
             Input.BindMouseMovement(Turn);
         }
     }

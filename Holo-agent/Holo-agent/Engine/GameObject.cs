@@ -412,7 +412,22 @@ namespace Engine
         public bool RemoveComponent(Component comp)
         {
             bool success = components.Remove(comp);
-            if(success) comp.GetType().GetProperty("go", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(comp, null);
+            if (success)
+            {
+                FieldInfo gameObjectField = null;
+                Type type = comp.GetType();
+                while (type != null)
+                {
+                    gameObjectField = type.GetField("go", BindingFlags.Instance | BindingFlags.NonPublic);
+                    if (gameObjectField != null) break;
+                    type = type.BaseType;
+                }
+
+                if(gameObjectField != null)
+                {
+                    gameObjectField.SetValue(comp, null);
+                }
+            }
             return success;
         }
 
@@ -435,9 +450,16 @@ namespace Engine
             lastLocalPosition = localPosition;
             lastLocalRotation = localRotation;
             lastLocalScale = localScale;
-            foreach(Component comp in components)
+            List<Component> copyComponents = new List<Component>(components);
+            foreach(Component comp in copyComponents)
             {
                 comp.Update(gameTime);
+            }
+
+            List<GameObject> copyChildren = new List<GameObject>(children.Values);
+            foreach(GameObject child in copyChildren)
+            {
+                child.Update(gameTime);
             }
         }
 
@@ -446,6 +468,22 @@ namespace Engine
             foreach(Component comp in components)
             {
                 comp.Draw(gameTime);
+            }
+        }
+
+        public void Destroy()
+        {
+            Parent = null;
+
+            foreach(Component comp in components)
+            {
+                comp.Destroy();
+            }
+
+            List<GameObject> copyChildren = new List<GameObject>(children.Values);
+            foreach(GameObject child in copyChildren)
+            {
+                child.Destroy();
             }
         }
 
@@ -476,7 +514,7 @@ namespace Engine
         {
             this.name = name;
             this.scene = scene;
-            if (scene != null) scene.AddObject(this);
+            if (scene != null && parent == null) scene.AddObject(this);
             components = new List<Component>();
             localToWorldMatrix = Matrix.Identity;
             children = new SortedList<string, GameObject>();

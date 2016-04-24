@@ -105,18 +105,24 @@ namespace Holo_agent
             crosshairTexture = Content.Load<Texture2D>("Textures/Crosshair");
             font = Content.Load<SpriteFont>("Textures/Arial");
 
-            for(int i = 0; i < 8; ++i)
+            for (int i = 0; i < 8; ++i)
+            {
                 columns[i].AddComponent(new MeshInstance(columnModel, null));
+            }
 
             Model ladderModel = Content.Load<Model>("Models/ladder");
             ladder.AddComponent(new MeshInstance(ladderModel, null));
             Model tileModel = Content.Load<Model>("Models/panel_ceiling");
             tile.AddComponent(new MeshInstance(tileModel, null));
             for (int i = 0; i < 7; ++i)
+            {
                 walls[i].AddComponent(new MeshInstance(tileModel, null));
+            }
             Model doorModel = Content.Load<Model>("Models/door_001");
             for (int i = 0; i < 2; ++i)
+            {
                 doors[i].AddComponent(new MeshInstance(doorModel, null));
+            }
         }
 
         /// <summary>
@@ -142,8 +148,7 @@ namespace Holo_agent
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
 
-            player.Update(gameTime);
-            scene.Camera.Update(gameTime);
+            scene.Update(gameTime);
             for (int i = 0; i < 8; ++i)
             {
                 collision = player.GetComponent<Collider>().Collide(columns[i].GetComponent<Collider>());

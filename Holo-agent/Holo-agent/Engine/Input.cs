@@ -36,6 +36,8 @@ namespace Engine
             bindings.Add(GameAction.INTERACT, new KeyboardInputSource(Keys.E));
             bindings.Add(GameAction.FIRE, new MouseInputSource(MouseButtons.Left));
             bindings.Add(GameAction.ZOOM, new MouseInputSource(MouseButtons.Right));
+            bindings.Add(GameAction.RECORD_HOLOGRAM, new KeyboardInputSource(Keys.R));
+            bindings.Add(GameAction.PLAY_HOLOGRAM, new KeyboardInputSource(Keys.Q));
             pressedDelegates = new Dictionary<GameAction, List<ProcessPressedAction>>();
             releasedDelegates = new Dictionary<GameAction, List<ProcessReleasedAction>>();
             pressingDelegates = new Dictionary<GameAction, List<ProcessPressingAction>>();
@@ -53,7 +55,7 @@ namespace Engine
             inversionFactorY = 1;
         }
         /// <summary>
-        /// Gets keyboard and mouse states.
+        /// Updates the input state and activates handlers binded to specific actions.
         /// </summary>
         public static void Update(GameTime gameTime, GraphicsDeviceManager graphics)
         {
@@ -87,7 +89,8 @@ namespace Engine
                     {
                         PressingActionArgs args = new PressingActionArgs(actionStates[ga].Second);
                         args.gameTime = gameTime;
-                        foreach (ProcessPressingAction proc in pressingDelegates[ga])
+                        List<ProcessPressingAction> copyPressingDelegates = new List<ProcessPressingAction>(pressingDelegates[ga]);
+                        foreach (ProcessPressingAction proc in copyPressingDelegates)
                         {
                             proc(args);
                         }
@@ -103,7 +106,8 @@ namespace Engine
                     {
                         PressedActionArgs args = new PressedActionArgs(time);
                         args.gameTime = gameTime;
-                        foreach(ProcessPressedAction proc in pressedDelegates[ga])
+                        List<ProcessPressedAction> copyPressedDelegates = new List<ProcessPressedAction>(pressedDelegates[ga]);
+                        foreach(ProcessPressedAction proc in copyPressedDelegates)
                         {
                             proc(args);
                         }
@@ -112,7 +116,8 @@ namespace Engine
                     {
                         ReleasedActionArgs args = new ReleasedActionArgs(time);
                         args.gameTime = gameTime;
-                        foreach(ProcessReleasedAction proc in releasedDelegates[ga])
+                        List<ProcessReleasedAction> copyReleasedDelegates = new List<ProcessReleasedAction>(releasedDelegates[ga]);
+                        foreach(ProcessReleasedAction proc in copyReleasedDelegates)
                         {
                             proc(args);
                         }
@@ -125,81 +130,98 @@ namespace Engine
 
             if(xMove*xMove + yMove*yMove > 0.0000001f)
             {
-                foreach(ProcessMouseMove proc in mouseDelegates)
+                List<ProcessMouseMove> copyMouseDelegates = new List<ProcessMouseMove>(mouseDelegates);
+                foreach(ProcessMouseMove proc in copyMouseDelegates)
                 {
                     proc(xMove, yMove, gameTime);
                 }
             }
             Mouse.SetPosition(graphics.PreferredBackBufferWidth / 2, graphics.PreferredBackBufferHeight / 2);
         }
-   
-        public static void BindAction(GameAction action, ProcessInputAction processFunction)
+
+        public static void BindActionHandler(GameAction action, ProcessInputAction processFunction)
         {
-            if(pressedDelegates.ContainsKey(action))
-            {
-                pressedDelegates[action].Add(new ProcessPressedAction(processFunction));
-            }
-
-            if(releasedDelegates.ContainsKey(action))
-            {
-                releasedDelegates[action].Add(new ProcessReleasedAction(processFunction));
-            }
-
-            if(pressingDelegates.ContainsKey(action))
-            {
-                pressingDelegates[action].Add(new ProcessPressingAction(processFunction));
-            }
+            BindActionPress(action, new ProcessPressedAction(processFunction));
+            BindActionRelease(action, new ProcessReleasedAction(processFunction));
+            BindActionContinuousPress(action, new ProcessPressingAction(processFunction));
         }
 
         public static void BindActionPress(GameAction action, ProcessPressedAction processFunction)
         {
-            if (pressedDelegates.ContainsKey(action))
+            if (pressedDelegates.ContainsKey(action) && !pressedDelegates[action].Contains(processFunction))
             {
-                pressedDelegates[action].Add(new ProcessPressedAction(processFunction));
+                pressedDelegates[action].Add(processFunction);
             }
         }
 
         public static void BindActionRelease(GameAction action, ProcessReleasedAction processFunction)
         {
-            if (releasedDelegates.ContainsKey(action))
+            if (releasedDelegates.ContainsKey(action) && !releasedDelegates[action].Contains(processFunction))
             {
-                releasedDelegates[action].Add(new ProcessReleasedAction(processFunction));
+                releasedDelegates[action].Add(processFunction);
             }
         }
 
         public static void BindActionContinuousPress(GameAction action, ProcessPressingAction processFunction)
         {
-            if (pressingDelegates.ContainsKey(action))
+            if (pressingDelegates.ContainsKey(action) && !pressingDelegates[action].Contains(processFunction))
             {
-                pressingDelegates[action].Add(new ProcessPressingAction(processFunction));
+                pressingDelegates[action].Add(processFunction);
             }
         }
 
         public static void BindMouseMovement(ProcessMouseMove processFunction)
         {
-            mouseDelegates.Add(processFunction);
+            if(!mouseDelegates.Contains(processFunction)) mouseDelegates.Add(processFunction);
+        }
+
+        public static void UnbindActionHandler(GameAction action, ProcessInputAction processFunction)
+        {
+            UnbindActionPress(action, new ProcessPressedAction(processFunction));
+            UnbindActionRelease(action, new ProcessReleasedAction(processFunction));
+            UnbindActionContinuousPress(action, new ProcessPressingAction(processFunction));
+        }
+
+        public static void UnbindActionPress(GameAction action, ProcessPressedAction processFunction)
+        {
+            if (pressedDelegates.ContainsKey(action) && pressedDelegates[action].Contains(processFunction))
+            {
+                pressedDelegates[action].Remove(processFunction);
+            }
+        }
+
+        public static void UnbindActionRelease(GameAction action, ProcessReleasedAction processFunction)
+        {
+            if (releasedDelegates.ContainsKey(action))
+            {
+                releasedDelegates[action].Remove(processFunction);
+            }
+        }
+
+        public static void UnbindActionContinuousPress(GameAction action, ProcessPressingAction processFunction)
+        {
+            if (pressingDelegates.ContainsKey(action))
+            {
+                pressingDelegates[action].Remove(processFunction);
+            }
+        }
+
+        public static void UnbindMouseMovement(ProcessMouseMove processFunction)
+        {
+            mouseDelegates.Remove(processFunction);
         }
 
         /// <summary>
-        /// Allows to invert mouse axis.
-        /// Usage example: Input.InvertAxis('Y');
+        /// Allows to invert X mouse axis.
         /// </summary>
-        public static void InvertAxis(char axis)
+        public static void InvertXAxis()
         {
-            if (axis.Equals('X'))
-            {
-                if (inversionFactorX.Equals(1))
-                    inversionFactorX = -1;
-                else
-                    inversionFactorX = 1;
-            }
-            if (axis.Equals('Y'))
-            {
-                if (inversionFactorY.Equals(1))
-                    inversionFactorY = -1;
-                else
-                    inversionFactorY = 1;
-            }
+            inversionFactorX = -inversionFactorX;
+        }
+
+        public static void InvertYAxis()
+        {
+            inversionFactorY = -inversionFactorY;
         }
     }
     public enum MouseButtons
@@ -222,7 +244,7 @@ namespace Engine
         FIRE,
         ZOOM,
         RECORD_HOLOGRAM,
-        START_HOLOGRAM
+        PLAY_HOLOGRAM
     }
 
     internal abstract class InputSource
