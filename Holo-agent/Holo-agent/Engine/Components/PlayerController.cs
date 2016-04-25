@@ -178,6 +178,7 @@ namespace Engine.Components
 
         private void Fire(PressedActionArgs args)
         {
+            if (hologramRecording) return;
             Weapon weapon = Owner.GetChild("Pistol").GetComponent<Weapon>();
             if (weapon == null) return;
             weapon.shoot(args.gameTime);
@@ -185,6 +186,7 @@ namespace Engine.Components
 
         private void UnlockFire(ReleasedActionArgs args)
         {
+            if (hologramRecording) return;
             Weapon weapon = Owner.GetChild("Pistol").GetComponent<Weapon>();
             if (weapon == null) return;
             weapon.unlockWeapon();
@@ -192,6 +194,7 @@ namespace Engine.Components
 
         private void Reload(PressedActionArgs args)
         {
+            if (hologramRecording) return;
             Weapon weapon = Owner.GetChild("Pistol").GetComponent<Weapon>();
             if (weapon == null) return;
             weapon.reload();
