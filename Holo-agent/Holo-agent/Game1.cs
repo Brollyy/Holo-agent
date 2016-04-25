@@ -114,6 +114,7 @@ namespace Holo_agent
             ladder.AddComponent(new MeshInstance(ladderModel, null));
             Model tileModel = Content.Load<Model>("Models/panel_ceiling");
             tile.AddComponent(new MeshInstance(tileModel, null));
+            player.GetComponent<PlayerController>().PlayerMesh = new MeshInstance(tileModel, null);
             for (int i = 0; i < 7; ++i)
             {
                 walls[i].AddComponent(new MeshInstance(tileModel, null));
@@ -154,7 +155,7 @@ namespace Holo_agent
                 collision = player.GetComponent<Collider>().Collide(columns[i].GetComponent<Collider>());
                 if (collision != 0)
                 {
-                    player.RevertLastMovement();
+                    player.GetComponent<PlayerController>().Revert();
                 }
             }
             for (int i = 0; i < 6; ++i)
@@ -162,7 +163,7 @@ namespace Holo_agent
                 collision = player.GetComponent<Collider>().Collide(walls[i].GetComponent<Collider>());
                 if (collision != 0)
                 {
-                    player.RevertLastMovement();
+                    player.GetComponent<PlayerController>().Revert();
                 }
             }
             for (int i = 0; i < 2; ++i)
@@ -170,7 +171,7 @@ namespace Holo_agent
                 collision = player.GetComponent<Collider>().Collide(doors[i].GetComponent<Collider>());
                 if (collision != 0)
                 {
-                    player.RevertLastMovement();
+                    player.GetComponent<PlayerController>().Revert();
                 }
             }
             base.Update(gameTime);
@@ -184,15 +185,7 @@ namespace Holo_agent
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
 
-            for(int i = 0; i < 8; ++i)
-                columns[i].Draw(gameTime);
-
-            ladder.Draw(gameTime);
-            tile.Draw(gameTime);
-            for (int i = 0; i < 7; ++i)
-                walls[i].Draw(gameTime);
-            for (int i = 0; i < 2; ++i)
-                doors[i].Draw(gameTime);
+            scene.Draw(gameTime);
 
 #if DRAW_DEBUG_WIREFRAME
             RasterizerState originalState = GraphicsDevice.RasterizerState;

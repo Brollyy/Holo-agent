@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Engine.Utilities;
 
@@ -12,8 +8,21 @@ namespace Engine.Components
     {
         private float turnSpeed;
         private bool hologramRecording;
+        private bool hologramPlaying;
         private HologramPath? recordedPath;
         private GameObject player;
+        private Vector3 playerCameraPosition;
+        private Quaternion playerCameraRotation;
+        private Vector3 playerCameraScale;
+
+        private Vector3 lastPosition, lastPosition2;
+        private Quaternion lastRotation, lastRotation2;
+
+        public MeshInstance PlayerMesh
+        {
+            get;
+            set;
+        }
 
         private void Turn(float xMove, float yMove, GameTime gameTime)
         {
@@ -164,16 +173,20 @@ namespace Engine.Components
 
         private void RecordingButton(PressedActionArgs args)
         {
-            if (!hologramRecording)
+            if (!hologramRecording && !hologramPlaying)
             {
                 GameObject hologramRecording = new GameObject("HologramRecorder", Owner.LocalPosition, Owner.LocalQuaternionRotation, 
                                                               Owner.LocalScale, Owner.Scene, Owner.Parent);
-                player = Owner;
-                Owner.RemoveComponent(this);
-                hologramRecording.AddComponent(this);
                 hologramRecording.AddComponent(new HologramRecorder(5.0f, 100, StopRecording));
                 MeshInstance mesh = Owner.GetComponent<MeshInstance>();
                 if(mesh != null) hologramRecording.AddComponent(new MeshInstance(mesh));
+                if(PlayerMesh != null) Owner.AddComponent(PlayerMesh);
+                player = Owner;
+                playerCameraPosition = Owner.Scene.Camera.GlobalPosition;
+                playerCameraRotation = Owner.Scene.Camera.GlobalRotation;
+                playerCameraScale = Owner.Scene.Camera.GlobalScale;
+                Owner.RemoveComponent(this);
+                hologramRecording.AddComponent(this);
                 Owner.Scene.Camera.Parent = hologramRecording;
                 this.hologramRecording = true;
             }
@@ -187,27 +200,51 @@ namespace Engine.Components
             System.Console.WriteLine(path.GlobalRotations.Count);
             System.Console.WriteLine(path.Duration + " " + path.NumberOfSteps);
             Owner.RemoveComponent(this);
-            if (player != null) player.AddComponent(this);
-            Vector3 cameraPosition = Owner.Scene.Camera.LocalPosition;
-            Quaternion cameraRotation = Owner.Scene.Camera.LocalQuaternionRotation;
+            if (player != null)
+            {
+                player.AddComponent(this);
+                if(PlayerMesh != null) player.RemoveComponent(PlayerMesh);
+            }
             Owner.Scene.Camera.Parent = Owner;
-            Owner.Scene.Camera.LocalPosition = cameraPosition;
-            Owner.Scene.Camera.LocalQuaternionRotation = cameraRotation;
+            Owner.Scene.Camera.GlobalPosition = playerCameraPosition;
+            Owner.Scene.Camera.GlobalRotation = playerCameraRotation;
+            Owner.Scene.Camera.GlobalScale = playerCameraScale;
         }
 
         private void PlaybackButton(PressedActionArgs args)
         {
-
+            if (!hologramRecording && !hologramPlaying && recordedPath != null)
+            {
+                GameObject hologramPlayback = new GameObject("HologramPlayback", Owner.LocalPosition, Owner.LocalQuaternionRotation,
+                                                              Owner.LocalScale, Owner.Scene, Owner.Parent);
+                hologramPlayback.GlobalPosition = recordedPath.Value.GlobalPositions[0];
+                hologramPlayback.GlobalRotation = recordedPath.Value.GlobalRotations[0];
+                hologramPlayback.AddComponent(new HologramPlayback(recordedPath.Value, StopPlayback));
+                if (PlayerMesh != null) hologramPlayback.AddComponent(PlayerMesh);
+                this.hologramPlaying = true;
+            }
         }
 
         private void StopPlayback()
         {
+            this.hologramPlaying = false;
+            if(PlayerMesh != null) PlayerMesh.Owner.RemoveComponent(PlayerMesh);
+        }
 
+        public void Revert()
+        {
+            Owner.LocalPosition = lastPosition2;
+            Owner.LocalQuaternionRotation = lastRotation2;
+            lastPosition = lastPosition2;
+            lastRotation = lastRotation2;
         }
 
         public override void Update(GameTime gameTime)
         {
-            
+            lastPosition2 = lastPosition;
+            lastPosition = Owner.LocalPosition;
+            lastRotation2 = lastRotation;
+            lastRotation = Owner.LocalQuaternionRotation;
         }
 
         public override void Destroy()
@@ -222,6 +259,7 @@ namespace Engine.Components
             Input.UnbindActionPress(GameAction.RUN, Run);
             Input.UnbindActionRelease(GameAction.RUN, StopRunning);
             Input.UnbindActionPress(GameAction.RECORD_HOLOGRAM, RecordingButton);
+            Input.UnbindActionPress(GameAction.PLAY_HOLOGRAM, PlaybackButton);
             Input.UnbindMouseMovement(Turn);
         }
 
@@ -243,7 +281,11 @@ namespace Engine.Components
             this.turnSpeed = turnSpeed;
             recordedPath = null;
             hologramRecording = false;
+            hologramPlaying = false;
             player = null;
+
+            lastPosition = lastPosition2 = Vector3.Zero;
+            lastRotation = lastRotation2 = Quaternion.Identity;
 
             // Bind actions to input.
             Input.BindActionContinuousPress(GameAction.MOVE_FORWARD, MoveForward);
@@ -256,6 +298,7 @@ namespace Engine.Components
             Input.BindActionPress(GameAction.RUN, Run);
             Input.BindActionRelease(GameAction.RUN, StopRunning);
             Input.BindActionPress(GameAction.RECORD_HOLOGRAM, RecordingButton);
+            Input.BindActionPress(GameAction.PLAY_HOLOGRAM, PlaybackButton);
             Input.BindMouseMovement(Turn);
         }
     }

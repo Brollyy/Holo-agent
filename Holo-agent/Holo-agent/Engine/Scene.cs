@@ -53,6 +53,14 @@ namespace Engine
             objectsToDestroy.Clear();
         }
 
+        public void Draw(GameTime gameTime)
+        {
+            foreach (GameObject go in gameObjects)
+            {
+                go.Draw(gameTime);
+            }
+        }
+
         public Scene()
         {
             activeCamera = null;

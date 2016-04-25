@@ -140,17 +140,14 @@ namespace Engine
         /// Stores position of the object in local space.
         /// </summary>
         private Vector3 localPosition;
-        private Vector3 lastLocalPosition;
         /// <summary>
         /// Stores rotation of the object in local space.
         /// </summary>
         private Quaternion localRotation;
-        private Quaternion lastLocalRotation;
         /// <summary>
         /// Stores scale of the object in local space.
         /// </summary>
         private Vector3 localScale;
-        private Vector3 lastLocalScale;
 
         /// <summary>
         /// Local position property of the object.
@@ -263,16 +260,6 @@ namespace Engine
                     child.UpdateLocalToWorldMatrix(LocalToWorldMatrix);
                 }
             }
-        }
-
-        /// <summary>
-        /// Reverts object to his position, rotation and scale from previous frame.
-        /// </summary>
-        public void RevertLastMovement()
-        {
-            localPosition = lastLocalPosition;
-            localRotation = lastLocalRotation;
-            localScale = lastLocalScale;
         }
 
         /// <summary>
@@ -447,9 +434,6 @@ namespace Engine
 
         public void Update(GameTime gameTime)
         {
-            lastLocalPosition = localPosition;
-            lastLocalRotation = localRotation;
-            lastLocalScale = localScale;
             List<Component> copyComponents = new List<Component>(components);
             foreach(Component comp in copyComponents)
             {
@@ -520,11 +504,8 @@ namespace Engine
             children = new SortedList<string, GameObject>();
             this.Parent = parent;
             localPosition = position;
-            lastLocalPosition = position;
             localRotation = rotation;
-            lastLocalRotation = rotation;
             localScale = scale;
-            lastLocalScale = scale;
         }
 
     }

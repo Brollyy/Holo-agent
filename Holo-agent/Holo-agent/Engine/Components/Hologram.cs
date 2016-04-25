@@ -77,7 +77,8 @@ namespace Engine.Components
 
         private void StopPlayback(PressedActionArgs args)
         {
-
+            if (handler != null) handler();
+            Owner.Scene.Destroy(Owner);
         }
 
         public override void Update(GameTime gameTime)
@@ -85,16 +86,16 @@ namespace Engine.Components
             overallTime += (float)gameTime.ElapsedGameTime.TotalSeconds;
             if (overallTime < path.Duration)
             {
-                if (index < path.NumberOfSteps - 1)
+                if (index < path.GlobalPositions.Count - 1)
                 {
                     time += (float)gameTime.ElapsedGameTime.TotalSeconds;
+                    Owner.GlobalPosition = Vector3.LerpPrecise(path.GlobalPositions[index], path.GlobalPositions[index + 1], time / durationOfStep);
+                    Owner.GlobalRotation = Quaternion.Lerp(path.GlobalRotations[index], path.GlobalRotations[index + 1], time / durationOfStep);
                     if (time > durationOfStep)
                     {
                         time = 0.0f;
                         index++;
                     }
-                    Owner.GlobalPosition = Vector3.LerpPrecise(path.GlobalPositions[index], path.GlobalPositions[index + 1], time / durationOfStep);
-                    Owner.GlobalRotation = Quaternion.Lerp(path.GlobalRotations[index], path.GlobalRotations[index + 1], time / durationOfStep);
                 }
             }
             else
@@ -116,6 +117,7 @@ namespace Engine.Components
             time = 0.0f;
             overallTime = 0.0f;
             durationOfStep = path.Duration / (float)path.NumberOfSteps;
+            this.handler = handler;
         }
     }
 
