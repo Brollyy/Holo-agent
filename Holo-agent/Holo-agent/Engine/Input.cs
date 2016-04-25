@@ -36,8 +36,9 @@ namespace Engine
             bindings.Add(GameAction.INTERACT, new KeyboardInputSource(Keys.E));
             bindings.Add(GameAction.FIRE, new MouseInputSource(MouseButtons.Left));
             bindings.Add(GameAction.ZOOM, new MouseInputSource(MouseButtons.Right));
-            bindings.Add(GameAction.RECORD_HOLOGRAM, new KeyboardInputSource(Keys.R));
-            bindings.Add(GameAction.PLAY_HOLOGRAM, new KeyboardInputSource(Keys.Q));
+            bindings.Add(GameAction.RELOAD, new KeyboardInputSource(Keys.R));
+            bindings.Add(GameAction.RECORD_HOLOGRAM, new KeyboardInputSource(Keys.Q));
+            bindings.Add(GameAction.PLAY_HOLOGRAM, new KeyboardInputSource(Keys.F));
             pressedDelegates = new Dictionary<GameAction, List<ProcessPressedAction>>();
             releasedDelegates = new Dictionary<GameAction, List<ProcessReleasedAction>>();
             pressingDelegates = new Dictionary<GameAction, List<ProcessPressingAction>>();
@@ -243,6 +244,7 @@ namespace Engine
         INTERACT,
         FIRE,
         ZOOM,
+        RELOAD,
         RECORD_HOLOGRAM,
         PLAY_HOLOGRAM
     }

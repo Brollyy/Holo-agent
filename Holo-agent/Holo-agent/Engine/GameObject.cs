@@ -134,7 +134,29 @@ namespace Engine
             if (index < 0 || index >= children.Count) return null;
             return children.Values[index];
         }
-        
+
+        public List<GameObject> GetChildren()
+        {
+            return new List<GameObject>(children.Values);
+        }
+
+        public bool RemoveChild(string name)
+        {
+            if(children.ContainsKey(name))
+            {
+                children.Remove(name);
+                return true;
+            }
+            return false;
+        }
+
+        public bool RemoveChild(int index)
+        {
+            if (index < 0 || index >= children.Count) return false;
+            children.RemoveAt(index);
+            return true;
+        }
+
         /// <summary>
         /// Stores position of the object in local space.
         /// </summary>
@@ -436,7 +458,7 @@ namespace Engine
             List<Component> copyComponents = new List<Component>(components);
             foreach(Component comp in copyComponents)
             {
-                comp.Update(gameTime);
+                if(comp.Enabled) comp.Update(gameTime);
             }
 
             List<GameObject> copyChildren = new List<GameObject>(children.Values);
@@ -450,7 +472,12 @@ namespace Engine
         {
             foreach(Component comp in components)
             {
-                comp.Draw(gameTime);
+                if(comp.Enabled) comp.Draw(gameTime);
+            }
+
+            foreach(GameObject child in children.Values)
+            {
+                child.Draw(gameTime);
             }
         }
 

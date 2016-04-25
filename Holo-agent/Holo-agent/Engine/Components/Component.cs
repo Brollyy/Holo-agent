@@ -9,6 +9,12 @@ namespace Engine.Components
         /// </summary>
         private GameObject go;
 
+        public bool Enabled
+        {
+            get;
+            set;
+        } = true;
+
         /// <summary>
         /// Owner property of this component. 
         /// Used by GameObject class to manage its components' owners automatically.

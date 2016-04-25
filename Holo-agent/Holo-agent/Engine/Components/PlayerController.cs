@@ -134,13 +134,10 @@ namespace Engine.Components
             if (movement == Movement.RUN) movement = Movement.WALK;
         }
 
-        private void Interact(PressedActionArgs args)
+        public void Ray(ref GameObject closestGameObject, ref float? closest, float length)
         {
-            // Interaction ray.
-            Raycast ray = new Raycast(Owner.GlobalPosition, Owner.LocalToWorldMatrix.Forward, 100.0f);
+            Raycast ray = new Raycast(Owner.GlobalPosition, Owner.LocalToWorldMatrix.Forward, length);
             List<GameObject> objects = Owner.Scene.GetObjects();
-            float? closest = null;
-            GameObject closestGo = null;
             foreach (GameObject go in objects)
             {
                 if (go == Owner) continue;
@@ -153,11 +150,19 @@ namespace Engine.Components
                         if (closest == null || distance < closest)
                         {
                             closest = distance;
-                            closestGo = go;
+                            closestGameObject = go;
                         }
                     }
                 }
             }
+        }
+
+        private void Interact(PressedActionArgs args)
+        {
+            // Interaction ray.
+            float? closest = null;
+            GameObject closestGo = null;
+            Ray(ref closestGo, ref closest, 100.0f);
             
             if (closestGo != null)
             {
@@ -169,6 +174,27 @@ namespace Engine.Components
             {
                 System.Console.WriteLine("No object found in radius.");
             }
+        }
+
+        private void Fire(PressedActionArgs args)
+        {
+            Weapon weapon = Owner.GetChild("Pistol").GetComponent<Weapon>();
+            if (weapon == null) return;
+            weapon.shoot(args.gameTime);
+        }
+
+        private void UnlockFire(ReleasedActionArgs args)
+        {
+            Weapon weapon = Owner.GetChild("Pistol").GetComponent<Weapon>();
+            if (weapon == null) return;
+            weapon.unlockWeapon();
+        }
+
+        private void Reload(PressedActionArgs args)
+        {
+            Weapon weapon = Owner.GetChild("Pistol").GetComponent<Weapon>();
+            if (weapon == null) return;
+            weapon.reload();
         }
 
         private void RecordingButton(PressedActionArgs args)
@@ -260,6 +286,9 @@ namespace Engine.Components
             Input.UnbindActionRelease(GameAction.RUN, StopRunning);
             Input.UnbindActionPress(GameAction.RECORD_HOLOGRAM, RecordingButton);
             Input.UnbindActionPress(GameAction.PLAY_HOLOGRAM, PlaybackButton);
+            Input.UnbindActionPress(GameAction.RELOAD, Reload);
+            Input.UnbindActionPress(GameAction.FIRE, Fire);
+            Input.UnbindActionRelease(GameAction.FIRE, UnlockFire);
             Input.UnbindMouseMovement(Turn);
         }
 
@@ -299,6 +328,9 @@ namespace Engine.Components
             Input.BindActionRelease(GameAction.RUN, StopRunning);
             Input.BindActionPress(GameAction.RECORD_HOLOGRAM, RecordingButton);
             Input.BindActionPress(GameAction.PLAY_HOLOGRAM, PlaybackButton);
+            Input.BindActionPress(GameAction.RELOAD, Reload);
+            Input.BindActionPress(GameAction.FIRE, Fire);
+            Input.BindActionRelease(GameAction.FIRE, UnlockFire);
             Input.BindMouseMovement(Turn);
         }
     }

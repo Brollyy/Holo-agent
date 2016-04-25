@@ -13,7 +13,22 @@ namespace Engine
 
         public List<GameObject> GetObjects()
         {
-            return gameObjects;
+            List<GameObject> allObjects = new List<GameObject>();
+            foreach(GameObject go in gameObjects)
+            {
+                PopulateGameObjectList(ref allObjects, go);
+            }
+            return allObjects;
+        }
+
+        private void PopulateGameObjectList(ref List<GameObject> list, GameObject go)
+        {
+            list.Add(go);
+            List<GameObject> children = go.GetChildren();
+            foreach (GameObject child in children)
+            {
+                PopulateGameObjectList(ref list, child);
+            }
         }
 
         public void AddObject(GameObject go)
