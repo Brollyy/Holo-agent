@@ -124,6 +124,7 @@ namespace Engine
             if (success) return child;
             else return null;
         }
+
         /// <summary>
         /// Returns child object at specified index. Return null if index was incorrect.
         /// </summary>
@@ -139,17 +140,14 @@ namespace Engine
         /// Stores position of the object in local space.
         /// </summary>
         private Vector3 localPosition;
-        private Vector3 lastLocalPosition;
         /// <summary>
         /// Stores rotation of the object in local space.
         /// </summary>
         private Quaternion localRotation;
-        private Quaternion lastLocalRotation;
         /// <summary>
         /// Stores scale of the object in local space.
         /// </summary>
         private Vector3 localScale;
-        private Vector3 lastLocalScale;
 
         /// <summary>
         /// Local position property of the object.
@@ -262,16 +260,6 @@ namespace Engine
                     child.UpdateLocalToWorldMatrix(LocalToWorldMatrix);
                 }
             }
-        }
-
-        /// <summary>
-        /// Reverts object to his position, rotation and scale from previous frame.
-        /// </summary>
-        public void RevertLastMovement()
-        {
-            localPosition = lastLocalPosition;
-            localRotation = lastLocalRotation;
-            localScale = lastLocalScale;
         }
 
         /// <summary>
@@ -411,7 +399,22 @@ namespace Engine
         public bool RemoveComponent(Component comp)
         {
             bool success = components.Remove(comp);
-            if(success) comp.GetType().GetProperty("go", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(comp, null);
+            if (success)
+            {
+                FieldInfo gameObjectField = null;
+                Type type = comp.GetType();
+                while (type != null)
+                {
+                    gameObjectField = type.GetField("go", BindingFlags.Instance | BindingFlags.NonPublic);
+                    if (gameObjectField != null) break;
+                    type = type.BaseType;
+                }
+
+                if(gameObjectField != null)
+                {
+                    gameObjectField.SetValue(comp, null);
+                }
+            }
             return success;
         }
 
@@ -431,12 +434,16 @@ namespace Engine
 
         public void Update(GameTime gameTime)
         {
-            lastLocalPosition = localPosition;
-            lastLocalRotation = localRotation;
-            lastLocalScale = localScale;
-            foreach(Component comp in components)
+            List<Component> copyComponents = new List<Component>(components);
+            foreach(Component comp in copyComponents)
             {
                 comp.Update(gameTime);
+            }
+
+            List<GameObject> copyChildren = new List<GameObject>(children.Values);
+            foreach(GameObject child in copyChildren)
+            {
+                child.Update(gameTime);
             }
         }
 
@@ -445,6 +452,22 @@ namespace Engine
             foreach(Component comp in components)
             {
                 comp.Draw(gameTime);
+            }
+        }
+
+        public void Destroy()
+        {
+            Parent = null;
+
+            foreach(Component comp in components)
+            {
+                comp.Destroy();
+            }
+
+            List<GameObject> copyChildren = new List<GameObject>(children.Values);
+            foreach(GameObject child in copyChildren)
+            {
+                child.Destroy();
             }
         }
 
@@ -475,17 +498,14 @@ namespace Engine
         {
             this.name = name;
             this.scene = scene;
-            if (scene != null) scene.AddObject(this);
+            if (scene != null && parent == null) scene.AddObject(this);
             components = new List<Component>();
             localToWorldMatrix = Matrix.Identity;
             children = new SortedList<string, GameObject>();
             this.Parent = parent;
             localPosition = position;
-            lastLocalPosition = position;
             localRotation = rotation;
-            lastLocalRotation = rotation;
             localScale = scale;
-            lastLocalScale = scale;
         }
 
     }
