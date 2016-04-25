@@ -45,6 +45,7 @@ namespace Holo_agent
         /// </summary>
         protected override void Initialize()
         {
+            Input.Initialize();
             // TODO: Add your initialization logic here
             frameCounter = new FrameCounter();
             columns = new GameObject[8];
@@ -88,7 +89,6 @@ namespace Holo_agent
                 doors[i].AddNewComponent<DoorInteraction>();
             }
             Mouse.SetPosition(graphics.PreferredBackBufferWidth / 2, graphics.PreferredBackBufferHeight / 2);
-            Input.Initialize();
             base.Initialize();
         }
 
@@ -105,18 +105,25 @@ namespace Holo_agent
             crosshairTexture = Content.Load<Texture2D>("Textures/Crosshair");
             font = Content.Load<SpriteFont>("Textures/Arial");
 
-            for(int i = 0; i < 8; ++i)
+            for (int i = 0; i < 8; ++i)
+            {
                 columns[i].AddComponent(new MeshInstance(columnModel, null));
+            }
 
             Model ladderModel = Content.Load<Model>("Models/ladder");
             ladder.AddComponent(new MeshInstance(ladderModel, null));
             Model tileModel = Content.Load<Model>("Models/panel_ceiling");
             tile.AddComponent(new MeshInstance(tileModel, null));
+            player.GetComponent<PlayerController>().PlayerMesh = new MeshInstance(tileModel, null);
             for (int i = 0; i < 7; ++i)
+            {
                 walls[i].AddComponent(new MeshInstance(tileModel, null));
+            }
             Model doorModel = Content.Load<Model>("Models/door_001");
             for (int i = 0; i < 2; ++i)
+            {
                 doors[i].AddComponent(new MeshInstance(doorModel, null));
+            }
         }
 
         /// <summary>
@@ -137,19 +144,18 @@ namespace Holo_agent
         {
             frameCounter.Update(gameTime);
 
-            Input.Update(graphics);
+            Input.Update(gameTime, graphics);
 
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
 
-            player.Update(gameTime);
-            scene.Camera.Update(gameTime);
+            scene.Update(gameTime);
             for (int i = 0; i < 8; ++i)
             {
                 collision = player.GetComponent<Collider>().Collide(columns[i].GetComponent<Collider>());
                 if (collision != 0)
                 {
-                    player.RevertLastMovement();
+                    player.GetComponent<PlayerController>().Revert();
                 }
             }
             for (int i = 0; i < 6; ++i)
@@ -157,7 +163,7 @@ namespace Holo_agent
                 collision = player.GetComponent<Collider>().Collide(walls[i].GetComponent<Collider>());
                 if (collision != 0)
                 {
-                    player.RevertLastMovement();
+                    player.GetComponent<PlayerController>().Revert();
                 }
             }
             for (int i = 0; i < 2; ++i)
@@ -165,7 +171,7 @@ namespace Holo_agent
                 collision = player.GetComponent<Collider>().Collide(doors[i].GetComponent<Collider>());
                 if (collision != 0)
                 {
-                    player.RevertLastMovement();
+                    player.GetComponent<PlayerController>().Revert();
                 }
             }
             base.Update(gameTime);
@@ -179,15 +185,7 @@ namespace Holo_agent
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
 
-            for(int i = 0; i < 8; ++i)
-                columns[i].Draw(gameTime);
-
-            ladder.Draw(gameTime);
-            tile.Draw(gameTime);
-            for (int i = 0; i < 7; ++i)
-                walls[i].Draw(gameTime);
-            for (int i = 0; i < 2; ++i)
-                doors[i].Draw(gameTime);
+            scene.Draw(gameTime);
 
 #if DRAW_DEBUG_WIREFRAME
             RasterizerState originalState = GraphicsDevice.RasterizerState;
@@ -268,7 +266,6 @@ namespace Holo_agent
             spriteBatch.DrawString(font, player.GlobalPosition.ToString(), new Vector2(50, 100), Color.Black);
             spriteBatch.DrawString(font, player.GlobalRotation.ToString(), new Vector2(50, 125), Color.Black);*/
             spriteBatch.DrawString(font, frameCounter.AverageFramesPerSecond.ToString(), new Vector2(50, 50), Color.Black);
-            spriteBatch.DrawString(font, Input.MOUSE_AXIS_X.ToString() + " " + Input.MOUSE_AXIS_Y.ToString(), new Vector2(50, 75), Color.Black);
             spriteBatch.End();
 
             base.Draw(gameTime);
