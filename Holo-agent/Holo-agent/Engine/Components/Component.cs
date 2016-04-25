@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using System;
+using Microsoft.Xna.Framework;
 
 namespace Engine.Components
 {
@@ -39,11 +40,19 @@ namespace Engine.Components
         public virtual void Draw(GameTime gameTime)
         {
         }
+
         /// <summary>
         /// Update function of this component. Override this method to implement custom logic.
         /// </summary>
         /// <param name="gameTime">Object containing present game time.</param>
         public virtual void Update(GameTime gameTime)
+        {
+        }
+
+        /// <summary>
+        /// Used to cleanup after component. Override this method to implement custom cleanup. 
+        /// </summary>
+        public virtual void Destroy()
         {
         }
     }

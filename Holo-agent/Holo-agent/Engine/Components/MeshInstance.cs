@@ -95,6 +95,10 @@ namespace Engine.Components
         {
         }
 
+        public MeshInstance(MeshInstance other) : this(other.model, other.globalTexture)
+        {
+        }
+
         public MeshInstance(Model model, Texture2D globalTexture)
         {
             this.model = model;

@@ -47,15 +47,15 @@
     <Compile Include="Engine\Components\Collider.cs" />
     <Compile Include="Engine\Components\Component.cs" />
     <Compile Include="Engine\Components\DoorInteraction.cs" />
+    <Compile Include="Engine\Components\Hologram.cs" />
     <Compile Include="Engine\Components\Interaction.cs" />
     <Compile Include="Engine\Components\MeshInstance.cs" />
     <Compile Include="Engine\Components\PlayerController.cs" />
-    <Compile Include="Engine\Components\SpriteInstance.cs" />
-    <Compile Include="Engine\Components\Weapon.cs" />
     <Compile Include="Engine\GameObject.cs" />
     <Compile Include="Engine\Input.cs" />
     <Compile Include="Engine\Scene.cs" />
     <Compile Include="Engine\Utilities\FrameCounter.cs" />
+    <Compile Include="Engine\Utilities\Pair.cs" />
     <Compile Include="Engine\Utilities\Raycast.cs" />
     <Compile Include="Game1.cs" />
     <Compile Include="Program.cs" />

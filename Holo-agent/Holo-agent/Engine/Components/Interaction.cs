@@ -1,6 +1,12 @@
-﻿namespace Engine.Components
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Engine.Components
 {
-    public abstract class Interaction : Component
+   public abstract class Interaction : Component
     {
         /// <summary>
         /// 
