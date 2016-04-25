@@ -124,7 +124,6 @@ namespace Engine
             if (success) return child;
             else return null;
         }
-
         /// <summary>
         /// Returns child object at specified index. Return null if index was incorrect.
         /// </summary>

@@ -6,6 +6,7 @@ using Microsoft.Xna.Framework.Input;
 using Engine;
 using Engine.Components;
 using Engine.Utilities;
+using Microsoft.Xna.Framework.Audio;
 
 namespace Holo_agent
 {
@@ -26,8 +27,16 @@ namespace Holo_agent
         GameObject tile;
         GameObject[] walls;
         GameObject[] doors;
+        GameObject pistol;
+        GameObject gunfire;
+        GameObject floor;
+        Weapon weapon;
         int collision = 0;
-        Texture2D groundTexture;
+        Texture2D floorTexture;
+        Texture2D gunfireTexture;
+        float timer;
+        const float TIMER = 1;
+        SoundEffect pistolShot;
         public Game1()
         {
             graphics = new GraphicsDeviceManager(this);
@@ -75,20 +84,26 @@ namespace Holo_agent
             }
             for(int i = 4; i < 6; ++i)
             {
-                walls[i] = new GameObject("Wall" + i, new Vector3(200 - 320*(i%2), 30, -180), Quaternion.CreateFromYawPitchRoll(MathHelper.ToRadians(90), 0, 0), new Vector3(3.75f, 0.5f, 1), scene);
+                walls[i] = new GameObject("Wall" + i, new Vector3(200 - 320 * (i % 2), 30, -180), Quaternion.CreateFromYawPitchRoll(MathHelper.ToRadians(90), 0, 0), new Vector3(3.75f, 0.5f, 1), scene);
                 Collider wallCol = walls[i].AddNewComponent<Collider>();
                 wallCol.bound = new Engine.Bounding_Volumes.BoundingBox(wallCol, new Vector3(1.5f, 0, 0), new Vector3(60, 60, 2));
             }
             walls[6] = new GameObject("Ceiling", new Vector3(40, 60, -180), Quaternion.CreateFromYawPitchRoll(0, MathHelper.ToRadians(270), 0), new Vector3(2.7f, 3.66f, 1f), scene);
             for(int i = 0; i < 2; ++i)
             {
-                doors[i] = new GameObject("Doors" + i, new Vector3(40, 30, 42.5f - ((i+1)%2)*442.5f), Quaternion.CreateFromYawPitchRoll(MathHelper.ToRadians((i%2)*180), 0, 0), new Vector3(0.1f, 0.165f, 0.1f), scene);
+                doors[i] = new GameObject("Doors" + i, new Vector3(40, 30, 42.5f - ((i + 1) % 2) * 442.5f), Quaternion.CreateFromYawPitchRoll(MathHelper.ToRadians((i % 2) * 180), 0, 0), new Vector3(0.1f, 0.165f, 0.1f), scene);
                 Collider doorCol = doors[i].AddNewComponent<Collider>();
                 doorCol.bound = new Engine.Bounding_Volumes.BoundingBox(doorCol, new Vector3(0, 0, 0), new Vector3(450, 180, 30));
                 doors[i].AddNewComponent<DoorInteraction>();
             }
+            floor = new GameObject("Floor", new Vector3(40, 0, -180), Quaternion.CreateFromYawPitchRoll(0, 0, MathHelper.ToRadians(90)), Vector3.One, scene);
+            pistol = new GameObject("Pistol", new Vector3(8, 9, -9), Quaternion.Identity, Vector3.One, scene, player);
+            pistol.AddComponent(new Weapon(WeaponTypes.Pistol, 12, 28, 12, 240, 1000));
+            weapon = player.GetChild("Pistol").GetComponent<Weapon>();
+            gunfire = new GameObject("Gunfire", new Vector3(-3.5f, -10.5f, -9), Quaternion.Identity, Vector3.One, scene, pistol);
             Mouse.SetPosition(graphics.PreferredBackBufferWidth / 2, graphics.PreferredBackBufferHeight / 2);
             Input.Initialize();
+            timer = 1;
             base.Initialize();
         }
 
@@ -101,10 +116,11 @@ namespace Holo_agent
             // Create a new SpriteBatch, which can be used to draw textures.
             spriteBatch = new SpriteBatch(GraphicsDevice);
             Model columnModel = Content.Load<Model>("Models/column_001");
-            groundTexture = Content.Load<Texture2D>("Textures/Ground");
+            floorTexture = Content.Load<Texture2D>("Textures/Ground");
             crosshairTexture = Content.Load<Texture2D>("Textures/Crosshair");
+            gunfireTexture = Content.Load<Texture2D>("Textures/Gunfire");
             font = Content.Load<SpriteFont>("Textures/Arial");
-
+            pistolShot = Content.Load<SoundEffect>("Sounds/Pistol");
             for(int i = 0; i < 8; ++i)
                 columns[i].AddComponent(new MeshInstance(columnModel, null));
 
@@ -117,6 +133,10 @@ namespace Holo_agent
             Model doorModel = Content.Load<Model>("Models/door_001");
             for (int i = 0; i < 2; ++i)
                 doors[i].AddComponent(new MeshInstance(doorModel, null));
+            floor.AddComponent(new SpriteInstance(floorTexture, new Vector3(0, 160, 220), 20, new BasicEffect(graphics.GraphicsDevice), graphics));
+            gunfire.AddComponent(new SpriteInstance(gunfireTexture, new Vector3(0, 5, 5), 1, new BasicEffect(graphics.GraphicsDevice), graphics));
+            Model pistolModel = Content.Load<Model>("Models/Pistol_Game");
+            pistol.AddComponent(new MeshInstance(pistolModel, null));
         }
 
         /// <summary>
@@ -168,6 +188,7 @@ namespace Holo_agent
                     player.RevertLastMovement();
                 }
             }
+            timer -= (float)gameTime.ElapsedGameTime.TotalSeconds;
             base.Update(gameTime);
         }
 
@@ -188,7 +209,7 @@ namespace Holo_agent
                 walls[i].Draw(gameTime);
             for (int i = 0; i < 2; ++i)
                 doors[i].Draw(gameTime);
-
+            pistol.Draw(gameTime);
 #if DRAW_DEBUG_WIREFRAME
             RasterizerState originalState = GraphicsDevice.RasterizerState;
             RasterizerState rasterizerState = new RasterizerState();
@@ -260,58 +281,27 @@ namespace Holo_agent
 
             GraphicsDevice.RasterizerState = originalState;
 #endif
-            DrawSprite(160, 220, new Vector3(40,180,0), new Vector3(-90, 0, 0), groundTexture, 20, false);
+            floor.Draw(gameTime);
             spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.AnisotropicWrap, DepthStencilState.Default, RasterizerState.CullNone);
             spriteBatch.Draw(crosshairTexture, new Vector2((graphics.PreferredBackBufferWidth / 2) - (crosshairTexture.Width / 2), (graphics.PreferredBackBufferHeight / 2) - (crosshairTexture.Height / 2)));
-            /*spriteBatch.DrawString(font, scene.Camera.GlobalPosition.ToString(), new Vector2(50, 50), Color.Black);
-            spriteBatch.DrawString(font, scene.Camera.GlobalRotation.ToString(), new Vector2(50, 75), Color.Black);
-            spriteBatch.DrawString(font, player.GlobalPosition.ToString(), new Vector2(50, 100), Color.Black);
-            spriteBatch.DrawString(font, player.GlobalRotation.ToString(), new Vector2(50, 125), Color.Black);*/
+            if (player.GetChild("Pistol") != null)
+            {
+                spriteBatch.DrawString(font, weapon.getMagazine() + "/" + weapon.getAmmo(), new Vector2(10, 410), Color.Red, 0, Vector2.Zero, 4, SpriteEffects.None, 0);
+                if (weapon.info != null)
+                    spriteBatch.DrawString(font, weapon.info, new Vector2(50, 95), Color.SeaGreen);
+                if (weapon.getGunfire() == true)
+                {
+                    timer = TIMER;
+                    if (timer >= 0)
+                        gunfire.Draw(gameTime);
+                    weapon.setGunfire(false);
+                    pistolShot.Play();
+                }
+            }
             spriteBatch.DrawString(font, frameCounter.AverageFramesPerSecond.ToString(), new Vector2(50, 50), Color.Black);
             spriteBatch.DrawString(font, Input.MOUSE_AXIS_X.ToString() + " " + Input.MOUSE_AXIS_Y.ToString(), new Vector2(50, 75), Color.Black);
             spriteBatch.End();
-
             base.Draw(gameTime);
-        }
-
-
-        void DrawSprite(float spriteX, float spriteY, Vector3 spritePosition, Vector3 spriteRotation, Texture2D spriteTexture, int tilesNumber, bool isBillboardActive)
-        {
-            VertexPositionTexture[] spriteVerts = new VertexPositionTexture[6];
-            BasicEffect spriteEffect = new BasicEffect(graphics.GraphicsDevice);
-            spriteVerts[0].Position = new Vector3(-spriteX, -spriteY, 0);
-            spriteVerts[1].Position = new Vector3(-spriteX, spriteY, 0);
-            spriteVerts[2].Position = new Vector3(spriteX, -spriteY, 0);
-            spriteVerts[3].Position = spriteVerts[1].Position;
-            spriteVerts[4].Position = new Vector3(spriteX, spriteY, 0);
-            spriteVerts[5].Position = spriteVerts[2].Position;
-            spriteVerts[0].TextureCoordinate = new Vector2(0, 0);
-            spriteVerts[1].TextureCoordinate = new Vector2(0, tilesNumber);
-            spriteVerts[2].TextureCoordinate = new Vector2(tilesNumber, 0);
-            spriteVerts[3].TextureCoordinate = spriteVerts[1].TextureCoordinate;
-            spriteVerts[4].TextureCoordinate = new Vector2(tilesNumber, tilesNumber);
-            spriteVerts[5].TextureCoordinate = spriteVerts[2].TextureCoordinate;
-            spriteEffect.Projection = scene.Camera.GetComponent<Camera>().ProjectionMatrix;
-            spriteEffect.View = scene.Camera.GetComponent<Camera>().ViewMatrix;
-            spriteEffect.World = Matrix.CreateWorld(Vector3.Zero, Vector3.Forward, Vector3.Down);
-            if (isBillboardActive == true)
-            {
-                spriteEffect.World *= Matrix.CreateConstrainedBillboard(spritePosition, scene.Camera.GlobalPosition, Vector3.UnitY, null, null);
-            }
-            else
-            {
-                spriteEffect.World *= Matrix.CreateTranslation(spritePosition);
-            }
-            spriteEffect.World *= Matrix.CreateRotationX(MathHelper.ToRadians(spriteRotation.X));
-            spriteEffect.World *= Matrix.CreateRotationY(MathHelper.ToRadians(spriteRotation.Y));
-            spriteEffect.World *= Matrix.CreateRotationZ(MathHelper.ToRadians(spriteRotation.Z));
-            spriteEffect.TextureEnabled = true;
-            spriteEffect.Texture = spriteTexture;
-            foreach (EffectPass pass in spriteEffect.CurrentTechnique.Passes)
-            {
-                pass.Apply();
-                graphics.GraphicsDevice.DrawUserPrimitives(PrimitiveType.TriangleList, spriteVerts, 0, 2);
-            }
         }
     }
 }

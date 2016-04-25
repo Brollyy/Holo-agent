@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Engine.Utilities;
 
@@ -88,46 +84,71 @@ namespace Engine.Components
                 return;
             }
         }
-
+        public void Ray(ref GameObject closestGameObject, ref float? closest, float length)
+        {
+            Raycast ray = new Raycast(Owner.GlobalPosition, Owner.LocalToWorldMatrix.Forward, length);
+            List<GameObject> objects = Owner.Scene.GetObjects();
+            foreach (GameObject go in objects)
+            {
+                if (go == Owner) continue;
+                Collider col = go.GetComponent<Collider>();
+                if (col != null)
+                {
+                    float? distance = ray.Intersect(col.bound);
+                    if (distance != null)
+                    {
+                        if (closest == null || distance < closest)
+                        {
+                            closest = distance;
+                            closestGameObject = go;
+                        }
+                    }
+                }
+            }
+        }
         public override void Update(GameTime gameTime)
         {
             UpdateMovementState();
             Turn(gameTime);
             Move(gameTime);
+            if(Owner.GetComponents<Weapon>() != null)
+            {
+                Weapon weapon = Owner.GetChild("Pistol").GetComponent<Weapon>();
+                if (Input.IsButtonPressed(Input.FIRE))
+                {
+                    weapon.shoot(gameTime);
+                }
+                else
+                {
+                    if (weapon.getGunfire() == false)
+                        weapon.unlockWeapon();
+                }
+                if (Input.IsButtonPressed(Input.ZOOM))
+                {
 
+                }
+                if (Input.IsButtonReleased(Input.ZOOM))
+                {
+
+                }
+                if (Input.KEY_STATE.IsKeyDown(Input.RELOAD))
+                {
+                    weapon.reload();
+                }
+            }
             if (Input.KEY_STATE.IsKeyDown(Input.INTERACT))
             {
+                float? closest = null;
+                GameObject closestGameObject = null;
                 if (!interactPressed)
                 {
                     interactPressed = true;
-                    // Interaction ray.
-                    Raycast ray = new Raycast(Owner.GlobalPosition, Owner.LocalToWorldMatrix.Forward, 100.0f);
-                    List<GameObject> objects = Owner.Scene.GetObjects();
-                    float? closest = null;
-                    GameObject closestGo = null;
-                    foreach(GameObject go in objects)
+                    Ray(ref closestGameObject, ref closest, 100);
+                    if(closestGameObject != null)
                     {
-                        if (go == Owner) continue;
-                        Collider col = go.GetComponent<Collider>();
-                        if(col != null)
-                        {
-                            float? distance = ray.Intersect(col.bound);
-                            if(distance != null)
-                            {
-                                if(closest == null || distance < closest)
-                                {
-                                    closest = distance;
-                                    closestGo = go;
-                                }
-                            }
-                        }
-                    }
-                    
-                    if(closestGo != null)
-                    {
-                        Interaction interact = closestGo.GetComponent<Interaction>();
+                        Interaction interact = closestGameObject.GetComponent<Interaction>();
                         if (interact != null) interact.Interact(Owner);
-                        System.Console.WriteLine(closestGo.Name + " " + closest);
+                        System.Console.WriteLine(closestGameObject.Name + " " + closest);
                     }
                     else
                     {

@@ -10,7 +10,7 @@ namespace Engine
         public static MouseState MOUSE_STATE;
         public static ButtonState BUTTON_PRESSED, BUTTON_RELEASED;
         public static MouseButtons FIRE, ZOOM;
-        public static Keys MOVE_FORWARD, MOVE_BACKWARD, STRAFE_LEFT, STRAFE_RIGHT, RUN, JUMP, CROUCH, INTERACT;
+        public static Keys MOVE_FORWARD, MOVE_BACKWARD, STRAFE_LEFT, STRAFE_RIGHT, RUN, JUMP, CROUCH, INTERACT, RELOAD;
         public static float MOUSE_AXIS_X, MOUSE_AXIS_Y;
         private static int inversionFactorX, inversionFactorY;
         /// <summary>
@@ -26,6 +26,7 @@ namespace Engine
             JUMP = Keys.Space;
             CROUCH = Keys.C;
             INTERACT = Keys.E;
+            RELOAD = Keys.R;
             FIRE = MouseButtons.Left;
             ZOOM = MouseButtons.Right;
             BUTTON_PRESSED = ButtonState.Pressed;
@@ -98,6 +99,26 @@ namespace Engine
                 return true;
             }
             if (MOUSE_STATE.RightButton.Equals(BUTTON_PRESSED) && mouseButton.Equals(MouseButtons.Right))
+            {
+                return true;
+            }
+            return false;
+        }
+        /// <summary>
+        /// Checks if mouse button is released.
+        /// Usage example: Input.IsButtonReleased(Input.FIRE)
+        /// </summary>
+        public static bool IsButtonReleased(MouseButtons mouseButton)
+        {
+            if (MOUSE_STATE.LeftButton.Equals(BUTTON_RELEASED) && mouseButton.Equals(MouseButtons.Left))
+            {
+                return true;
+            }
+            if (MOUSE_STATE.MiddleButton.Equals(BUTTON_RELEASED) && mouseButton.Equals(MouseButtons.Middle))
+            {
+                return true;
+            }
+            if (MOUSE_STATE.RightButton.Equals(BUTTON_RELEASED) && mouseButton.Equals(MouseButtons.Right))
             {
                 return true;
             }
