@@ -114,7 +114,8 @@ namespace Holo_agent
             ladder.AddComponent(new MeshInstance(ladderModel, null));
             Model tileModel = Content.Load<Model>("Models/panel_ceiling");
             tile.AddComponent(new MeshInstance(tileModel, null));
-            player.GetComponent<PlayerController>().PlayerMesh = new MeshInstance(tileModel, null);
+            Model playerModel = Content.Load<Model>("Models/animacja_bieg");
+            player.GetComponent<PlayerController>().PlayerMesh = new MeshInstance(playerModel, null);
             for (int i = 0; i < 7; ++i)
             {
                 walls[i].AddComponent(new MeshInstance(tileModel, null));
