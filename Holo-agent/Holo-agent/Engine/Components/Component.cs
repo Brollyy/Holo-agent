@@ -48,5 +48,12 @@ namespace Engine.Components
         public virtual void Update(GameTime gameTime)
         {
         }
+
+        /// <summary>
+        /// Used to cleanup after component. Override this method to implement custom cleanup. 
+        /// </summary>
+        public virtual void Destroy()
+        {
+        }
     }
 }
