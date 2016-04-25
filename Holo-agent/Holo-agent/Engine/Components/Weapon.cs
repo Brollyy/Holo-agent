@@ -1,6 +1,7 @@
 ﻿using Engine.Utilities;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Audio;
+using Microsoft.Xna.Framework.Graphics;
 using System.Collections.Generic;
 
 namespace Engine.Components
@@ -12,16 +13,11 @@ namespace Engine.Components
         private bool isArmed = false, isLocked = false, gunfire = false;
         private float range;
         public string info;
-        private float timer;
-        private const float TIMER = 1;
-        private GameObject gunfireObject;
-        public SoundEffect pistolShot;
         float machineGunTimer = 100;
         const float MACHINE_GUN_TIMER = 100;
-        public Weapon(WeaponTypes weaponType, int magazine, int ammo, int magazineCapacity, int ammoCapacity, float range, GameObject gunfireObject)
+
+        public Weapon(WeaponTypes weaponType, int magazine, int ammo, int magazineCapacity, int ammoCapacity, float range)
         {
-            timer = 1;
-            this.gunfireObject = gunfireObject;
             this.weaponType = weaponType;
             this.magazine = magazine;
             if (magazineCapacity < magazine)
@@ -103,23 +99,6 @@ namespace Engine.Components
         public void unlockWeapon()
         {
             isLocked = false;
-        }
-
-        public override void Update(GameTime gameTime)
-        {
-            timer -= (float)gameTime.ElapsedGameTime.TotalSeconds;
-        }
-
-        public override void Draw(GameTime gameTime)
-        {
-            if (getGunfire())
-            {
-                timer = TIMER;
-                if (timer >= 0 && gunfireObject != null)
-                    gunfireObject.GetComponent<SpriteInstance>().Draw(gameTime);
-                setGunfire(false);
-                pistolShot.Play();
-            }
         }
     }
     public enum WeaponTypes
