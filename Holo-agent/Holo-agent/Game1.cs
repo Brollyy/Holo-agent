@@ -283,7 +283,7 @@ namespace Holo_agent
             GraphicsDevice.RasterizerState = originalState;
 #endif
             spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.AnisotropicWrap, DepthStencilState.Default, RasterizerState.CullNone);
-            spriteBatch.Draw(crosshairTexture, new Vector2((graphics.PreferredBackBufferWidth / 2) - (crosshairTexture.Width / 2), (graphics.PreferredBackBufferHeight / 2) - (crosshairTexture.Height / 2)));
+            spriteBatch.Draw(crosshairTexture, new Vector2((graphics.PreferredBackBufferWidth / 2) - (crosshairTexture.Width / 2), (graphics.PreferredBackBufferHeight / 2) - (crosshairTexture.Height / 2)), player.GetComponent<PlayerController>().crosshairColor);
             if (player.GetChild("Pistol") != null)
             {
                 spriteBatch.DrawString(font, weapon.getMagazine() + "/" + weapon.getAmmo(), new Vector2(10, 410), Color.Red, 0, Vector2.Zero, 4, SpriteEffects.None, 0);
@@ -306,46 +306,6 @@ namespace Holo_agent
             spriteBatch.End();
 
             base.Draw(gameTime);
-        }
-
-
-        void DrawSprite(float spriteX, float spriteY, Vector3 spritePosition, Vector3 spriteRotation, Texture2D spriteTexture, int tilesNumber, bool isBillboardActive)
-        {
-            VertexPositionTexture[] spriteVerts = new VertexPositionTexture[6];
-            BasicEffect spriteEffect = new BasicEffect(graphics.GraphicsDevice);
-            spriteVerts[0].Position = new Vector3(-spriteX, -spriteY, 0);
-            spriteVerts[1].Position = new Vector3(-spriteX, spriteY, 0);
-            spriteVerts[2].Position = new Vector3(spriteX, -spriteY, 0);
-            spriteVerts[3].Position = spriteVerts[1].Position;
-            spriteVerts[4].Position = new Vector3(spriteX, spriteY, 0);
-            spriteVerts[5].Position = spriteVerts[2].Position;
-            spriteVerts[0].TextureCoordinate = new Vector2(0, 0);
-            spriteVerts[1].TextureCoordinate = new Vector2(0, tilesNumber);
-            spriteVerts[2].TextureCoordinate = new Vector2(tilesNumber, 0);
-            spriteVerts[3].TextureCoordinate = spriteVerts[1].TextureCoordinate;
-            spriteVerts[4].TextureCoordinate = new Vector2(tilesNumber, tilesNumber);
-            spriteVerts[5].TextureCoordinate = spriteVerts[2].TextureCoordinate;
-            spriteEffect.Projection = scene.Camera.GetComponent<Camera>().ProjectionMatrix;
-            spriteEffect.View = scene.Camera.GetComponent<Camera>().ViewMatrix;
-            spriteEffect.World = Matrix.CreateWorld(Vector3.Zero, Vector3.Forward, Vector3.Down);
-            if (isBillboardActive == true)
-            {
-                spriteEffect.World *= Matrix.CreateConstrainedBillboard(spritePosition, scene.Camera.GlobalPosition, Vector3.UnitY, null, null);
-            }
-            else
-            {
-                spriteEffect.World *= Matrix.CreateTranslation(spritePosition);
-            }
-            spriteEffect.World *= Matrix.CreateRotationX(MathHelper.ToRadians(spriteRotation.X));
-            spriteEffect.World *= Matrix.CreateRotationY(MathHelper.ToRadians(spriteRotation.Y));
-            spriteEffect.World *= Matrix.CreateRotationZ(MathHelper.ToRadians(spriteRotation.Z));
-            spriteEffect.TextureEnabled = true;
-            spriteEffect.Texture = spriteTexture;
-            foreach (EffectPass pass in spriteEffect.CurrentTechnique.Passes)
-            {
-                pass.Apply();
-                graphics.GraphicsDevice.DrawUserPrimitives(PrimitiveType.TriangleList, spriteVerts, 0, 2);
-            }
         }
     }
 }

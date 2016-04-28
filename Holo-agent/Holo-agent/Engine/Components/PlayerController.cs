@@ -14,10 +14,25 @@ namespace Engine.Components
         private Vector3 playerCameraPosition;
         private Quaternion playerCameraRotation;
         private Vector3 playerCameraScale;
-
         private Vector3 lastPosition, lastPosition2;
         private Quaternion lastRotation, lastRotation2;
-
+        private float? closestObjectDistance;
+        private GameObject closestObject;
+        public Color crosshairColor;
+        public GameObject ClosestObject
+        {
+            get
+            {
+                return closestObject;
+            }
+        }
+        public float? ClosestObjectDistance
+        {
+            get
+            {
+                return closestObjectDistance;
+            }
+        }
         public MeshInstance PlayerMesh
         {
             get;
@@ -134,9 +149,9 @@ namespace Engine.Components
             if (movement == Movement.RUN) movement = Movement.WALK;
         }
 
-        public void Ray(ref GameObject closestGameObject, ref float? closest, float length)
+        public void Ray(ref GameObject closestGameObject, ref float? closest, float maxDistance)
         {
-            Raycast ray = new Raycast(Owner.GlobalPosition, Owner.LocalToWorldMatrix.Forward, length);
+            Raycast ray = new Raycast(Owner.GlobalPosition, Owner.LocalToWorldMatrix.Forward, maxDistance);
             List<GameObject> objects = Owner.Scene.GetObjects();
             foreach (GameObject go in objects)
             {
@@ -156,19 +171,21 @@ namespace Engine.Components
                 }
             }
         }
-
+        public bool canInteract(ref GameObject closestGo, ref float? closest)
+        {
+            if (closest <= 100.0f && closestGo.GetComponent<Interaction>() != null)
+                return true;
+            else
+                return false;
+        }
         private void Interact(PressedActionArgs args)
         {
-            // Interaction ray.
-            float? closest = null;
-            GameObject closestGo = null;
-            Ray(ref closestGo, ref closest, 100.0f);
-            
-            if (closestGo != null)
+            if (closestObject != null)
             {
-                Interaction interact = closestGo.GetComponent<Interaction>();
-                if (interact != null) interact.Interact(Owner);
-                System.Console.WriteLine(closestGo.Name + " " + closest);
+                Interaction interact = closestObject.GetComponent<Interaction>();
+                if (canInteract(ref closestObject, ref closestObjectDistance))
+                    interact.Interact(Owner);
+                System.Console.WriteLine(closestObject.Name + " " + closestObjectDistance);
             }
             else
             {
@@ -267,15 +284,20 @@ namespace Engine.Components
             lastPosition = lastPosition2;
             lastRotation = lastRotation2;
         }
-
         public override void Update(GameTime gameTime)
         {
             lastPosition2 = lastPosition;
             lastPosition = Owner.LocalPosition;
             lastRotation2 = lastRotation;
             lastRotation = Owner.LocalQuaternionRotation;
+            closestObjectDistance = null;
+            closestObject = null;
+            Ray(ref closestObject, ref closestObjectDistance, 1000.0f);
+            if (canInteract(ref closestObject, ref closestObjectDistance))
+                crosshairColor = Color.Lime;
+            else
+                crosshairColor = Color.Orange;
         }
-
         public override void Destroy()
         {
             Input.UnbindActionContinuousPress(GameAction.MOVE_FORWARD, MoveForward);
@@ -318,7 +340,9 @@ namespace Engine.Components
 
             lastPosition = lastPosition2 = Vector3.Zero;
             lastRotation = lastRotation2 = Quaternion.Identity;
-
+            closestObjectDistance = null;
+            closestObject = null;
+            crosshairColor = Color.Orange;
             // Bind actions to input.
             Input.BindActionContinuousPress(GameAction.MOVE_FORWARD, MoveForward);
             Input.BindActionContinuousPress(GameAction.MOVE_BACKWARD, MoveBackward);

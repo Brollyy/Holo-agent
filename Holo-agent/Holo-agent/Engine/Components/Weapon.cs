@@ -33,9 +33,8 @@ namespace Engine.Components
         }
         public void shoot(GameTime gameTime)
         {
-            float? closest = null;
-            GameObject closestGameObject = null;
-            Owner.Parent.GetComponent<PlayerController>().Ray(ref closestGameObject, ref closest, range);
+            GameObject gameObject = Owner.Parent.GetComponent<PlayerController>().ClosestObject;
+            float? distance = Owner.Parent.GetComponent<PlayerController>().ClosestObjectDistance;
             if (weaponType == WeaponTypes.MachineGun && magazine > 0)
             {
                 float deltaTime = (float)gameTime.ElapsedGameTime.TotalMilliseconds;
@@ -44,9 +43,9 @@ namespace Engine.Components
                 {
                     magazine--;
                     gunfire = true;
-                    if (closestGameObject != null)
+                    if (gameObject != null && distance <= 1000.0f)
                     {
-                        info = closestGameObject.Name + " " + closest;
+                        info = gameObject.Name + " " + distance;
                     }
                     machineGunTimer = MACHINE_GUN_TIMER;
                 }
@@ -55,9 +54,9 @@ namespace Engine.Components
             {
                 magazine--;
                 gunfire = true;
-                if (closestGameObject != null)
+                if (gameObject != null && distance <= 1000.0f)
                 {
-                    info = closestGameObject.Name + " " + closest;
+                    info = gameObject.Name + " " + distance;
                 }
                 isLocked = true;
             }
