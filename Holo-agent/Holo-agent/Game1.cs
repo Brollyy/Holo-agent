@@ -292,7 +292,8 @@ namespace Holo_agent
             GraphicsDevice.RasterizerState = originalState;
 #endif
             spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.AnisotropicWrap, DepthStencilState.Default, RasterizerState.CullNone);
-            spriteBatch.Draw(crosshairTexture, new Vector2((graphics.PreferredBackBufferWidth / 2) - (crosshairTexture.Width / 2), (graphics.PreferredBackBufferHeight / 2) - (crosshairTexture.Height / 2)), player.GetComponent<PlayerController>().CrosshairColor);
+            if (player.GetComponent<PlayerController>() != null)
+                spriteBatch.Draw(crosshairTexture, new Vector2((graphics.PreferredBackBufferWidth / 2) - (crosshairTexture.Width / 2), (graphics.PreferredBackBufferHeight / 2) - (crosshairTexture.Height / 2)), player.GetComponent<PlayerController>().CrosshairColor);
             /*if (player.GetChild("Pistol") != null)
             {
                 spriteBatch.DrawString(font, weapon1.getMagazine() + "/" + weapon1.getAmmo(), new Vector2(10, 410), Color.Red, 0, Vector2.Zero, 4, SpriteEffects.None, 0);
