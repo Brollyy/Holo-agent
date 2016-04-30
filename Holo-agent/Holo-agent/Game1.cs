@@ -28,12 +28,13 @@ namespace Holo_agent
         GameObject[] walls;
         GameObject[] doors;
         GameObject pistol;
-        GameObject gunfire;
+        GameObject machineGun;
+        GameObject gunfire1, gunfire2;
         GameObject floor;
-        Weapon weapon;
+        Weapon weapon1, weapon2;
         float timer;
         const float TIMER = 1;
-        SoundEffect pistolShot;
+        SoundEffect shot;
         Texture2D gunfireTexture;
         int collision = 0;
         Texture2D floorTexture;
@@ -98,11 +99,15 @@ namespace Holo_agent
                 doors[i].AddNewComponent<DoorInteraction>();
             }
             floor = new GameObject("Floor", new Vector3(40, 0, -180), Quaternion.CreateFromYawPitchRoll(0, 0, MathHelper.ToRadians(90)), Vector3.One, scene);
-            pistol = new GameObject("Pistol", new Vector3(8, 9, -9), Quaternion.Identity, Vector3.One, scene, player);
-            gunfire = new GameObject("Gunfire", new Vector3(-3.5f, -10.5f, -9), Quaternion.Identity, Vector3.One, scene, pistol);
-            pistol.AddComponent(new Weapon(WeaponTypes.Pistol, 12, 28, 12, 240, 1000));
+            //pistol = new GameObject("Pistol", new Vector3(8, 9, -9), Quaternion.Identity, Vector3.One, scene, player);
+            machineGun = new GameObject("MachineGun", new Vector3(3, -1.75f, -5), Quaternion.Identity, Vector3.One, scene, player);
+            //gunfire1 = new GameObject("Gunfire1", new Vector3(-3.5f, -10.5f, -9), Quaternion.Identity, Vector3.One, scene, pistol);
+            gunfire2 = new GameObject("Gunfire2", new Vector3(0, 1, -9), Quaternion.Identity, Vector3.One, scene, machineGun);
+            //pistol.AddComponent(new Weapon(WeaponTypes.Pistol, 12, 28, 12, 240, 1000));
+            machineGun.AddComponent(new Weapon(WeaponTypes.MachineGun, 32, 72, 32, 640, 1000));
             timer = 1;
-            weapon = pistol.GetComponent<Weapon>();
+            //weapon1 = pistol.GetComponent<Weapon>();
+            weapon2 = machineGun.GetComponent<Weapon>();
             Mouse.SetPosition(graphics.PreferredBackBufferWidth / 2, graphics.PreferredBackBufferHeight / 2);
             base.Initialize();
         }
@@ -120,7 +125,7 @@ namespace Holo_agent
             gunfireTexture = Content.Load<Texture2D>("Textures/Gunfire");
             crosshairTexture = Content.Load<Texture2D>("Textures/Crosshair");
             font = Content.Load<SpriteFont>("Textures/Arial");
-            pistolShot = Content.Load<SoundEffect>("Sounds/Pistol");
+            shot = Content.Load<SoundEffect>("Sounds/Pistol");
 
             for (int i = 0; i < 8; ++i)
             {
@@ -143,10 +148,14 @@ namespace Holo_agent
                 doors[i].AddComponent(new MeshInstance(doorModel, null));
             }
             floor.AddComponent(new SpriteInstance(floorTexture, new Vector3(0, 160, 220), 20, new BasicEffect(graphics.GraphicsDevice), graphics));
-            gunfire.AddComponent(new SpriteInstance(gunfireTexture, new Vector3(0, 5, 5), 1, new BasicEffect(graphics.GraphicsDevice), graphics));
-            gunfire.GetComponent<SpriteInstance>().Enabled = false;
-            Model pistolModel = Content.Load<Model>("Models/Pistol_Game");
-            pistol.AddComponent(new MeshInstance(pistolModel, null));
+            //gunfire1.AddComponent(new SpriteInstance(gunfireTexture, new Vector3(0, 5, 5), 1, new BasicEffect(graphics.GraphicsDevice), graphics));
+            //gunfire1.GetComponent<SpriteInstance>().Enabled = false;
+            //Model pistolModel = Content.Load<Model>("Models/Pistol");
+            //pistol.AddComponent(new MeshInstance(pistolModel, null));
+            gunfire2.AddComponent(new SpriteInstance(gunfireTexture, new Vector3(0, 5, 5), 1, new BasicEffect(graphics.GraphicsDevice), graphics));
+            gunfire2.GetComponent<SpriteInstance>().Enabled = false;
+            Model machineGunModel = Content.Load<Model>("Models/Machine_Gun");
+            machineGun.AddComponent(new MeshInstance(machineGunModel, null));
         }
 
         /// <summary>
@@ -283,19 +292,33 @@ namespace Holo_agent
             GraphicsDevice.RasterizerState = originalState;
 #endif
             spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.AnisotropicWrap, DepthStencilState.Default, RasterizerState.CullNone);
-            spriteBatch.Draw(crosshairTexture, new Vector2((graphics.PreferredBackBufferWidth / 2) - (crosshairTexture.Width / 2), (graphics.PreferredBackBufferHeight / 2) - (crosshairTexture.Height / 2)), player.GetComponent<PlayerController>().crosshairColor);
-            if (player.GetChild("Pistol") != null)
+            spriteBatch.Draw(crosshairTexture, new Vector2((graphics.PreferredBackBufferWidth / 2) - (crosshairTexture.Width / 2), (graphics.PreferredBackBufferHeight / 2) - (crosshairTexture.Height / 2)), player.GetComponent<PlayerController>().CrosshairColor);
+            /*if (player.GetChild("Pistol") != null)
             {
-                spriteBatch.DrawString(font, weapon.getMagazine() + "/" + weapon.getAmmo(), new Vector2(10, 410), Color.Red, 0, Vector2.Zero, 4, SpriteEffects.None, 0);
-                if (weapon.info != null)
-                    spriteBatch.DrawString(font, weapon.info, new Vector2(50, 95), Color.SeaGreen);
-                if (weapon.getGunfire())
+                spriteBatch.DrawString(font, weapon1.getMagazine() + "/" + weapon1.getAmmo(), new Vector2(10, 410), Color.Red, 0, Vector2.Zero, 4, SpriteEffects.None, 0);
+                if (weapon1.info != null)
+                    spriteBatch.DrawString(font, weapon1.info, new Vector2(50, 95), Color.SeaGreen);
+                if (weapon1.getGunfire())
                 {
                     timer = TIMER;
                     if (timer >= 0)
-                        gunfire.GetComponent<SpriteInstance>().Draw(gameTime);
-                    weapon.setGunfire(false);
-                    pistolShot.Play();
+                        gunfire1.GetComponent<SpriteInstance>().Draw(gameTime);
+                    weapon1.setGunfire(false);
+                    shot.Play();
+                }
+            }*/
+            if (player.GetChild("MachineGun") != null)
+            {
+                spriteBatch.DrawString(font, weapon2.getMagazine() + "/" + weapon2.getAmmo(), new Vector2(10, 410), Color.Red, 0, Vector2.Zero, 4, SpriteEffects.None, 0);
+                if (weapon2.info != null)
+                    spriteBatch.DrawString(font, weapon2.info, new Vector2(50, 95), Color.SeaGreen);
+                if (weapon2.getGunfire())
+                {
+                    timer = TIMER;
+                    if (timer >= 0)
+                        gunfire2.GetComponent<SpriteInstance>().Draw(gameTime);
+                    weapon2.setGunfire(false);
+                    shot.Play();
                 }
             }
             /*spriteBatch.DrawString(font, scene.Camera.GlobalPosition.ToString(), new Vector2(50, 50), Color.Black);

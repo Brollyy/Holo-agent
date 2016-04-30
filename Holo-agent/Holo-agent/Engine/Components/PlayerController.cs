@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Engine.Utilities;
+using System;
 
 namespace Engine.Components
 {
@@ -18,7 +19,8 @@ namespace Engine.Components
         private Quaternion lastRotation, lastRotation2;
         private float? closestObjectDistance;
         private GameObject closestObject;
-        public Color crosshairColor;
+        private Color crosshairColor;
+        private GameObject[] weapons;
         public GameObject ClosestObject
         {
             get
@@ -33,12 +35,39 @@ namespace Engine.Components
                 return closestObjectDistance;
             }
         }
+        public Color CrosshairColor
+        {
+            get
+            {
+                return crosshairColor;
+            }
+        }
         public MeshInstance PlayerMesh
         {
             get;
             set;
         }
-
+        private void addWeapon(GameObject weapon)
+        {
+            int index = Array.FindIndex(weapons, i => i == null);
+            Weapon component = weapon.GetComponent<Weapon>();
+            if (index != -1 && component != null)
+            {
+                weapons[index] = weapon;
+                component.IsArmed = true;
+            }
+        }
+        private void removeWeapon(GameObject weapon)
+        {
+            int index = Array.IndexOf(weapons, weapon);
+            int otherWeaponIndex = Array.FindIndex(weapons, i => i != null);
+            if (index != -1)
+            {
+                weapons[index] = null;
+                if (otherWeaponIndex != -1)
+                    weapons[otherWeaponIndex].GetComponent<Weapon>().IsArmed = true;
+            }
+        }
         private void Turn(float xMove, float yMove, GameTime gameTime)
         {
             Vector3 rot = Owner.LocalEulerRotation;
@@ -171,7 +200,7 @@ namespace Engine.Components
                 }
             }
         }
-        public bool canInteract(ref GameObject closestGo, ref float? closest)
+        private bool canInteract(ref GameObject closestGo, ref float? closest)
         {
             if (closest <= 100.0f && closestGo.GetComponent<Interaction>() != null)
                 return true;
@@ -193,10 +222,10 @@ namespace Engine.Components
             }
         }
 
-        private void Fire(PressedActionArgs args)
+        private void Fire(PressingActionArgs args)
         {
             if (hologramRecording) return;
-            Weapon weapon = Owner.GetChild("Pistol").GetComponent<Weapon>();
+            Weapon weapon = Owner.GetChild("MachineGun").GetComponent<Weapon>();
             if (weapon == null) return;
             weapon.shoot(args.gameTime);
         }
@@ -204,7 +233,7 @@ namespace Engine.Components
         private void UnlockFire(ReleasedActionArgs args)
         {
             if (hologramRecording) return;
-            Weapon weapon = Owner.GetChild("Pistol").GetComponent<Weapon>();
+            Weapon weapon = Owner.GetChild("MachineGun").GetComponent<Weapon>();
             if (weapon == null) return;
             weapon.unlockWeapon();
         }
@@ -212,7 +241,7 @@ namespace Engine.Components
         private void Reload(PressedActionArgs args)
         {
             if (hologramRecording) return;
-            Weapon weapon = Owner.GetChild("Pistol").GetComponent<Weapon>();
+            Weapon weapon = Owner.GetChild("MachineGun").GetComponent<Weapon>();
             if (weapon == null) return;
             weapon.reload();
         }
@@ -312,7 +341,7 @@ namespace Engine.Components
             Input.UnbindActionPress(GameAction.RECORD_HOLOGRAM, RecordingButton);
             Input.UnbindActionPress(GameAction.PLAY_HOLOGRAM, PlaybackButton);
             Input.UnbindActionPress(GameAction.RELOAD, Reload);
-            Input.UnbindActionPress(GameAction.FIRE, Fire);
+            Input.UnbindActionContinuousPress(GameAction.FIRE, Fire);
             Input.UnbindActionRelease(GameAction.FIRE, UnlockFire);
             Input.UnbindMouseMovement(Turn);
         }
@@ -337,12 +366,12 @@ namespace Engine.Components
             hologramRecording = false;
             hologramPlaying = false;
             player = null;
-
             lastPosition = lastPosition2 = Vector3.Zero;
             lastRotation = lastRotation2 = Quaternion.Identity;
             closestObjectDistance = null;
             closestObject = null;
             crosshairColor = Color.Orange;
+            weapons = new GameObject[3];
             // Bind actions to input.
             Input.BindActionContinuousPress(GameAction.MOVE_FORWARD, MoveForward);
             Input.BindActionContinuousPress(GameAction.MOVE_BACKWARD, MoveBackward);
@@ -356,7 +385,7 @@ namespace Engine.Components
             Input.BindActionPress(GameAction.RECORD_HOLOGRAM, RecordingButton);
             Input.BindActionPress(GameAction.PLAY_HOLOGRAM, PlaybackButton);
             Input.BindActionPress(GameAction.RELOAD, Reload);
-            Input.BindActionPress(GameAction.FIRE, Fire);
+            Input.BindActionContinuousPress(GameAction.FIRE, Fire);
             Input.BindActionRelease(GameAction.FIRE, UnlockFire);
             Input.BindMouseMovement(Turn);
         }

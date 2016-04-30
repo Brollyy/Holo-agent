@@ -1,8 +1,4 @@
-﻿using Engine.Utilities;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Audio;
-using Microsoft.Xna.Framework.Graphics;
-using System.Collections.Generic;
+﻿using Microsoft.Xna.Framework;
 
 namespace Engine.Components
 {
@@ -10,12 +6,22 @@ namespace Engine.Components
     {
         private WeaponTypes weaponType;
         private int magazine, ammo, magazineCapacity, ammoCapacity;
-        private bool isArmed = false, isLocked = false, gunfire = false;
+        private bool isArmed, isLocked, gunfire;
         private float range;
         public string info;
         float machineGunTimer = 100;
         const float MACHINE_GUN_TIMER = 100;
-
+        public bool IsArmed
+        {
+            get
+            {
+                return isArmed;
+            }
+            set
+            {
+                isArmed = value;
+            }
+        }
         public Weapon(WeaponTypes weaponType, int magazine, int ammo, int magazineCapacity, int ammoCapacity, float range)
         {
             this.weaponType = weaponType;
@@ -30,6 +36,9 @@ namespace Engine.Components
             else
                 this.ammoCapacity = ammoCapacity;
             this.range = range;
+            isArmed = false;
+            isLocked = false;
+            gunfire = false;
         }
         public void shoot(GameTime gameTime)
         {
