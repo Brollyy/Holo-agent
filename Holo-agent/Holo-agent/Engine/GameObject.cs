@@ -13,6 +13,18 @@ namespace Engine
     {
 
         // TODO: Implement Instantiate and Destroy static functions (maybe?).
+        private bool isVisible;
+        public bool IsVisible
+        {
+            get
+            {
+                return isVisible;
+            }
+            set
+            {
+                isVisible = value;
+            }
+        }
 
         private Scene scene;
 
@@ -87,7 +99,6 @@ namespace Engine
                 if(parent != null) parent.AddChild(this);
             }
         }
-
         /// <summary>
         /// Stores references to children of this object.
         /// </summary>
@@ -470,14 +481,17 @@ namespace Engine
 
         public void Draw(GameTime gameTime)
         {
-            foreach(Component comp in components)
+            if (isVisible == true)
             {
-                if(comp.Enabled) comp.Draw(gameTime);
-            }
+                foreach (Component comp in components)
+                {
+                    if (comp.Enabled) comp.Draw(gameTime);
+                }
 
-            foreach(GameObject child in children.Values)
-            {
-                child.Draw(gameTime);
+                foreach (GameObject child in children.Values)
+                {
+                    child.Draw(gameTime);
+                }
             }
         }
 
@@ -520,7 +534,7 @@ namespace Engine
         /// <param name="rotation">Local rotation of the object.</param>
         /// <param name="scale">Local scale of the object.</param>
         /// <param name="parent">Scene parent of the object (optional).</param>
-        public GameObject(string name, Vector3 position, Quaternion rotation, Vector3 scale, Scene scene = null, GameObject parent = null)
+        public GameObject(string name, Vector3 position, Quaternion rotation, Vector3 scale, Scene scene = null, GameObject parent = null, bool isVisible = true)
         {
             this.name = name;
             this.scene = scene;
@@ -532,6 +546,7 @@ namespace Engine
             localPosition = position;
             localRotation = rotation;
             localScale = scale;
+            this.isVisible = isVisible;
         }
 
     }

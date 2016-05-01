@@ -14,7 +14,7 @@ namespace Engine
     public static class Input
     {
         private static Dictionary<GameAction, Pair<bool, float>> actionStates;
-        private static int inversionFactorX, inversionFactorY;
+        private static int inversionFactorX, inversionFactorY, mouseWheelValue, oldMouseWheelValue;
         private static Dictionary<GameAction, InputSource> bindings;
         private static Dictionary<GameAction, List<ProcessPressedAction>> pressedDelegates;
         private static Dictionary<GameAction, List<ProcessReleasedAction>> releasedDelegates;
@@ -54,6 +54,7 @@ namespace Engine
 
             inversionFactorX = 1;
             inversionFactorY = 1;
+            mouseWheelValue = Mouse.GetState().ScrollWheelValue;
         }
         /// <summary>
         /// Updates the input state and activates handlers binded to specific actions.
@@ -137,7 +138,9 @@ namespace Engine
                     proc(xMove, yMove, gameTime);
                 }
             }
-            Mouse.SetPosition(graphics.PreferredBackBufferWidth / 2, graphics.PreferredBackBufferHeight / 2);
+            oldMouseWheelValue = mouseWheelValue;
+            mouseWheelValue = mouseState.ScrollWheelValue;
+           Mouse.SetPosition(graphics.PreferredBackBufferWidth / 2, graphics.PreferredBackBufferHeight / 2);
         }
 
         public static void BindActionHandler(GameAction action, ProcessInputAction processFunction)
@@ -224,6 +227,21 @@ namespace Engine
         {
             inversionFactorY = -inversionFactorY;
         }
+        public static MouseWheelStates getMouseWheelState()
+        {
+            MouseWheelStates state = MouseWheelStates.Unchanged;
+            if (mouseWheelValue > oldMouseWheelValue)
+                state = MouseWheelStates.Up;
+            if (mouseWheelValue < oldMouseWheelValue)
+                state = MouseWheelStates.Down;
+            return state;
+        }
+    }
+    public enum MouseWheelStates
+    {
+        Unchanged = 0,
+        Up = 1,
+        Down = 2
     }
     public enum MouseButtons
     {

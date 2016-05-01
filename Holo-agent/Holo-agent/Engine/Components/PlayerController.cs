@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework;
 using Engine.Utilities;
 using System;
+using System.Linq;
 
 namespace Engine.Components
 {
@@ -47,25 +48,77 @@ namespace Engine.Components
             get;
             set;
         }
-        private void addWeapon(GameObject weapon)
+        public void addWeapon(GameObject weapon)
         {
             int index = Array.FindIndex(weapons, i => i == null);
             Weapon component = weapon.GetComponent<Weapon>();
-            if (index != -1 && component != null)
+            if (index != -1 && component != null && weapons.Contains(weapon) == false)
             {
                 weapons[index] = weapon;
-                component.IsArmed = true;
+                arm(weapon);
             }
         }
-        private void removeWeapon(GameObject weapon)
+        public void removeWeapon(GameObject weapon)
         {
             int index = Array.IndexOf(weapons, weapon);
-            int otherWeaponIndex = Array.FindIndex(weapons, i => i != null);
+            int otherWeaponIndex = Array.FindIndex(weapons, i => i != null && i != weapon);
             if (index != -1)
             {
+                weapons[index].Parent = null;
                 weapons[index] = null;
                 if (otherWeaponIndex != -1)
-                    weapons[otherWeaponIndex].GetComponent<Weapon>().IsArmed = true;
+                    arm(weapons[otherWeaponIndex]);
+            }
+        }
+        private void arm(GameObject weapon)
+        {
+            int index = Array.FindIndex(weapons, i => i != null && i != weapon && i.GetComponent<Weapon>().IsArmed == true);
+            if (index != -1)
+            {
+                weapons[index].GetComponent<Weapon>().IsArmed = false;
+                weapons[index].IsVisible = false;
+            }
+            weapon.GetComponent<Weapon>().IsArmed = true;
+            if (weapon.Parent == null)
+            {
+                weapon.Parent = Owner;
+                weapon.GlobalPosition = weapon.GetComponent<Weapon>().AsChildPosition + Owner.GlobalPosition;
+                weapon.GlobalRotation = Quaternion.Identity + Owner.GlobalRotation;
+            }
+            weapon.IsVisible = true;
+        }
+        private void changeWeapon(MouseWheelStates state)
+        {
+            if (weapons.Where(weapon => weapon != null).Count() > 1)
+            {
+                if (state == MouseWheelStates.Up)
+                {
+                    int nextWeaponIndex = (Array.IndexOf(weapons, getWeapon().Owner) + 1);
+                    if (nextWeaponIndex != -1 && weapons[nextWeaponIndex] != null)
+                    {
+                        arm(weapons[nextWeaponIndex]);
+                    }
+                }
+                if (state == MouseWheelStates.Down)
+                {
+                    int previousWeaponIndex = (Array.IndexOf(weapons, getWeapon().Owner) - 1);
+                    if (previousWeaponIndex != -1 && weapons[previousWeaponIndex] != null)
+                    {
+                        arm(weapons[previousWeaponIndex]);
+                    }
+                }
+            }
+        }
+        public Weapon getWeapon()
+        {
+            int index = Array.FindIndex(weapons, i => i != null && i.GetComponent<Weapon>().IsArmed == true);
+            if (index != -1)
+            {
+                return weapons[index].GetComponent<Weapon>();
+            }
+            else
+            {
+                return null;
             }
         }
         private void Turn(float xMove, float yMove, GameTime gameTime)
@@ -225,7 +278,7 @@ namespace Engine.Components
         private void Fire(PressingActionArgs args)
         {
             if (hologramRecording) return;
-            Weapon weapon = Owner.GetChild("MachineGun").GetComponent<Weapon>();
+            Weapon weapon = getWeapon();
             if (weapon == null) return;
             weapon.shoot(args.gameTime);
         }
@@ -233,7 +286,7 @@ namespace Engine.Components
         private void UnlockFire(ReleasedActionArgs args)
         {
             if (hologramRecording) return;
-            Weapon weapon = Owner.GetChild("MachineGun").GetComponent<Weapon>();
+            Weapon weapon = getWeapon();
             if (weapon == null) return;
             weapon.unlockWeapon();
         }
@@ -241,7 +294,7 @@ namespace Engine.Components
         private void Reload(PressedActionArgs args)
         {
             if (hologramRecording) return;
-            Weapon weapon = Owner.GetChild("MachineGun").GetComponent<Weapon>();
+            Weapon weapon = getWeapon();
             if (weapon == null) return;
             weapon.reload();
         }
@@ -326,6 +379,7 @@ namespace Engine.Components
                 crosshairColor = Color.Lime;
             else
                 crosshairColor = Color.Orange;
+            changeWeapon(Input.getMouseWheelState());
         }
         public override void Destroy()
         {
