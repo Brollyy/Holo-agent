@@ -39,6 +39,7 @@ namespace Engine
             bindings.Add(GameAction.RELOAD, new KeyboardInputSource(Keys.R));
             bindings.Add(GameAction.RECORD_HOLOGRAM, new KeyboardInputSource(Keys.Q));
             bindings.Add(GameAction.PLAY_HOLOGRAM, new KeyboardInputSource(Keys.F));
+            bindings.Add(GameAction.DROP_WEAPON, new KeyboardInputSource(Keys.G));
             pressedDelegates = new Dictionary<GameAction, List<ProcessPressedAction>>();
             releasedDelegates = new Dictionary<GameAction, List<ProcessReleasedAction>>();
             pressingDelegates = new Dictionary<GameAction, List<ProcessPressingAction>>();
@@ -264,7 +265,8 @@ namespace Engine
         ZOOM,
         RELOAD,
         RECORD_HOLOGRAM,
-        PLAY_HOLOGRAM
+        PLAY_HOLOGRAM,
+        DROP_WEAPON
     }
 
     internal abstract class InputSource

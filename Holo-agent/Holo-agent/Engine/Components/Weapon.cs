@@ -6,7 +6,7 @@ namespace Engine.Components
     {
         private WeaponTypes weaponType;
         private int magazine, ammo, magazineCapacity, ammoCapacity;
-        private bool isArmed, isLocked, gunfire;
+        private bool isArmed, isLocked, gunfire, collision;
         private float range;
         private readonly Vector3 asChildPosition;
         public string info;
@@ -21,6 +21,17 @@ namespace Engine.Components
             set
             {
                 isArmed = value;
+            }
+        }
+        public bool Collision
+        {
+            get
+            {
+                return collision;
+            }
+            set
+            {
+                collision = value;
             }
         }
         public Vector3 AsChildPosition
@@ -48,6 +59,7 @@ namespace Engine.Components
             isArmed = false;
             isLocked = false;
             gunfire = false;
+            collision = true;
         }
         public void shoot(GameTime gameTime)
         {
@@ -108,6 +120,10 @@ namespace Engine.Components
             {
                 return null;
             }
+        }
+        public WeaponTypes getWeaponType()
+        {
+            return weaponType;
         }
         public int getMagazine()
         {

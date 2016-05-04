@@ -51,23 +51,32 @@ namespace Engine.Components
         public void addWeapon(GameObject weapon)
         {
             int index = Array.FindIndex(weapons, i => i == null);
+            int otherWeaponIndex = Array.FindIndex(weapons, i => i != null && i.GetComponent<Weapon>().getWeaponType() == weapon.GetComponent<Weapon>().getWeaponType());
             Weapon component = weapon.GetComponent<Weapon>();
-            if (index != -1 && component != null && weapons.Contains(weapon) == false)
+            if (index != -1 && otherWeaponIndex == -1 && component != null && weapons.Contains(weapon) == false)
             {
                 weapons[index] = weapon;
+                weapons[index].GetComponent<Weapon>().Collision = false;
                 arm(weapon);
             }
         }
-        public void removeWeapon(GameObject weapon)
+        private void removeWeapon(GameObject weapon)
         {
             int index = Array.IndexOf(weapons, weapon);
             int otherWeaponIndex = Array.FindIndex(weapons, i => i != null && i != weapon);
             if (index != -1)
             {
-                weapons[index].Parent = null;
-                weapons[index] = null;
                 if (otherWeaponIndex != -1)
                     arm(weapons[otherWeaponIndex]);
+                //Remove later (after adding gravity and fixing collisions)............//
+                weapons[index].LocalPosition -= Vector3.UnitZ * (15);                  //
+                weapons[index].GlobalRotation = Owner.LocalQuaternionRotation;         //
+                //.....................................................................//
+                weapons[index].GetComponent<Weapon>().Collision = true;
+                weapons[index].IsVisible = true;
+                weapons[index].Parent = null;
+                weapons[index] = null;
+                weapon.GlobalScale = Vector3.One;
             }
         }
         private void arm(GameObject weapon)
@@ -79,17 +88,18 @@ namespace Engine.Components
                 weapons[index].IsVisible = false;
             }
             weapon.GetComponent<Weapon>().IsArmed = true;
+            weapon.IsVisible = true;
             if (weapon.Parent == null)
             {
                 weapon.Parent = Owner;
-                weapon.GlobalPosition = weapon.GetComponent<Weapon>().AsChildPosition + Owner.GlobalPosition;
-                weapon.GlobalRotation = Quaternion.Identity + Owner.GlobalRotation;
+                weapon.LocalScale = Vector3.One;
+                weapon.LocalQuaternionRotation = Quaternion.Identity;
+                weapon.LocalPosition = weapon.GetComponent<Weapon>().AsChildPosition;
             }
-            weapon.IsVisible = true;
         }
         private void changeWeapon(MouseWheelStates state)
         {
-            if (weapons.Where(weapon => weapon != null).Count() > 1)
+            if (weapons.Where(i => i != null).Count() > 1)
             {
                 if (state == MouseWheelStates.Up)
                 {
@@ -266,7 +276,7 @@ namespace Engine.Components
             {
                 Interaction interact = closestObject.GetComponent<Interaction>();
                 if (canInteract(ref closestObject, ref closestObjectDistance))
-                    interact.Interact(Owner);
+                    interact.Interact(closestObject);
                 System.Console.WriteLine(closestObject.Name + " " + closestObjectDistance);
             }
             else
@@ -298,7 +308,11 @@ namespace Engine.Components
             if (weapon == null) return;
             weapon.reload();
         }
-
+        private void dropWeapon(PressedActionArgs args)
+        {
+            if (getWeapon() != null)
+                removeWeapon(getWeapon().Owner);
+        }
         private void RecordingButton(PressedActionArgs args)
         {
             if (!hologramRecording && !hologramPlaying)
@@ -397,6 +411,7 @@ namespace Engine.Components
             Input.UnbindActionPress(GameAction.RELOAD, Reload);
             Input.UnbindActionContinuousPress(GameAction.FIRE, Fire);
             Input.UnbindActionRelease(GameAction.FIRE, UnlockFire);
+            Input.UnbindActionPress(GameAction.DROP_WEAPON, dropWeapon);
             Input.UnbindMouseMovement(Turn);
         }
 
@@ -441,6 +456,7 @@ namespace Engine.Components
             Input.BindActionPress(GameAction.RELOAD, Reload);
             Input.BindActionContinuousPress(GameAction.FIRE, Fire);
             Input.BindActionRelease(GameAction.FIRE, UnlockFire);
+            Input.BindActionPress(GameAction.DROP_WEAPON, dropWeapon);
             Input.BindMouseMovement(Turn);
         }
     }
