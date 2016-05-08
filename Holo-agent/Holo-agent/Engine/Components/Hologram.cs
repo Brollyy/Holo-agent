@@ -22,14 +22,14 @@ namespace Engine.Components
 
         public override void Update(GameTime gameTime)
         {
-            if (path.GlobalPositions.Count < path.NumberOfSteps)
+            if (path.LocalPositions.Count < path.NumberOfSteps)
             {
                 time += (float)gameTime.ElapsedGameTime.TotalSeconds;
                 if (time > sampleTime)
                 {
                     time = 0.0f;
-                    path.GlobalPositions.Add(Owner.GlobalPosition);
-                    path.GlobalRotations.Add(Owner.GlobalRotation);
+                    path.LocalPositions.Add(Owner.LocalPosition);
+                    path.LocalRotations.Add(Owner.LocalEulerRotation.X);
                 }
             }
             else
@@ -41,6 +41,13 @@ namespace Engine.Components
         public override void Destroy()
         {
             Input.UnbindActionPress(GameAction.RECORD_HOLOGRAM, StopRecording);
+        }
+
+        protected override void InitializeNewOwner(GameObject newOwner)
+        {
+            base.InitializeNewOwner(newOwner);
+            path.StartGlobalPosition = Owner.GlobalPosition;
+            path.StartGlobalRotation = Owner.GlobalRotation;
         }
 
         public HologramRecorder() : this(5.0f, 50, null)
@@ -58,8 +65,8 @@ namespace Engine.Components
             path.NumberOfSteps = numberOfSamples;
             this.sampleTime = recordingTime / (float)(numberOfSamples);
             path.Actions = new List<Pair<Pair<float, float?>, GameAction>>();
-            path.GlobalPositions = new List<Vector3>();
-            path.GlobalRotations = new List<Quaternion>();
+            path.LocalPositions = new List<Vector3>();
+            path.LocalRotations = new List<float>();
         }
     }
 
@@ -86,11 +93,11 @@ namespace Engine.Components
             overallTime += (float)gameTime.ElapsedGameTime.TotalSeconds;
             if (overallTime < path.Duration)
             {
-                if (index < path.GlobalPositions.Count - 1)
+                if (index < path.LocalPositions.Count - 1)
                 {
                     time += (float)gameTime.ElapsedGameTime.TotalSeconds;
-                    Owner.GlobalPosition = Vector3.LerpPrecise(path.GlobalPositions[index], path.GlobalPositions[index + 1], time / durationOfStep);
-                    Owner.GlobalRotation = Quaternion.Lerp(path.GlobalRotations[index], path.GlobalRotations[index + 1], time / durationOfStep);
+                    Owner.LocalPosition = Vector3.LerpPrecise(path.LocalPositions[index], path.LocalPositions[index + 1], time / durationOfStep);
+                    Owner.LocalEulerRotation = Vector3.UnitX*MathHelper.Lerp(path.LocalRotations[index], path.LocalRotations[index + 1], time / durationOfStep);
                     if (time > durationOfStep)
                     {
                         time = 0.0f;
@@ -109,6 +116,13 @@ namespace Engine.Components
             Input.UnbindActionPress(GameAction.PLAY_HOLOGRAM, StopPlayback);
         }
 
+        protected override void InitializeNewOwner(GameObject newOwner)
+        {
+            base.InitializeNewOwner(newOwner);
+            Owner.GlobalPosition = path.StartGlobalPosition;
+            Owner.GlobalRotation = path.StartGlobalRotation;
+        }
+
         public HologramPlayback(HologramPath path, FinalizeHologramPlayback handler = null)
         {
             Input.BindActionPress(GameAction.PLAY_HOLOGRAM, StopPlayback);
@@ -125,8 +139,10 @@ namespace Engine.Components
     {
         public float Duration;
         public int NumberOfSteps;
-        public List<Vector3> GlobalPositions;
-        public List<Quaternion> GlobalRotations;
+        public Vector3 StartGlobalPosition;
+        public Quaternion StartGlobalRotation;
+        public List<Vector3> LocalPositions;
+        public List<float> LocalRotations;
         public List<Pair<Pair<float,float?>,GameAction>> Actions;
     }
 }

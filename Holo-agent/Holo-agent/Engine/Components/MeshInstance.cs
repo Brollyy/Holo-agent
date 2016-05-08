@@ -19,6 +19,12 @@ namespace Engine.Components
             }
         }
 
+        public Vector3 Offset
+        {
+            get;
+            set;
+        }
+
         private Dictionary<ModelMesh, Texture2D> textures;
         private Texture2D globalTexture;
 
@@ -53,7 +59,7 @@ namespace Engine.Components
                 {
                     effect.Projection = newOwner.Scene.Camera.GetComponent<Camera>().ProjectionMatrix;
                     effect.View = newOwner.Scene.Camera.GetComponent<Camera>().ViewMatrix;
-                    effect.World = newOwner.LocalToWorldMatrix;
+                    effect.World = newOwner.LocalToWorldMatrix * Matrix.CreateTranslation(Offset);
                 }
             }
         }
@@ -65,7 +71,7 @@ namespace Engine.Components
                 foreach (BasicEffect effect in mesh.Effects)
                 {
                     effect.View = Owner.Scene.Camera.GetComponent<Camera>().ViewMatrix;
-                    effect.World = Owner.LocalToWorldMatrix;
+                    effect.World = Owner.LocalToWorldMatrix * Matrix.CreateTranslation(Offset);
                 }
                 mesh.Draw();
             }
@@ -110,6 +116,7 @@ namespace Engine.Components
                 }
             }
             GlobalTexture = globalTexture;
+            Offset = Vector3.Zero;
             textures = new Dictionary<ModelMesh, Texture2D>();
         }
     }

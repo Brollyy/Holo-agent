@@ -65,7 +65,7 @@ namespace Holo_agent
             player.AddNewComponent<PlayerController>();
             Collider playerCol = player.AddNewComponent<Collider>();
             playerCol.bound = new Engine.Bounding_Volumes.BoundingBox(playerCol, Vector3.Zero, 10f * Vector3.One);
-            GameObject camera = new GameObject("Camera", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, player);
+            GameObject camera = new GameObject("Camera", new Vector3(0,0,0), Quaternion.Identity, Vector3.One, scene, player);
             Camera cameraComp = new Camera(45, graphics.GraphicsDevice.Viewport.AspectRatio, 1, 1000);
             camera.AddComponent(cameraComp);
             scene.Camera = camera;
@@ -131,8 +131,9 @@ namespace Holo_agent
             ladder.AddComponent(new MeshInstance(ladderModel, null));
             Model tileModel = Content.Load<Model>("Models/panel_ceiling");
             tile.AddComponent(new MeshInstance(tileModel, null));
-            Model playerModel = Content.Load<Model>("Models/animacja_bieg");
+            Model playerModel = Content.Load<Model>("Models/new/Low/ziomeczek T-Pose Low");
             player.GetComponent<PlayerController>().PlayerMesh = new MeshInstance(playerModel, null);
+            player.GetComponent<PlayerController>().PlayerMesh.Offset = new Vector3(0, -18, 0);
             for (int i = 0; i < 7; ++i)
             {
                 walls[i].AddComponent(new MeshInstance(tileModel, null));
