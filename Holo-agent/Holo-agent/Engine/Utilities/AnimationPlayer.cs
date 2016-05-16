@@ -282,8 +282,7 @@ namespace Engine.Utilities
                 {
                     // Send to the model
                     // Make it a matrix first
-                    Matrix m = Matrix.CreateFromQuaternion(rotation);
-                    m.Translation = translation;
+                    Matrix m = Matrix.CreateFromQuaternion(rotation) * Matrix.CreateTranslation(translation);
                     assignedBone.SetCompleteTransform(m);
                 }
             }

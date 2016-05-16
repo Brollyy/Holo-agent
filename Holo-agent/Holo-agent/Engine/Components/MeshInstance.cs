@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System.Collections.Generic;
+using Engine.Utilities;
 
 namespace Engine.Components
 {
@@ -9,9 +10,9 @@ namespace Engine.Components
         /// <summary>
         /// Stores model that this class wraps.
         /// </summary>
-        private Model model;
+        private AnimatedModel model;
 
-        public Model Model
+        public AnimatedModel Model
         {
             get
             {
@@ -25,99 +26,42 @@ namespace Engine.Components
             set;
         }
 
-        private Dictionary<ModelMesh, Texture2D> textures;
-        private Texture2D globalTexture;
-
-        public void AddTexture(Texture2D texture, ModelMesh mesh)
-        {
-            textures.Add(mesh, texture);
-        }
-
-        public bool RemoveTexture(ModelMesh mesh)
-        {
-            return textures.Remove(mesh);
-        }
-
-        public Texture2D GlobalTexture
-        {
-            get
-            {
-                return globalTexture;
-            }
-            set
-            {
-                globalTexture = value;
-            }
-        }
-
-        protected override void InitializeNewOwner(GameObject newOwner)
-        {
-            base.InitializeNewOwner(newOwner);
-            foreach (ModelMesh mesh in model.Meshes)
-            {
-                foreach (BasicEffect effect in mesh.Effects)
-                {
-                    effect.Projection = newOwner.Scene.Camera.GetComponent<Camera>().ProjectionMatrix;
-                    effect.View = newOwner.Scene.Camera.GetComponent<Camera>().ViewMatrix;
-                    effect.World = newOwner.LocalToWorldMatrix * Matrix.CreateTranslation(Offset);
-                }
-            }
-        }
-
         public override void Draw(GameTime gameTime)
         {
-            foreach (ModelMesh mesh in model.Meshes)
-            {
-                foreach (BasicEffect effect in mesh.Effects)
-                {
-                    effect.View = Owner.Scene.Camera.GetComponent<Camera>().ViewMatrix;
-                    effect.World = Owner.LocalToWorldMatrix * Matrix.CreateTranslation(Offset);
-                }
-                mesh.Draw();
-            }
+            model.Draw(gameTime, Owner, Offset);
         }
 
-        private void UpdateTextures()
+        public override void Update(GameTime gameTime)
         {
-            foreach (ModelMesh mesh in model.Meshes)
-            {
-                foreach (BasicEffect effect in mesh.Effects)
-                {
-                    if (globalTexture != null || textures.ContainsKey(mesh))
-                    {
-                        effect.TextureEnabled = true;
-                        if (globalTexture != null) effect.Texture = globalTexture;
-                        else effect.Texture = textures[mesh];
-                    }
-                    else
-                    {
-                        effect.TextureEnabled = false;
-                    }
-                }
-            }
+            model.Update(gameTime);
         }
 
-        public MeshInstance() : this(null, null)
+        public MeshInstance() : this(null as Model)
         {
         }
 
-        public MeshInstance(MeshInstance other) : this(other.model, other.globalTexture)
+        public MeshInstance(MeshInstance other) : this(other.model.Model)
         {
         }
 
-        public MeshInstance(Model model, Texture2D globalTexture)
+        public MeshInstance(Model model)
         {
-            this.model = model;
+            this.model = new AnimatedModel(model);
             foreach(ModelMesh mesh in model.Meshes)
             {
-                foreach(BasicEffect effect in mesh.Effects)
+                foreach(Effect effect in mesh.Effects)
                 {
-                    effect.EnableDefaultLighting();
+                    if (effect is BasicEffect)
+                    {
+                        (effect as BasicEffect).EnableDefaultLighting();
+                    }
+                    if(effect is SkinnedEffect)
+                    {
+                        (effect as SkinnedEffect).EnableDefaultLighting();
+                    }
                 }
             }
-            GlobalTexture = globalTexture;
             Offset = Vector3.Zero;
-            textures = new Dictionary<ModelMesh, Texture2D>();
         }
     }
 }

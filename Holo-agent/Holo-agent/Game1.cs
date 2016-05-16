@@ -124,30 +124,31 @@ namespace Holo_agent
 
             for (int i = 0; i < 8; ++i)
             {
-                columns[i].AddComponent(new MeshInstance(columnModel, null));
+                columns[i].AddComponent(new MeshInstance(columnModel));
             }
 
             Model ladderModel = Content.Load<Model>("Models/ladder");
-            ladder.AddComponent(new MeshInstance(ladderModel, null));
+            ladder.AddComponent(new MeshInstance(ladderModel));
             Model tileModel = Content.Load<Model>("Models/panel_ceiling");
-            tile.AddComponent(new MeshInstance(tileModel, null));
-            Model playerModel = Content.Load<Model>("Models/new/Low/ziomeczek T-Pose Low");
-            player.GetComponent<PlayerController>().PlayerMesh = new MeshInstance(playerModel, null);
+            tile.AddComponent(new MeshInstance(tileModel));
+            Model playerModel = Content.Load<Model>("Models/new/HD/ziomeczek_run_pistol_HD");
+            player.GetComponent<PlayerController>().PlayerMesh = new MeshInstance(playerModel);
+            AnimationPlayer animPlayer = player.GetComponent<PlayerController>().PlayerMesh.Model.PlayClip(0, true);
             player.GetComponent<PlayerController>().PlayerMesh.Offset = new Vector3(0, -18, 0);
             for (int i = 0; i < 7; ++i)
             {
-                walls[i].AddComponent(new MeshInstance(tileModel, null));
+                walls[i].AddComponent(new MeshInstance(tileModel));
             }
             Model doorModel = Content.Load<Model>("Models/door_001");
             for (int i = 0; i < 2; ++i)
             {
-                doors[i].AddComponent(new MeshInstance(doorModel, null));
+                doors[i].AddComponent(new MeshInstance(doorModel));
             }
             floor.AddComponent(new SpriteInstance(floorTexture, new Vector3(0, 160, 220), 20, new BasicEffect(graphics.GraphicsDevice), graphics));
             gunfire.AddComponent(new SpriteInstance(gunfireTexture, new Vector3(0, 5, 5), 1, new BasicEffect(graphics.GraphicsDevice), graphics));
             gunfire.GetComponent<SpriteInstance>().Enabled = false;
             Model pistolModel = Content.Load<Model>("Models/Pistol_Game");
-            pistol.AddComponent(new MeshInstance(pistolModel, null));
+            pistol.AddComponent(new MeshInstance(pistolModel));
         }
 
         /// <summary>

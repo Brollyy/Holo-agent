@@ -121,12 +121,14 @@ namespace Engine.Utilities
         /// <summary>
         /// Play an animation clip
         /// </summary>
-        /// <param name="clip">The clip to play</param>
+        /// <param name="index">Index of the clip to play</param>
         /// <returns>The player that will play this clip</returns>
-        public AnimationPlayer PlayClip(AnimationClip clip)
+        public AnimationPlayer PlayClip(int index, bool looping = false)
         {
+            if (index < 0 || index >= Clips.Count) return null;
             // Create a clip player and assign it to this model
-            player = new AnimationPlayer(clip, this);
+            player = new AnimationPlayer(Clips[index], this);
+            player.Looping = looping;
             return player;
         }
 
@@ -154,7 +156,7 @@ namespace Engine.Utilities
         /// Draw the model
         /// </summary>
         /// <param name="gameTime">The snapshot of time during drawing.</param>
-        public void Draw(GameTime gameTime, GameObject owner)
+        public void Draw(GameTime gameTime, GameObject owner, Vector3 offset)
         {
             if (model == null)
                 return;
@@ -177,11 +179,15 @@ namespace Engine.Utilities
             // Determine the skin transforms from the skeleton
             //
 
-            Matrix[] skeleton = new Matrix[modelExtra.Skeleton.Count];
-            for (int s = 0; s < modelExtra.Skeleton.Count; s++)
+            Matrix[] skeleton = null;
+            if (modelExtra != null)
             {
-                Bone bone = bones[modelExtra.Skeleton[s]];
-                skeleton[s] = bone.SkinTransform * bone.AbsoluteTransform;
+                skeleton = new Matrix[modelExtra.Skeleton.Count];
+                for (int s = 0; s < modelExtra.Skeleton.Count; s++)
+                {
+                    Bone bone = bones[modelExtra.Skeleton[s]];
+                    skeleton[s] = bone.SkinTransform * bone.AbsoluteTransform;
+                }
             }
 
             Camera camera = owner.Scene.Camera.GetComponent<Camera>();
@@ -193,7 +199,7 @@ namespace Engine.Utilities
                     if (effect is BasicEffect)
                     {
                         BasicEffect beffect = effect as BasicEffect;
-                        beffect.World = boneTransforms[modelMesh.ParentBone.Index] * owner.LocalToWorldMatrix;
+                        beffect.World = /*boneTransforms[modelMesh.ParentBone.Index] */ owner.LocalToWorldMatrix;
                         beffect.View = camera.ViewMatrix;
                         beffect.Projection = camera.ProjectionMatrix;
                         beffect.EnableDefaultLighting();
@@ -203,12 +209,12 @@ namespace Engine.Utilities
                     if (effect is SkinnedEffect)
                     {
                         SkinnedEffect seffect = effect as SkinnedEffect;
-                        seffect.World = boneTransforms[modelMesh.ParentBone.Index] * owner.LocalToWorldMatrix;
+                        seffect.World = Matrix.CreateTranslation(offset) * boneTransforms[modelMesh.ParentBone.Index] * owner.LocalToWorldMatrix;
                         seffect.View = camera.ViewMatrix;
                         seffect.Projection = camera.ProjectionMatrix;
                         seffect.EnableDefaultLighting();
                         seffect.PreferPerPixelLighting = true;
-                        seffect.SetBoneTransforms(skeleton);
+                        if(skeleton != null) seffect.SetBoneTransforms(skeleton);
                     }
                 }
 

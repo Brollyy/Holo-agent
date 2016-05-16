@@ -56,16 +56,20 @@
     <Compile Include="Engine\GameObject.cs" />
     <Compile Include="Engine\Input.cs" />
     <Compile Include="Engine\Scene.cs" />
+    <Compile Include="Engine\Utilities\Bone.cs" />
+    <Compile Include="Engine\Utilities\AnimationPlayer.cs" />
     <Compile Include="Engine\Utilities\FrameCounter.cs" />
     <Compile Include="Engine\Utilities\Pair.cs" />
     <Compile Include="Engine\Utilities\Raycast.cs" />
+    <Compile Include="Engine\Utilities\AnimatedModel.cs" />
     <Compile Include="Game1.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="AnimationPipeline">
-      <HintPath>..\..\AnimationPipeline\AnimationPipeline\bin\Debug\AnimationPipeline.dll</HintPath>
+    <Reference Include="AnimationPipeline, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>Content\AnimationPipeline.dll</HintPath>
     </Reference>
     <Reference Include="MonoGame.Framework">
       <HintPath>$(MonoGameInstallDirectory)\MonoGame\v3.0\Assemblies\Windows\MonoGame.Framework.dll</HintPath>
