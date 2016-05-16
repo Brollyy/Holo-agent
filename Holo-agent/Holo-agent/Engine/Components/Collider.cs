@@ -8,7 +8,7 @@ namespace Engine.Components
         public BoundingVolume bound;
         public int Collide(Collider other)
         {
-            if (bound == null) return 0;
+            if (bound == null || other == null) return 0;
             return bound.IsOverlapping(other.bound);
         }
 

@@ -92,10 +92,11 @@ namespace Holo_agent
             walls[6] = new GameObject("Ceiling", new Vector3(40, 60, -180), Quaternion.CreateFromYawPitchRoll(0, MathHelper.ToRadians(270), 0), new Vector3(2.7f, 3.66f, 1f), scene);
             for(int i = 0; i < 2; ++i)
             {
-                doors[i] = new GameObject("Doors" + i, new Vector3(40, 30, 42.5f - ((i+1)%2)*442.5f), Quaternion.CreateFromYawPitchRoll(MathHelper.ToRadians((i%2)*180), 0, 0), new Vector3(0.1f, 0.165f, 0.1f), scene);
-                Collider doorCol = doors[i].AddNewComponent<Collider>();
-                doorCol.bound = new Engine.Bounding_Volumes.BoundingBox(doorCol, new Vector3(0, 0, 0), new Vector3(450, 180, 30));
+                GameObject doorHandler = new GameObject("DoorDummy" + i, new Vector3(40+(2*i-1)*40, 30, 42.5f - ((i+1)%2)*442.5f), Quaternion.CreateFromYawPitchRoll(MathHelper.ToRadians((i%2)*180), 0, 0), Vector3.One, scene);
+                doors[i] = new GameObject("Door" + i, new Vector3(40 * (1 - 2 * i), 0, 0), Quaternion.Identity, new Vector3(0.1f, 0.165f, 0.1f), scene, doorHandler);
                 doors[i].AddNewComponent<DoorInteraction>();
+                Collider doorCol = doors[i].AddNewComponent<Collider>();
+                doorCol.bound = new Engine.Bounding_Volumes.BoundingBox(doorCol, Vector3.Zero, new Vector3(450, 180, 30));
             }
             floor = new GameObject("Floor", new Vector3(40, 0, -180), Quaternion.CreateFromYawPitchRoll(0, 0, MathHelper.ToRadians(90)), Vector3.One, scene);
             pistol = new GameObject("Pistol", new Vector3(8, 9, -9), Quaternion.Identity, Vector3.One, scene, player);
