@@ -50,6 +50,7 @@
     <Compile Include="Engine\Components\Hologram.cs" />
     <Compile Include="Engine\Components\Interaction.cs" />
     <Compile Include="Engine\Components\MeshInstance.cs" />
+    <Compile Include="Engine\Components\ParticleSystem.cs" />
     <Compile Include="Engine\Components\PlayerController.cs" />
     <Compile Include="Engine\Components\SpriteInstance.cs" />
     <Compile Include="Engine\Components\Weapon.cs" />
