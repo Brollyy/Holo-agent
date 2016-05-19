@@ -52,11 +52,13 @@
     <Compile Include="Engine\Components\MeshInstance.cs" />
     <Compile Include="Engine\Components\ParticleSystem.cs" />
     <Compile Include="Engine\Components\PlayerController.cs" />
+    <Compile Include="Engine\Components\Rigidbody.cs" />
     <Compile Include="Engine\Components\SpriteInstance.cs" />
     <Compile Include="Engine\Components\Weapon.cs" />
     <Compile Include="Engine\Components\WeaponInteraction.cs" />
     <Compile Include="Engine\GameObject.cs" />
     <Compile Include="Engine\Input.cs" />
+    <Compile Include="Engine\Physics.cs" />
     <Compile Include="Engine\Scene.cs" />
     <Compile Include="Engine\Utilities\FrameCounter.cs" />
     <Compile Include="Engine\Utilities\Pair.cs" />

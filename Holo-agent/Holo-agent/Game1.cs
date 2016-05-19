@@ -30,6 +30,7 @@ namespace Holo_agent
         GameObject[] doors;
         GameObject gunfire;
         GameObject floor;
+        GameObject testBall;
         List<SpriteInstance> particles;
         GameObject particleFireEmitter, particleExplosionEmitter, particleSmokeEmitter, particleBloodEmitter;
         List<GameObject> weapons;
@@ -73,7 +74,7 @@ namespace Holo_agent
             Collider playerCol = player.AddNewComponent<Collider>();
             playerCol.bound = new Engine.Bounding_Volumes.BoundingBox(playerCol, Vector3.Zero, 10f * Vector3.One);
             GameObject camera = new GameObject("Camera", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, player);
-            Camera cameraComp = new Camera(45, graphics.GraphicsDevice.Viewport.AspectRatio, 1, 1000);
+            Camera cameraComp = new Camera(45, graphics.GraphicsDevice.Viewport.AspectRatio, 1, 2000);
             camera.AddComponent(cameraComp);
             scene.Camera = camera;
             for (int i = 0; i < 8; ++i)
@@ -125,6 +126,8 @@ namespace Holo_agent
             particleExplosionEmitter = new GameObject("Explosion_Emitter", new Vector3(25, 18, -60), Quaternion.CreateFromAxisAngle(Vector3.UnitY, MathHelper.ToRadians(90)), Vector3.One, scene);
             particleSmokeEmitter = new GameObject("Smoke_Emitter", new Vector3(60, 6, -60), Quaternion.CreateFromAxisAngle(Vector3.UnitY, MathHelper.ToRadians(90)), Vector3.One, scene);
             particleBloodEmitter = new GameObject("Blood_Emitter", new Vector3(20, 18, -40), Quaternion.CreateFromAxisAngle(Vector3.UnitY, MathHelper.ToRadians(90)), Vector3.One, scene);
+            testBall = new GameObject("TestBall", new Vector3(30, 55, -60), Quaternion.Identity, Vector3.One * 0.25f, scene);
+            Physics.Initialize();
             Mouse.SetPosition(graphics.PreferredBackBufferWidth / 2, graphics.PreferredBackBufferHeight / 2);
             base.Initialize();
         }
@@ -183,10 +186,14 @@ namespace Holo_agent
             particleExplosionEmitter.AddComponent(new ParticleSystem(ParticleSystemType.Explosion, 6, 2, particles.GetRange(3, 3), 0.01f));
             particleSmokeEmitter.AddComponent(new ParticleSystem(ParticleSystemType.Smoke, 100, 2, particles.GetRange(6, 3), 1));
             particleBloodEmitter.AddComponent(new ParticleSystem(ParticleSystemType.Jet, 12, 0.25f, particles.GetRange(9, 3), 0.5f));
-            particleFireEmitter.GetComponent<ParticleSystem>().Init();
+            /*particleFireEmitter.GetComponent<ParticleSystem>().Init();
             particleExplosionEmitter.GetComponent<ParticleSystem>().Init();
             particleSmokeEmitter.GetComponent<ParticleSystem>().Init();
-            particleBloodEmitter.GetComponent<ParticleSystem>().Init();
+            particleBloodEmitter.GetComponent<ParticleSystem>().Init();*/
+            Model testBallModel = Content.Load<Model>("Models/TestBall");
+            testBall.AddComponent(new MeshInstance(testBallModel, null));
+            testBall.AddComponent(new Rigidbody());
+            //player.AddComponent(new Rigidbody());
         }
 
         /// <summary>
@@ -258,10 +265,10 @@ namespace Holo_agent
                 particleSmokeEmitter.Destroy();
                 timer = 0;
             }*/
-            if (particleBloodEmitter.GetComponent<ParticleSystem>().getParticlesCount() == 0)
+            /*if (particleBloodEmitter.GetComponent<ParticleSystem>().getParticlesCount() == 0)
                 particleBloodEmitter.GetComponent<ParticleSystem>().Init();
             if (particleExplosionEmitter.GetComponent<ParticleSystem>().getParticlesCount() == 0)
-                particleExplosionEmitter.GetComponent<ParticleSystem>().Init();
+                particleExplosionEmitter.GetComponent<ParticleSystem>().Init();*/
             base.Update(gameTime);
         }
 
@@ -371,6 +378,8 @@ namespace Holo_agent
                 spriteBatch.DrawString(font, "Smoke Particles: " + particleSmokeEmitter.GetComponent<ParticleSystem>().getParticlesCount().ToString(), new Vector2(50, 105), Color.Purple);
             if (particleBloodEmitter.GetComponent<ParticleSystem>().getParticlesCount() != null)
                 spriteBatch.DrawString(font, "Blood Particles: " + particleBloodEmitter.GetComponent<ParticleSystem>().getParticlesCount().ToString(), new Vector2(50, 120), Color.Purple);
+            if (player != null)
+                spriteBatch.DrawString(font, "Player Y position: " + player.GlobalPosition.Y.ToString(), new Vector2(50, 15), Color.DarkGreen);
             spriteBatch.End();
             base.Draw(gameTime);
         }
