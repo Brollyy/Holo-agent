@@ -38,8 +38,10 @@ namespace Engine.Components
 
         public void SetBindPose(AnimationClip clip)
         {
+            bool s = animPlayer == BIND_POSE;
             if (clip == null) BIND_POSE = null;
             else BIND_POSE = new AnimationPlayer(clip, Owner.GetComponent<MeshInstance>().Model);
+            if (s) animPlayer = BIND_POSE;
         }
 
         public void Blend(string name, float time)

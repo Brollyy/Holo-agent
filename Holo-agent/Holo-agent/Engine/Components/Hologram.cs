@@ -172,7 +172,7 @@ namespace Engine.Components
                 {
                     currentAnimation = animationName;
                     AnimationController contr = Owner.GetComponent<AnimationController>();
-                    if (contr != null) contr.PlayAnimation(currentAnimation);
+                    if (contr != null) contr.Blend(currentAnimation, 0.2f);
                 }
 
                 if (index < path.LocalPositions.Count - 1)
