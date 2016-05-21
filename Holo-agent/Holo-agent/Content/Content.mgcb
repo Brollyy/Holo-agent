@@ -341,25 +341,6 @@
 /processorParam:TextureFormat=Color
 /build:Textures/Gunfire.png
 
-#begin Models/new/HD/ziomeczek T-Pose HD.FBX
-/importer:FbxImporter
-/processor:ModelProcessor
-/processorParam:ColorKeyColor=0,0,0,0
-/processorParam:ColorKeyEnabled=True
-/processorParam:DefaultEffect=BasicEffect
-/processorParam:GenerateMipmaps=True
-/processorParam:GenerateTangentFrames=False
-/processorParam:PremultiplyTextureAlpha=True
-/processorParam:PremultiplyVertexColors=True
-/processorParam:ResizeTexturesToPowerOfTwo=False
-/processorParam:RotationX=-90
-/processorParam:RotationY=180
-/processorParam:RotationZ=0
-/processorParam:Scale=0.15
-/processorParam:SwapWindingOrder=False
-/processorParam:TextureFormat=DxtCompressed
-/build:Models/new/HD/ziomeczek T-Pose HD.FBX
-
 #begin Models/new/Low/ziomeczek T-Pose low.FBX
 /importer:FbxImporter
 /processor:ModelProcessor
@@ -379,7 +360,7 @@
 /processorParam:TextureFormat=DxtCompressed
 /build:Models/new/Low/ziomeczek T-Pose low.FBX
 
-#begin Models/new/HD/ziomeczek_run_pistol_HD.fbx
+#begin Models/new/HD/BONE_2.FBX
 /importer:FbxImporter
 /processor:AnimationProcessor
 /processorParam:ColorKeyColor=0,0,0,0
@@ -393,8 +374,27 @@
 /processorParam:RotationX=0
 /processorParam:RotationY=180
 /processorParam:RotationZ=0
-/processorParam:Scale=0.15
+/processorParam:Scale=0.00375
 /processorParam:SwapWindingOrder=False
 /processorParam:TextureFormat=DxtCompressed
-/build:Models/new/HD/ziomeczek_run_pistol_HD.fbx
+/build:Models/new/HD/BONE_2.FBX
+
+#begin Models/new/HD/BONE_RUN_2.FBX
+/importer:FbxImporter
+/processor:AnimationProcessor
+/processorParam:ColorKeyColor=0,0,0,0
+/processorParam:ColorKeyEnabled=True
+/processorParam:DefaultEffect=BasicEffect
+/processorParam:GenerateMipmaps=True
+/processorParam:GenerateTangentFrames=False
+/processorParam:PremultiplyTextureAlpha=True
+/processorParam:PremultiplyVertexColors=True
+/processorParam:ResizeTexturesToPowerOfTwo=False
+/processorParam:RotationX=0
+/processorParam:RotationY=180
+/processorParam:RotationZ=0
+/processorParam:Scale=0.00375
+/processorParam:SwapWindingOrder=False
+/processorParam:TextureFormat=DxtCompressed
+/build:Models/new/HD/BONE_RUN_2.FBX
 

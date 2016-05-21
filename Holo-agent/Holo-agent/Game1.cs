@@ -7,6 +7,8 @@ using Engine;
 using Engine.Components;
 using Engine.Utilities;
 using Microsoft.Xna.Framework.Audio;
+using Animation;
+using System.Collections.Generic;
 
 namespace Holo_agent
 {
@@ -132,9 +134,17 @@ namespace Holo_agent
             ladder.AddComponent(new MeshInstance(ladderModel));
             Model tileModel = Content.Load<Model>("Models/panel_ceiling");
             tile.AddComponent(new MeshInstance(tileModel));
-            Model playerModel = Content.Load<Model>("Models/new/HD/ziomeczek_run_pistol_HD");
+            Model playerModel = Content.Load<Model>("Models/new/HD/BONE_2");
+            Model playerRunAnim = Content.Load<Model>("Models/new/HD/BONE_RUN_2");
             player.GetComponent<PlayerController>().PlayerMesh = new MeshInstance(playerModel);
-            AnimationPlayer animPlayer = player.GetComponent<PlayerController>().PlayerMesh.Model.PlayClip(0, true);
+            AnimationClip runClip = (playerRunAnim.Tag as ModelExtra).Clips[0];
+            /*Dictionary<string, string> boneDict = new Dictionary<string, string>();
+            foreach(AnimationClip.Bone bone in runClip.Bones)
+            {
+                boneDict.Add(bone.Name, "bone" + bone.Name.Substring(3));
+            }
+            runClip.RemapBones(boneDict);*/
+            player.GetComponent<PlayerController>().PlayerMesh.Model.Clips.Add(runClip);
             player.GetComponent<PlayerController>().PlayerMesh.Offset = new Vector3(0, -18, 0);
             for (int i = 0; i < 7; ++i)
             {

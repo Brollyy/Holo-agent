@@ -16,6 +16,8 @@ namespace Engine.Components
         protected float crouchVolume;
         protected Movement movement;
 
+        public Movement Movement { get { return movement; } }
+
         public CharacterController() : 
             this(75.0f, 0.5f, 125.0f, 1.0f, 35.0f, 0.0f)
         {

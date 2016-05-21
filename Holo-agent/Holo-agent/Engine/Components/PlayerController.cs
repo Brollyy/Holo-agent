@@ -244,7 +244,14 @@ namespace Engine.Components
                 GameObject hologramPlayback = new GameObject("HologramPlayback", Owner.LocalPosition, Owner.LocalQuaternionRotation,
                                                               Owner.LocalScale, Owner.Scene, Owner.Parent);
                 hologramPlayback.AddComponent(new HologramPlayback(recordedPath.Value, StopPlayback));
-                if (PlayerMesh != null) hologramPlayback.AddComponent(PlayerMesh);
+                if (PlayerMesh != null)
+                {
+                    hologramPlayback.AddComponent(PlayerMesh);
+                    AnimationController anim = hologramPlayback.AddNewComponent<AnimationController>();
+                    anim.BindAnimation("run", PlayerMesh.Model.Clips[1], true);
+                    anim.BindAnimation("idle", null, false);
+                    anim.SetBindPose(PlayerMesh.Model.Clips[0]);
+                }
                 this.hologramPlaying = true;
             }
         }

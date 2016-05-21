@@ -34,11 +34,6 @@ namespace Engine.Utilities
         /// </summary>
         private List<Bone> bones = new List<Bone>();
 
-        /// <summary>
-        /// An associated animation clip player
-        /// </summary>
-        private AnimationPlayer player = null;
-
         #endregion
 
         #region Properties
@@ -112,40 +107,6 @@ namespace Engine.Utilities
             }
 
             return null;
-        }
-
-        #endregion
-
-        #region Animation Management
-
-        /// <summary>
-        /// Play an animation clip
-        /// </summary>
-        /// <param name="index">Index of the clip to play</param>
-        /// <returns>The player that will play this clip</returns>
-        public AnimationPlayer PlayClip(int index, bool looping = false)
-        {
-            if (index < 0 || index >= Clips.Count) return null;
-            // Create a clip player and assign it to this model
-            player = new AnimationPlayer(Clips[index], this);
-            player.Looping = looping;
-            return player;
-        }
-
-        #endregion
-
-        #region Updating
-
-        /// <summary>
-        /// Update animation for the model.
-        /// </summary>
-        /// <param name="gameTime"></param>
-        public void Update(GameTime gameTime)
-        {
-            if (player != null)
-            {
-                player.Update(gameTime);
-            }
         }
 
         #endregion

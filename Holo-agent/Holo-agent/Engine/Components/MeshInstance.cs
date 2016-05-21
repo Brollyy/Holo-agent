@@ -31,11 +31,6 @@ namespace Engine.Components
             model.Draw(gameTime, Owner, Offset);
         }
 
-        public override void Update(GameTime gameTime)
-        {
-            model.Update(gameTime);
-        }
-
         public MeshInstance() : this(null as Model)
         {
         }

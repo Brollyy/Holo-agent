@@ -149,6 +149,19 @@ namespace Engine.Utilities
                 Position = 0;
         }
 
+        public static void LerpAndSet(AnimationPlayer player1, AnimationPlayer player2, float t)
+        {
+            foreach(BoneInfo bone1 in player1.boneInfos)
+            {
+                BoneInfo bone2 = Array.Find(player2.boneInfos, x => x.ModelBone.Name.Equals(bone1.ModelBone.Name));
+                Vector3 translation = Vector3.Lerp(bone1.translation, bone2.translation, t);
+                Quaternion rotation = Quaternion.Slerp(bone1.rotation, bone2.rotation, t);
+
+                Matrix m = Matrix.CreateFromQuaternion(rotation) * Matrix.CreateTranslation(translation);
+                bone1.ModelBone.SetCompleteTransform(m);
+            }
+        }
+
         #endregion
 
         #region BoneInfo class
@@ -183,7 +196,7 @@ namespace Engine.Utilities
             /// <summary>
             /// Current animation rotation
             /// </summary>
-            private Quaternion rotation;
+            public Quaternion rotation;
 
             /// <summary>
             /// Current animation translation

@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using System.Collections.Generic;
 using Engine.Utilities;
+using System;
 
 namespace Engine.Components
 {
@@ -9,7 +10,6 @@ namespace Engine.Components
     public class HologramRecorder : Component
     {
         private FinalizeHologramRecording handler;
-
         private HologramPath path;
         private float sampleTime;
         private float time;
@@ -41,6 +41,18 @@ namespace Engine.Components
         public override void Destroy()
         {
             Input.UnbindActionPress(GameAction.RECORD_HOLOGRAM, StopRecording);
+            Input.UnbindActionPress(GameAction.MOVE_FORWARD, Move);
+            Input.UnbindActionRelease(GameAction.MOVE_FORWARD, StopMoving);
+            Input.UnbindActionPress(GameAction.MOVE_BACKWARD, Move);
+            Input.UnbindActionRelease(GameAction.MOVE_BACKWARD, StopMoving);
+            Input.UnbindActionPress(GameAction.STRAFE_LEFT, Move);
+            Input.UnbindActionRelease(GameAction.STRAFE_LEFT, StopMoving);
+            Input.UnbindActionPress(GameAction.STRAFE_RIGHT, Move);
+            Input.UnbindActionRelease(GameAction.STRAFE_RIGHT, StopMoving);
+            Input.UnbindActionPress(GameAction.CROUCH, Crouch);
+            Input.UnbindActionRelease(GameAction.CROUCH, StopCrouching);
+            Input.UnbindActionPress(GameAction.RUN, Run);
+            Input.UnbindActionRelease(GameAction.RUN, StopRunning);
         }
 
         protected override void InitializeNewOwner(GameObject newOwner)
@@ -49,6 +61,7 @@ namespace Engine.Components
             path.StartGlobalPosition = Owner.GlobalPosition;
             path.StartGlobalRotation = Owner.GlobalRotation;
         }
+
 
         public HologramRecorder() : this(5.0f, 50, null)
         {
@@ -59,6 +72,18 @@ namespace Engine.Components
         {
             this.handler = handler;
             Input.BindActionPress(GameAction.RECORD_HOLOGRAM, StopRecording);
+            Input.BindActionPress(GameAction.MOVE_FORWARD, Move);
+            Input.BindActionRelease(GameAction.MOVE_FORWARD, StopMoving);
+            Input.BindActionPress(GameAction.MOVE_BACKWARD, Move);
+            Input.BindActionRelease(GameAction.MOVE_BACKWARD, StopMoving);
+            Input.BindActionPress(GameAction.STRAFE_LEFT, Move);
+            Input.BindActionRelease(GameAction.STRAFE_LEFT, StopMoving);
+            Input.BindActionPress(GameAction.STRAFE_RIGHT, Move);
+            Input.BindActionRelease(GameAction.STRAFE_RIGHT, StopMoving);
+            Input.BindActionPress(GameAction.CROUCH, Crouch);
+            Input.BindActionRelease(GameAction.CROUCH, StopCrouching);
+            Input.BindActionPress(GameAction.RUN, Run);
+            Input.BindActionRelease(GameAction.RUN, StopRunning);
             if (recordingTime > 0.0f) path.Duration = recordingTime;
             else path.Duration = 5.0f;
             time = 0.0f;
@@ -67,6 +92,42 @@ namespace Engine.Components
             path.Actions = new List<Pair<Pair<float, float?>, GameAction>>();
             path.LocalPositions = new List<Vector3>();
             path.LocalRotations = new List<float>();
+        }
+
+        private void StopRunning(ReleasedActionArgs args)
+        {
+            int i = path.Actions.FindLastIndex(x => x.Second == GameAction.RUN);
+            path.Actions[i].First.Second = path.LocalPositions.Count * sampleTime + time;
+        }
+
+        private void Run(PressedActionArgs args)
+        {
+            float timer = path.LocalPositions.Count * sampleTime + time;
+            path.Actions.Add(new Pair<Pair<float, float?>, GameAction>(new Pair<float, float?>(timer, null), GameAction.RUN));
+        }
+
+        private void StopCrouching(ReleasedActionArgs args)
+        {
+            int i = path.Actions.FindLastIndex(x => x.Second == GameAction.CROUCH);
+            path.Actions[i].First.Second = path.LocalPositions.Count * sampleTime + time;
+        }
+
+        private void Crouch(PressedActionArgs args)
+        {
+            float timer = path.LocalPositions.Count * sampleTime + time;
+            path.Actions.Add(new Pair<Pair<float, float?>, GameAction>(new Pair<float, float?>(timer, null), GameAction.CROUCH));
+        }
+
+        private void StopMoving(ReleasedActionArgs args)
+        {
+            int i = path.Actions.FindLastIndex(x => x.Second == GameAction.MOVE_FORWARD);
+            path.Actions[i].First.Second = path.LocalPositions.Count * sampleTime + time;
+        }
+
+        private void Move(PressedActionArgs args)
+        {
+            float timer = path.LocalPositions.Count * sampleTime + time;
+            path.Actions.Add(new Pair<Pair<float, float?>, GameAction>(new Pair<float, float?>(timer, null), GameAction.MOVE_FORWARD));
         }
     }
 
@@ -81,6 +142,7 @@ namespace Engine.Components
         private float overallTime;
         private float time;
         private int index;
+        private string currentAnimation = "idle";
 
         private void StopPlayback(PressedActionArgs args)
         {
@@ -93,6 +155,26 @@ namespace Engine.Components
             overallTime += (float)gameTime.ElapsedGameTime.TotalSeconds;
             if (overallTime < path.Duration)
             {
+                Pair<Pair<float,float?>,GameAction> action = path.Actions.Find(x => (x.First.First < overallTime && x.First.Second > overallTime));
+                string animationName = "idle";
+                if (action != null)
+                {
+                    switch (action.Second)
+                    {
+                        case GameAction.CROUCH: break;
+                        case GameAction.JUMP: break;
+                        case GameAction.RUN: animationName = "run"; break;
+                        case GameAction.MOVE_FORWARD: animationName = "run"; break;
+                    }
+                }
+
+                if(!animationName.Equals(currentAnimation))
+                {
+                    currentAnimation = animationName;
+                    AnimationController contr = Owner.GetComponent<AnimationController>();
+                    if (contr != null) contr.PlayAnimation(currentAnimation);
+                }
+
                 if (index < path.LocalPositions.Count - 1)
                 {
                     time += (float)gameTime.ElapsedGameTime.TotalSeconds;
