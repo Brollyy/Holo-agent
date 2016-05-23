@@ -1,22 +1,47 @@
-﻿using Engine.Utilities;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Audio;
-using Microsoft.Xna.Framework.Graphics;
-using System.Collections.Generic;
+﻿using Microsoft.Xna.Framework;
 
 namespace Engine.Components
 {
-    class Weapon : Component
+    public class Weapon : Component
     {
         private WeaponTypes weaponType;
         private int magazine, ammo, magazineCapacity, ammoCapacity;
-        private bool isArmed = false, isLocked = false, gunfire = false;
+        private bool isArmed, isLocked, gunfire, collision;
         private float range;
+        private readonly Vector3 asChildPosition;
         public string info;
         float machineGunTimer = 100;
         const float MACHINE_GUN_TIMER = 100;
-
-        public Weapon(WeaponTypes weaponType, int magazine, int ammo, int magazineCapacity, int ammoCapacity, float range)
+        public bool IsArmed
+        {
+            get
+            {
+                return isArmed;
+            }
+            set
+            {
+                isArmed = value;
+            }
+        }
+        public bool Collision
+        {
+            get
+            {
+                return collision;
+            }
+            set
+            {
+                collision = value;
+            }
+        }
+        public Vector3 AsChildPosition
+        {
+            get
+            {
+                return asChildPosition;
+            }
+        }
+        public Weapon(WeaponTypes weaponType, int magazine, int ammo, int magazineCapacity, int ammoCapacity, float range, Vector3 asChildPosition)
         {
             this.weaponType = weaponType;
             this.magazine = magazine;
@@ -30,12 +55,16 @@ namespace Engine.Components
             else
                 this.ammoCapacity = ammoCapacity;
             this.range = range;
+            this.asChildPosition = asChildPosition;
+            isArmed = false;
+            isLocked = false;
+            gunfire = false;
+            collision = true;
         }
         public void shoot(GameTime gameTime)
         {
-            float? closest = null;
-            GameObject closestGameObject = null;
-            Owner.Parent.GetComponent<PlayerController>().Ray(ref closestGameObject, ref closest, range);
+            GameObject gameObject = Owner.Parent.GetComponent<PlayerController>().ClosestObject;
+            float? distance = Owner.Parent.GetComponent<PlayerController>().ClosestObjectDistance;
             if (weaponType == WeaponTypes.MachineGun && magazine > 0)
             {
                 float deltaTime = (float)gameTime.ElapsedGameTime.TotalMilliseconds;
@@ -44,9 +73,9 @@ namespace Engine.Components
                 {
                     magazine--;
                     gunfire = true;
-                    if (closestGameObject != null)
+                    if (gameObject != null && distance <= 1000.0f)
                     {
-                        info = closestGameObject.Name + " " + closest;
+                        info = gameObject.Name + " " + distance;
                     }
                     machineGunTimer = MACHINE_GUN_TIMER;
                 }
@@ -55,9 +84,9 @@ namespace Engine.Components
             {
                 magazine--;
                 gunfire = true;
-                if (closestGameObject != null)
+                if (gameObject != null && distance <= 1000.0f)
                 {
-                    info = closestGameObject.Name + " " + closest;
+                    info = gameObject.Name + " " + distance;
                 }
                 isLocked = true;
             }
@@ -79,6 +108,22 @@ namespace Engine.Components
             }
             ammo -= bulletsToAdd;
             magazine += bulletsToAdd;
+        }
+        public GameObject getGunfireInstance()
+        {
+            int index = Owner.GetChildren().FindIndex(child => child.GetComponent<SpriteInstance>() != null);
+            if (index != -1)
+            {
+                return Owner.GetChild(index);
+            }
+            else
+            {
+                return null;
+            }
+        }
+        public WeaponTypes getWeaponType()
+        {
+            return weaponType;
         }
         public int getMagazine()
         {
