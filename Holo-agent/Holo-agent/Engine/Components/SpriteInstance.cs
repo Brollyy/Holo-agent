@@ -12,26 +12,49 @@ namespace Engine.Components
     {
         private Texture2D texture;
         private VertexPositionTexture[] spriteVerts;
-        private BasicEffect spriteEffect;
-        private Vector3 spriteCoordinates;
+        private BasicEffect effect;
+        private Vector3 coordinates;
         private int tilesNumber;
+        private float alpha;
         private GraphicsDeviceManager graphics;
-        public SpriteInstance(Texture2D texture, Vector3 spriteCoordinates, int tilesNumber, BasicEffect spriteEffect, GraphicsDeviceManager graphics)
+        public float Alpha
+        {
+            get
+            {
+                return alpha;
+            }
+            set
+            {
+                alpha = value;
+            }
+        }
+        public SpriteInstance(Texture2D texture, Vector3 coordinates, int tilesNumber, float alpha, GraphicsDeviceManager graphics)
         {
             this.texture = texture;
-            this.spriteCoordinates = spriteCoordinates;
+            this.coordinates = coordinates;
             this.tilesNumber = tilesNumber;
-            this.spriteEffect = spriteEffect;
             spriteVerts = new VertexPositionTexture[6];
+            this.alpha = alpha;
             this.graphics = graphics;
+            effect = new BasicEffect(this.graphics.GraphicsDevice);
+        }
+        public SpriteInstance(SpriteInstance sprite)
+        {
+            texture = sprite.texture;
+            coordinates = sprite.coordinates;
+            tilesNumber = sprite.tilesNumber;
+            spriteVerts = new VertexPositionTexture[6];
+            alpha = sprite.alpha;
+            graphics = sprite.graphics;
+            effect = new BasicEffect(graphics.GraphicsDevice);
         }
         public override void Draw(GameTime gameTime)
         {
-            spriteVerts[0].Position = new Vector3(-spriteCoordinates.X, -spriteCoordinates.Y, -spriteCoordinates.Z);
-            spriteVerts[1].Position = new Vector3(-spriteCoordinates.X, -spriteCoordinates.Y, spriteCoordinates.Z);
-            spriteVerts[2].Position = new Vector3(spriteCoordinates.X, spriteCoordinates.Y, -spriteCoordinates.Z);
+            spriteVerts[0].Position = new Vector3(-coordinates.X, -coordinates.Y, -coordinates.Z);
+            spriteVerts[1].Position = new Vector3(-coordinates.X, -coordinates.Y, coordinates.Z);
+            spriteVerts[2].Position = new Vector3(coordinates.X, coordinates.Y, -coordinates.Z);
             spriteVerts[3].Position = spriteVerts[1].Position;
-            spriteVerts[4].Position = new Vector3(spriteCoordinates.X, spriteCoordinates.Y, spriteCoordinates.Z);
+            spriteVerts[4].Position = new Vector3(coordinates.X, coordinates.Y, coordinates.Z);
             spriteVerts[5].Position = spriteVerts[2].Position;
             spriteVerts[0].TextureCoordinate = new Vector2(0, 0);
             spriteVerts[1].TextureCoordinate = new Vector2(0, tilesNumber);
@@ -39,12 +62,13 @@ namespace Engine.Components
             spriteVerts[3].TextureCoordinate = spriteVerts[1].TextureCoordinate;
             spriteVerts[4].TextureCoordinate = new Vector2(tilesNumber, tilesNumber);
             spriteVerts[5].TextureCoordinate = spriteVerts[2].TextureCoordinate;
-            spriteEffect.Projection = Owner.Scene.Camera.GetComponent<Camera>().ProjectionMatrix;
-            spriteEffect.View = Owner.Scene.Camera.GetComponent<Camera>().ViewMatrix;
-            spriteEffect.World = Owner.LocalToWorldMatrix;
-            spriteEffect.TextureEnabled = true;
-            spriteEffect.Texture = texture;
-            foreach (EffectPass pass in spriteEffect.CurrentTechnique.Passes)
+            effect.Projection = Owner.Scene.Camera.GetComponent<Camera>().ProjectionMatrix;
+            effect.View = Owner.Scene.Camera.GetComponent<Camera>().ViewMatrix;
+            effect.World = Owner.LocalToWorldMatrix;
+            effect.TextureEnabled = true;
+            effect.Texture = texture;
+            effect.Alpha = alpha;
+            foreach (EffectPass pass in effect.CurrentTechnique.Passes)
             {
                 pass.Apply();
                 graphics.GraphicsDevice.DrawUserPrimitives(PrimitiveType.TriangleList, spriteVerts, 0, 2);

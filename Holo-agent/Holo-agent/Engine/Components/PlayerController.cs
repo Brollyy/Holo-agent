@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Engine.Utilities;
+using System;
+using System.Linq;
 
 namespace Engine.Components
 {
@@ -14,16 +16,121 @@ namespace Engine.Components
         private Vector3 playerCameraPosition;
         private Quaternion playerCameraRotation;
         private Vector3 playerCameraScale;
-
         private Vector3 lastPosition, lastPosition2;
         private Quaternion lastRotation, lastRotation2;
-
+        private float? closestObjectDistance;
+        private GameObject closestObject;
+        private Color crosshairColor;
+        private GameObject[] weapons;
+        public GameObject ClosestObject
+        {
+            get
+            {
+                return closestObject;
+            }
+        }
+        public float? ClosestObjectDistance
+        {
+            get
+            {
+                return closestObjectDistance;
+            }
+        }
+        public Color CrosshairColor
+        {
+            get
+            {
+                return crosshairColor;
+            }
+        }
         public MeshInstance PlayerMesh
         {
             get;
             set;
         }
-
+        public void addWeapon(GameObject weapon)
+        {
+            int index = Array.FindIndex(weapons, i => i == null);
+            int otherWeaponIndex = Array.FindIndex(weapons, i => i != null && i.GetComponent<Weapon>().getWeaponType() == weapon.GetComponent<Weapon>().getWeaponType());
+            Weapon component = weapon.GetComponent<Weapon>();
+            if (index != -1 && otherWeaponIndex == -1 && component != null && weapons.Contains(weapon) == false)
+            {
+                weapons[index] = weapon;
+                weapons[index].GetComponent<Weapon>().Collision = false;
+                arm(weapon);
+            }
+        }
+        private void removeWeapon(GameObject weapon)
+        {
+            int index = Array.IndexOf(weapons, weapon);
+            int otherWeaponIndex = Array.FindIndex(weapons, i => i != null && i != weapon);
+            if (index != -1)
+            {
+                if (otherWeaponIndex != -1)
+                    arm(weapons[otherWeaponIndex]);
+                //Remove later (after adding gravity and fixing collisions)............//
+                weapons[index].LocalPosition -= Vector3.UnitZ * (15);                  //
+                weapons[index].GlobalRotation = Owner.LocalQuaternionRotation;         //
+                //.....................................................................//
+                weapons[index].GetComponent<Weapon>().Collision = true;
+                weapons[index].IsVisible = true;
+                weapons[index].Parent = null;
+                weapons[index] = null;
+                weapon.GlobalScale = Vector3.One;
+            }
+        }
+        private void arm(GameObject weapon)
+        {
+            int index = Array.FindIndex(weapons, i => i != null && i != weapon && i.GetComponent<Weapon>().IsArmed == true);
+            if (index != -1)
+            {
+                weapons[index].GetComponent<Weapon>().IsArmed = false;
+                weapons[index].IsVisible = false;
+            }
+            weapon.GetComponent<Weapon>().IsArmed = true;
+            weapon.IsVisible = true;
+            if (weapon.Parent == null)
+            {
+                weapon.Parent = Owner;
+                weapon.LocalScale = Vector3.One;
+                weapon.LocalQuaternionRotation = Quaternion.Identity;
+                weapon.LocalPosition = weapon.GetComponent<Weapon>().AsChildPosition;
+            }
+        }
+        private void changeWeapon(MouseWheelStates state)
+        {
+            if (weapons.Where(i => i != null).Count() > 1)
+            {
+                if (state == MouseWheelStates.Up)
+                {
+                    int nextWeaponIndex = (Array.IndexOf(weapons, getWeapon().Owner) + 1);
+                    if (nextWeaponIndex != -1 && weapons[nextWeaponIndex] != null)
+                    {
+                        arm(weapons[nextWeaponIndex]);
+                    }
+                }
+                if (state == MouseWheelStates.Down)
+                {
+                    int previousWeaponIndex = (Array.IndexOf(weapons, getWeapon().Owner) - 1);
+                    if (previousWeaponIndex != -1 && weapons[previousWeaponIndex] != null)
+                    {
+                        arm(weapons[previousWeaponIndex]);
+                    }
+                }
+            }
+        }
+        public Weapon getWeapon()
+        {
+            int index = Array.FindIndex(weapons, i => i != null && i.GetComponent<Weapon>().IsArmed == true);
+            if (index != -1)
+            {
+                return weapons[index].GetComponent<Weapon>();
+            }
+            else
+            {
+                return null;
+            }
+        }
         private void Turn(float xMove, float yMove, GameTime gameTime)
         {
             Vector3 rot = Owner.LocalEulerRotation;
@@ -134,9 +241,9 @@ namespace Engine.Components
             if (movement == Movement.RUN) movement = Movement.WALK;
         }
 
-        public void Ray(ref GameObject closestGameObject, ref float? closest, float length)
+        public void Ray(ref GameObject closestGameObject, ref float? closest, float maxDistance)
         {
-            Raycast ray = new Raycast(Owner.GlobalPosition, Owner.LocalToWorldMatrix.Forward, length);
+            Raycast ray = new Raycast(Owner.GlobalPosition, Owner.LocalToWorldMatrix.Forward, maxDistance);
             List<GameObject> objects = Owner.Scene.GetObjects();
             foreach (GameObject go in objects)
             {
@@ -156,19 +263,21 @@ namespace Engine.Components
                 }
             }
         }
-
+        private bool canInteract(ref GameObject closestGo, ref float? closest)
+        {
+            if (closest <= 100.0f && closestGo.GetComponent<Interaction>() != null)
+                return true;
+            else
+                return false;
+        }
         private void Interact(PressedActionArgs args)
         {
-            // Interaction ray.
-            float? closest = null;
-            GameObject closestGo = null;
-            Ray(ref closestGo, ref closest, 100.0f);
-            
-            if (closestGo != null)
+            if (closestObject != null)
             {
-                Interaction interact = closestGo.GetComponent<Interaction>();
-                if (interact != null) interact.Interact(Owner);
-                System.Console.WriteLine(closestGo.Name + " " + closest);
+                Interaction interact = closestObject.GetComponent<Interaction>();
+                if (canInteract(ref closestObject, ref closestObjectDistance))
+                    interact.Interact(closestObject);
+                System.Console.WriteLine(closestObject.Name + " " + closestObjectDistance);
             }
             else
             {
@@ -176,10 +285,10 @@ namespace Engine.Components
             }
         }
 
-        private void Fire(PressedActionArgs args)
+        private void Fire(PressingActionArgs args)
         {
             if (hologramRecording) return;
-            Weapon weapon = Owner.GetChild("Pistol").GetComponent<Weapon>();
+            Weapon weapon = getWeapon();
             if (weapon == null) return;
             weapon.shoot(args.gameTime);
         }
@@ -187,7 +296,7 @@ namespace Engine.Components
         private void UnlockFire(ReleasedActionArgs args)
         {
             if (hologramRecording) return;
-            Weapon weapon = Owner.GetChild("Pistol").GetComponent<Weapon>();
+            Weapon weapon = getWeapon();
             if (weapon == null) return;
             weapon.unlockWeapon();
         }
@@ -195,11 +304,15 @@ namespace Engine.Components
         private void Reload(PressedActionArgs args)
         {
             if (hologramRecording) return;
-            Weapon weapon = Owner.GetChild("Pistol").GetComponent<Weapon>();
+            Weapon weapon = getWeapon();
             if (weapon == null) return;
             weapon.reload();
         }
-
+        private void dropWeapon(PressedActionArgs args)
+        {
+            if (getWeapon() != null)
+                removeWeapon(getWeapon().Owner);
+        }
         private void RecordingButton(PressedActionArgs args)
         {
             if (!hologramRecording && !hologramPlaying)
@@ -269,15 +382,21 @@ namespace Engine.Components
             lastPosition = lastPosition2;
             lastRotation = lastRotation2;
         }
-
         public override void Update(GameTime gameTime)
         {
             lastPosition2 = lastPosition;
             lastPosition = Owner.LocalPosition;
             lastRotation2 = lastRotation;
             lastRotation = Owner.LocalQuaternionRotation;
+            closestObjectDistance = null;
+            closestObject = null;
+            Ray(ref closestObject, ref closestObjectDistance, 1000.0f);
+            if (canInteract(ref closestObject, ref closestObjectDistance))
+                crosshairColor = Color.Lime;
+            else
+                crosshairColor = Color.Orange;
+            changeWeapon(Input.getMouseWheelState());
         }
-
         public override void Destroy()
         {
             Input.UnbindActionContinuousPress(GameAction.MOVE_FORWARD, MoveForward);
@@ -292,8 +411,9 @@ namespace Engine.Components
             Input.UnbindActionPress(GameAction.RECORD_HOLOGRAM, RecordingButton);
             Input.UnbindActionPress(GameAction.PLAY_HOLOGRAM, PlaybackButton);
             Input.UnbindActionPress(GameAction.RELOAD, Reload);
-            Input.UnbindActionPress(GameAction.FIRE, Fire);
+            Input.UnbindActionContinuousPress(GameAction.FIRE, Fire);
             Input.UnbindActionRelease(GameAction.FIRE, UnlockFire);
+            Input.UnbindActionPress(GameAction.DROP_WEAPON, dropWeapon);
             Input.UnbindMouseMovement(Turn);
         }
 
@@ -317,10 +437,12 @@ namespace Engine.Components
             hologramRecording = false;
             hologramPlaying = false;
             player = null;
-
             lastPosition = lastPosition2 = Vector3.Zero;
             lastRotation = lastRotation2 = Quaternion.Identity;
-
+            closestObjectDistance = null;
+            closestObject = null;
+            crosshairColor = Color.Orange;
+            weapons = new GameObject[3];
             // Bind actions to input.
             Input.BindActionContinuousPress(GameAction.MOVE_FORWARD, MoveForward);
             Input.BindActionContinuousPress(GameAction.MOVE_BACKWARD, MoveBackward);
@@ -334,8 +456,9 @@ namespace Engine.Components
             Input.BindActionPress(GameAction.RECORD_HOLOGRAM, RecordingButton);
             Input.BindActionPress(GameAction.PLAY_HOLOGRAM, PlaybackButton);
             Input.BindActionPress(GameAction.RELOAD, Reload);
-            Input.BindActionPress(GameAction.FIRE, Fire);
+            Input.BindActionContinuousPress(GameAction.FIRE, Fire);
             Input.BindActionRelease(GameAction.FIRE, UnlockFire);
+            Input.BindActionPress(GameAction.DROP_WEAPON, dropWeapon);
             Input.BindMouseMovement(Turn);
         }
     }
