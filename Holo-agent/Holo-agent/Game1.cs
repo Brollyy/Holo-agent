@@ -29,7 +29,6 @@ namespace Holo_agent
         GameObject tile;
         GameObject[] walls;
         GameObject[] doors;
-        GameObject pistol;
         GameObject gunfire;
         GameObject floor;
         GameObject testBall;
@@ -180,7 +179,7 @@ namespace Holo_agent
             {
                 doors[i].AddComponent(new MeshInstance(doorModel));
             }
-            floor.AddComponent(new SpriteInstance(floorTexture, new Vector3(0, 160, 220), 20, new BasicEffect(graphics.GraphicsDevice), graphics));
+            floor.AddComponent(new SpriteInstance(floorTexture, new Vector3(0, 160, 220), 20, 1, graphics));
             Model pistolModel = Content.Load<Model>("Models/Pistol2");
             weapons[0].AddComponent(new MeshInstance(pistolModel));
             gunfires[0].AddComponent(new SpriteInstance(gunfireTexture, new Vector3(0, 5, 5), 1, 1, graphics));
