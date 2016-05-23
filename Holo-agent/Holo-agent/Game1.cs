@@ -7,6 +7,8 @@ using Engine;
 using Engine.Components;
 using Engine.Utilities;
 using Microsoft.Xna.Framework.Audio;
+using Animation;
+using System.Collections.Generic;
 
 namespace Holo_agent
 {
@@ -65,7 +67,7 @@ namespace Holo_agent
             player.AddNewComponent<PlayerController>();
             Collider playerCol = player.AddNewComponent<Collider>();
             playerCol.bound = new Engine.Bounding_Volumes.BoundingBox(playerCol, Vector3.Zero, 10f * Vector3.One);
-            GameObject camera = new GameObject("Camera", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, player);
+            GameObject camera = new GameObject("Camera", new Vector3(0,0,0), Quaternion.Identity, Vector3.One, scene, player);
             Camera cameraComp = new Camera(45, graphics.GraphicsDevice.Viewport.AspectRatio, 1, 1000);
             camera.AddComponent(cameraComp);
             scene.Camera = camera;
@@ -92,10 +94,11 @@ namespace Holo_agent
             walls[6] = new GameObject("Ceiling", new Vector3(40, 60, -180), Quaternion.CreateFromYawPitchRoll(0, MathHelper.ToRadians(270), 0), new Vector3(2.7f, 3.66f, 1f), scene);
             for(int i = 0; i < 2; ++i)
             {
-                doors[i] = new GameObject("Doors" + i, new Vector3(40, 30, 42.5f - ((i+1)%2)*442.5f), Quaternion.CreateFromYawPitchRoll(MathHelper.ToRadians((i%2)*180), 0, 0), new Vector3(0.1f, 0.165f, 0.1f), scene);
-                Collider doorCol = doors[i].AddNewComponent<Collider>();
-                doorCol.bound = new Engine.Bounding_Volumes.BoundingBox(doorCol, new Vector3(0, 0, 0), new Vector3(450, 180, 30));
+                GameObject doorHandler = new GameObject("DoorDummy" + i, new Vector3(40+(2*i-1)*40, 30, 42.5f - ((i+1)%2)*442.5f), Quaternion.CreateFromYawPitchRoll(MathHelper.ToRadians((i%2)*180), 0, 0), Vector3.One, scene);
+                doors[i] = new GameObject("Door" + i, new Vector3(40 * (1 - 2 * i), 0, 0), Quaternion.Identity, new Vector3(0.1f, 0.165f, 0.1f), scene, doorHandler);
                 doors[i].AddNewComponent<DoorInteraction>();
+                Collider doorCol = doors[i].AddNewComponent<Collider>();
+                doorCol.bound = new Engine.Bounding_Volumes.BoundingBox(doorCol, Vector3.Zero, new Vector3(450, 180, 30));
             }
             floor = new GameObject("Floor", new Vector3(40, 0, -180), Quaternion.CreateFromYawPitchRoll(0, 0, MathHelper.ToRadians(90)), Vector3.One, scene);
             pistol = new GameObject("Pistol", new Vector3(8, 9, -9), Quaternion.Identity, Vector3.One, scene, player);
@@ -124,29 +127,39 @@ namespace Holo_agent
 
             for (int i = 0; i < 8; ++i)
             {
-                columns[i].AddComponent(new MeshInstance(columnModel, null));
+                columns[i].AddComponent(new MeshInstance(columnModel));
             }
 
             Model ladderModel = Content.Load<Model>("Models/ladder");
-            ladder.AddComponent(new MeshInstance(ladderModel, null));
+            ladder.AddComponent(new MeshInstance(ladderModel));
             Model tileModel = Content.Load<Model>("Models/panel_ceiling");
-            tile.AddComponent(new MeshInstance(tileModel, null));
-            Model playerModel = Content.Load<Model>("Models/animacja_bieg");
-            player.GetComponent<PlayerController>().PlayerMesh = new MeshInstance(playerModel, null);
+            tile.AddComponent(new MeshInstance(tileModel));
+            Model playerModel = Content.Load<Model>("Models/new/HD/BONE_2");
+            Model playerRunAnim = Content.Load<Model>("Models/new/HD/BONE_RUN_2");
+            player.GetComponent<PlayerController>().PlayerMesh = new MeshInstance(playerModel);
+            AnimationClip runClip = (playerRunAnim.Tag as ModelExtra).Clips[0];
+            /*Dictionary<string, string> boneDict = new Dictionary<string, string>();
+            foreach(AnimationClip.Bone bone in runClip.Bones)
+            {
+                boneDict.Add(bone.Name, "bone" + bone.Name.Substring(3));
+            }
+            runClip.RemapBones(boneDict);*/
+            player.GetComponent<PlayerController>().PlayerMesh.Model.Clips.Add(runClip);
+            player.GetComponent<PlayerController>().PlayerMesh.Offset = new Vector3(0, -18, 0);
             for (int i = 0; i < 7; ++i)
             {
-                walls[i].AddComponent(new MeshInstance(tileModel, null));
+                walls[i].AddComponent(new MeshInstance(tileModel));
             }
             Model doorModel = Content.Load<Model>("Models/door_001");
             for (int i = 0; i < 2; ++i)
             {
-                doors[i].AddComponent(new MeshInstance(doorModel, null));
+                doors[i].AddComponent(new MeshInstance(doorModel));
             }
             floor.AddComponent(new SpriteInstance(floorTexture, new Vector3(0, 160, 220), 20, new BasicEffect(graphics.GraphicsDevice), graphics));
             gunfire.AddComponent(new SpriteInstance(gunfireTexture, new Vector3(0, 5, 5), 1, new BasicEffect(graphics.GraphicsDevice), graphics));
             gunfire.GetComponent<SpriteInstance>().Enabled = false;
             Model pistolModel = Content.Load<Model>("Models/Pistol_Game");
-            pistol.AddComponent(new MeshInstance(pistolModel, null));
+            pistol.AddComponent(new MeshInstance(pistolModel));
         }
 
         /// <summary>

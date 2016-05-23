@@ -204,8 +204,8 @@ namespace Engine.Components
         {
             if (!hologramRecording && !hologramPlaying)
             {
-                GameObject hologramRecording = new GameObject("HologramRecorder", Owner.LocalPosition, Owner.LocalQuaternionRotation, 
-                                                              Owner.LocalScale, Owner.Scene, Owner.Parent);
+                GameObject hologramRecording = new GameObject("HologramRecorder", Owner.LocalPosition, 
+                                                              Owner.LocalQuaternionRotation, Owner.LocalScale, Owner.Scene, Owner.Parent);
                 hologramRecording.AddComponent(new HologramRecorder(5.0f, 100, StopRecording));
                 MeshInstance mesh = Owner.GetComponent<MeshInstance>();
                 if(mesh != null) hologramRecording.AddComponent(new MeshInstance(mesh));
@@ -225,9 +225,6 @@ namespace Engine.Components
         {
             this.hologramRecording = false;
             recordedPath = path;
-            System.Console.WriteLine(path.GlobalPositions.Count);
-            System.Console.WriteLine(path.GlobalRotations.Count);
-            System.Console.WriteLine(path.Duration + " " + path.NumberOfSteps);
             Owner.RemoveComponent(this);
             if (player != null)
             {
@@ -246,10 +243,15 @@ namespace Engine.Components
             {
                 GameObject hologramPlayback = new GameObject("HologramPlayback", Owner.LocalPosition, Owner.LocalQuaternionRotation,
                                                               Owner.LocalScale, Owner.Scene, Owner.Parent);
-                hologramPlayback.GlobalPosition = recordedPath.Value.GlobalPositions[0];
-                hologramPlayback.GlobalRotation = recordedPath.Value.GlobalRotations[0];
                 hologramPlayback.AddComponent(new HologramPlayback(recordedPath.Value, StopPlayback));
-                if (PlayerMesh != null) hologramPlayback.AddComponent(PlayerMesh);
+                if (PlayerMesh != null)
+                {
+                    hologramPlayback.AddComponent(PlayerMesh);
+                    AnimationController anim = hologramPlayback.AddNewComponent<AnimationController>();
+                    anim.BindAnimation("run", PlayerMesh.Model.Clips[1], true);
+                    anim.BindAnimation("idle", null, false);
+                    anim.SetBindPose(PlayerMesh.Model.Clips[0]);
+                }
                 this.hologramPlaying = true;
             }
         }
