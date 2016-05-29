@@ -31,7 +31,7 @@ namespace Holo_agent
         GameObject[] doors;
         GameObject gunfire;
         GameObject floor;
-        GameObject testBall;
+        GameObject testBall, testBox;
         List<SpriteInstance> particles;
         GameObject particleFireEmitter, particleExplosionEmitter, particleSmokeEmitter, particleBloodEmitter;
         List<GameObject> weapons;
@@ -129,6 +129,7 @@ namespace Holo_agent
             particleSmokeEmitter = new GameObject("Smoke_Emitter", new Vector3(60, 6, -60), Quaternion.CreateFromAxisAngle(Vector3.UnitY, MathHelper.ToRadians(90)), Vector3.One, scene);
             particleBloodEmitter = new GameObject("Blood_Emitter", new Vector3(20, 18, -40), Quaternion.CreateFromAxisAngle(Vector3.UnitY, MathHelper.ToRadians(90)), Vector3.One, scene);
             testBall = new GameObject("TestBall", new Vector3(30, 55, -60), Quaternion.Identity, Vector3.One * 0.25f, scene);
+            testBox = new GameObject("TestBox", new Vector3(40, 55, -60), Quaternion.Identity, Vector3.One * 0.25f, scene);
             Physics.Initialize();
             Mouse.SetPosition(graphics.PreferredBackBufferWidth / 2, graphics.PreferredBackBufferHeight / 2);
             base.Initialize();
@@ -206,8 +207,14 @@ namespace Holo_agent
             particleBloodEmitter.GetComponent<ParticleSystem>().Init();*/
             Model testBallModel = Content.Load<Model>("Models/TestBall");
             testBall.AddComponent(new MeshInstance(testBallModel));
-            testBall.AddComponent(new Rigidbody());
-            //player.AddComponent(new Rigidbody());
+            testBall.AddNewComponent<Rigidbody>();
+            testBall.GetComponent<Rigidbody>().Initialize(50);
+            Model testBoxModel = Content.Load<Model>("Models/TestBox");
+            testBox.AddComponent(new MeshInstance(testBoxModel));
+            testBox.AddNewComponent<Rigidbody>();
+            testBox.GetComponent<Rigidbody>().Initialize(10);
+            player.AddNewComponent<Rigidbody>();
+            player.GetComponent<Rigidbody>().Initialize(80);
         }
 
         /// <summary>
@@ -258,7 +265,7 @@ namespace Holo_agent
                     player.GetComponent<PlayerController>().Revert();
                 }
             }
-	    for (int i = 0; i < weaponColliders.Count; i++)
+	        for (int i = 0; i < weaponColliders.Count; i++)
             {
                 collision = player.GetComponent<Collider>().Collide(weaponColliders[i]);
                 if (collision != 0 && weapons[i].GetComponent<Weapon>().Collision == true)
@@ -267,8 +274,8 @@ namespace Holo_agent
                 }
             }
             timer -= (float)gameTime.ElapsedGameTime.TotalSeconds;
-	    if (player.GetComponent<PlayerController>() != null)
-            weapon = player.GetComponent<PlayerController>().getWeapon();
+	        if (player.GetComponent<PlayerController>() != null)
+                weapon = player.GetComponent<PlayerController>().getWeapon();
             if (weapon != null)
                 gunfire = weapon.getGunfireInstance();
             /*emitterTimer += (float)gameTime.ElapsedGameTime.TotalSeconds;
@@ -278,7 +285,7 @@ namespace Holo_agent
                 particleFireEmitter.Destroy();
                 particleSmokeEmitter.GetComponent<ParticleSystem>().Destroy();
                 particleSmokeEmitter.Destroy();
-                timer = 0;
+                emitterTimer = 0;
             }*/
             /*if (particleBloodEmitter.GetComponent<ParticleSystem>().getParticlesCount() == 0)
                 particleBloodEmitter.GetComponent<ParticleSystem>().Init();
@@ -395,9 +402,12 @@ namespace Holo_agent
             if (particleBloodEmitter.GetComponent<ParticleSystem>().getParticlesCount() != null)
                 spriteBatch.DrawString(font, "Blood Particles: " + particleBloodEmitter.GetComponent<ParticleSystem>().getParticlesCount().ToString(), new Vector2(50, 120), Color.Purple);
             if (player != null)
-                spriteBatch.DrawString(font, "Player Y position: " + player.GlobalPosition.Y.ToString(), new Vector2(50, 15), Color.DarkGreen);
+                spriteBatch.DrawString(font, "Player Y position: " + player.GlobalPosition.Y.ToString() + ", velocity: " + player.GetComponent<Rigidbody>().Velocity.ToString(), new Vector2(50, 15), Color.DarkGreen);
+            if (testBall != null)
+                spriteBatch.DrawString(font, "TestBall position: " + testBall.GlobalPosition.ToString() + ", velocity: " + testBall.GetComponent<Rigidbody>().Velocity.ToString(), new Vector2(50, 135), Color.DarkGreen);
+            if (testBox != null)
+                spriteBatch.DrawString(font, "TestBox position: " + testBox.GlobalPosition.ToString() + ", velocity: " + testBox.GetComponent<Rigidbody>().Velocity.ToString(), new Vector2(50, 150), Color.DarkGreen);
             spriteBatch.End();
-
             base.Draw(gameTime);
         }
     }
