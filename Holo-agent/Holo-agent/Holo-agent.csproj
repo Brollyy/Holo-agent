@@ -66,7 +66,6 @@
     <Compile Include="Engine\Utilities\FrameCounter.cs" />
     <Compile Include="Engine\Utilities\Graph.cs" />
     <Compile Include="Engine\Utilities\Pair.cs" />
-    <Compile Include="Engine\Utilities\Octree.cs" />
     <Compile Include="Engine\Utilities\Raycast.cs" />
     <Compile Include="Engine\Utilities\AnimatedModel.cs" />
     <Compile Include="Game1.cs" />
