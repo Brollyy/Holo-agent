@@ -7,6 +7,10 @@ namespace Engine.Components
         private float mass, deltaTime;
         private Vector3 initialPosition, velocity, initialVelocity, motionTime, acceleration;
         private bool isFalling;
+        public bool GravityEnabled
+        {
+            get; set;
+        } = true;
         public Vector3 Velocity //Temporary
         {
             get
@@ -33,31 +37,34 @@ namespace Engine.Components
         public override void Update(GameTime gameTime)
         {
             deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
-            if (!isGrounded())
+            if (GravityEnabled)
             {
-                if (!isFalling)
+                if (!isGrounded())
                 {
-                    AddForce(Vector3.UnitY * Physics.GravitationalAcceleration);
-                    isFalling = true;
-                }
-            }
-            else
-            {
-                if (isFalling)
-                {
-                    acceleration.Y = 0;
-                    initialVelocity.Y = 0;
-                    isFalling = false;
-                }
-                if (Owner.GetComponent<PlayerController>() == null) //Temporary
-                {
-                    if (Owner.GlobalPosition.Y < 0) //Temporary
-                        Owner.GlobalPosition = new Vector3(Owner.GlobalPosition.X, 0, Owner.GlobalPosition.Z);
+                    if (!isFalling)
+                    {
+                        AddForce(Vector3.UnitY * Physics.GravitationalAcceleration);
+                        isFalling = true;
+                    }
                 }
                 else
                 {
-                    if (Owner.GlobalPosition.Y < 18) //Temporary
-                        Owner.GlobalPosition = new Vector3(Owner.GlobalPosition.X, 18, Owner.GlobalPosition.Z);
+                    if (isFalling)
+                    {
+                        acceleration.Y = 0;
+                        initialVelocity.Y = 0;
+                        isFalling = false;
+                    }
+                    if (Owner.GetComponent<PlayerController>() == null) //Temporary
+                    {
+                        if (Owner.GlobalPosition.Y < 0) //Temporary
+                            Owner.GlobalPosition = new Vector3(Owner.GlobalPosition.X, 0, Owner.GlobalPosition.Z);
+                    }
+                    else
+                    {
+                        if (Owner.GlobalPosition.Y < 18) //Temporary
+                            Owner.GlobalPosition = new Vector3(Owner.GlobalPosition.X, 18, Owner.GlobalPosition.Z);
+                    }
                 }
             }
             UpdateVelocity();

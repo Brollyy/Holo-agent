@@ -357,6 +357,9 @@ namespace Engine.Components
                 GameObject hologramRecording = new GameObject("HologramRecorder", Owner.LocalPosition, 
                                                               Owner.LocalQuaternionRotation, Owner.LocalScale, Owner.Scene, Owner.Parent);
                 hologramRecording.AddComponent(new HologramRecorder(5.0f, 100, StopRecording));
+                hologramRecording.AddNewComponent<Rigidbody>();
+                hologramRecording.GetComponent<Rigidbody>().Initialize(80);
+                hologramRecording.GetComponent<Rigidbody>().GravityEnabled = false;
                 MeshInstance mesh = Owner.GetComponent<MeshInstance>();
                 if(mesh != null) hologramRecording.AddComponent(new MeshInstance(mesh));
                 if(PlayerMesh != null) Owner.AddComponent(PlayerMesh);

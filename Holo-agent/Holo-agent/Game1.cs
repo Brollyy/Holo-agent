@@ -66,7 +66,7 @@ namespace Holo_agent
             columns = new GameObject[8];
             walls = new GameObject[7];
             doors = new GameObject[2];
-	    weapons = new List<GameObject>();
+	        weapons = new List<GameObject>();
             gunfires = new List<GameObject>();
             weaponColliders = new List<Collider>();
             scene = new Scene();
@@ -75,6 +75,9 @@ namespace Holo_agent
             scene.AddRoomConnection(room, room1, new BoundingBox(new Vector3(-20, 0, 47), new Vector3(20, 20, 53)));
             player = new GameObject("Player", new Vector3(30, 18, -25), Quaternion.Identity, Vector3.One, scene, room);
             player.AddNewComponent<PlayerController>();
+            player.AddNewComponent<Rigidbody>();
+            player.GetComponent<Rigidbody>().Initialize(80);
+            player.GetComponent<Rigidbody>().GravityEnabled = false;
             Collider playerCol = player.AddNewComponent<Collider>();
             playerCol.bound = new Engine.Bounding_Volumes.BoundingBox(playerCol, Vector3.Zero, 10f * Vector3.One);
             GameObject camera = new GameObject("Camera", new Vector3(0,0,0), Quaternion.Identity, Vector3.One, scene, player);
@@ -132,7 +135,12 @@ namespace Holo_agent
             particleSmokeEmitter = new GameObject("Smoke_Emitter", new Vector3(60, 6, -60), Quaternion.CreateFromAxisAngle(Vector3.UnitY, MathHelper.ToRadians(90)), Vector3.One, scene, room);
             particleBloodEmitter = new GameObject("Blood_Emitter", new Vector3(20, 18, -40), Quaternion.CreateFromAxisAngle(Vector3.UnitY, MathHelper.ToRadians(90)), Vector3.One, scene, room);
             testBall = new GameObject("TestBall", new Vector3(30, 55, -60), Quaternion.Identity, Vector3.One * 0.25f, scene, room);
+            testBall.AddNewComponent<Rigidbody>();
+            testBall.GetComponent<Rigidbody>().Initialize(50);
             testBox = new GameObject("TestBox", new Vector3(40, 55, -60), Quaternion.Identity, Vector3.One * 0.25f, scene, room);
+            testBox.AddNewComponent<Rigidbody>();
+            testBox.GetComponent<Rigidbody>().Initialize(10);
+            
             Physics.Initialize();
             Mouse.SetPosition(graphics.PreferredBackBufferWidth / 2, graphics.PreferredBackBufferHeight / 2);
             base.Initialize();
@@ -210,14 +218,9 @@ namespace Holo_agent
             particleBloodEmitter.GetComponent<ParticleSystem>().Init();*/
             Model testBallModel = Content.Load<Model>("Models/TestBall");
             testBall.AddComponent(new MeshInstance(testBallModel));
-            testBall.AddNewComponent<Rigidbody>();
-            testBall.GetComponent<Rigidbody>().Initialize(50);
             Model testBoxModel = Content.Load<Model>("Models/TestBox");
             testBox.AddComponent(new MeshInstance(testBoxModel));
-            testBox.AddNewComponent<Rigidbody>();
-            testBox.GetComponent<Rigidbody>().Initialize(10);
-            player.AddNewComponent<Rigidbody>();
-            player.GetComponent<Rigidbody>().Initialize(80);
+            
         }
 
         /// <summary>
@@ -268,7 +271,7 @@ namespace Holo_agent
                     player.GetComponent<PlayerController>().Revert();
                 }
             }
-	    for (int i = 0; i < weaponColliders.Count; i++)
+	        for (int i = 0; i < weaponColliders.Count; i++)
             {
                 collision = player.GetComponent<Collider>().Collide(weaponColliders[i]);
                 if (collision != 0 && weapons[i].GetComponent<Weapon>().Collision == true)
@@ -277,8 +280,8 @@ namespace Holo_agent
                 }
             }
             timer -= (float)gameTime.ElapsedGameTime.TotalSeconds;
-	    if (player.GetComponent<PlayerController>() != null)
-            weapon = player.GetComponent<PlayerController>().getWeapon();
+	        if (player.GetComponent<PlayerController>() != null)
+                weapon = player.GetComponent<PlayerController>().getWeapon();
             if (weapon != null)
                 gunfire = weapon.getGunfireInstance();
             /*emitterTimer += (float)gameTime.ElapsedGameTime.TotalSeconds;
