@@ -120,14 +120,14 @@ namespace Engine.Components
 
         private void StopMoving(ReleasedActionArgs args)
         {
-            int i = path.Actions.FindLastIndex(x => x.Second == GameAction.MOVE_FORWARD);
+            int i = path.Actions.FindLastIndex(x => x.Second == args.action);
             path.Actions[i].First.Second = path.LocalPositions.Count * sampleTime + time;
         }
 
         private void Move(PressedActionArgs args)
         {
             float timer = path.LocalPositions.Count * sampleTime + time;
-            path.Actions.Add(new Pair<Pair<float, float?>, GameAction>(new Pair<float, float?>(timer, null), GameAction.MOVE_FORWARD));
+            path.Actions.Add(new Pair<Pair<float, float?>, GameAction>(new Pair<float, float?>(timer, null), args.action));
         }
     }
 
@@ -163,8 +163,11 @@ namespace Engine.Components
                     {
                         case GameAction.CROUCH: break;
                         case GameAction.JUMP: break;
-                        case GameAction.RUN: animationName = "run"; break;
-                        case GameAction.MOVE_FORWARD: animationName = "run"; break;
+                        case GameAction.RUN:
+                        case GameAction.MOVE_FORWARD:
+                        case GameAction.MOVE_BACKWARD:
+                        case GameAction.STRAFE_LEFT:
+                        case GameAction.STRAFE_RIGHT: animationName = "run"; break;
                     }
                 }
 
