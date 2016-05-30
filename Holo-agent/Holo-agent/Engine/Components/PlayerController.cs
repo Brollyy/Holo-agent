@@ -156,15 +156,16 @@ namespace Engine.Components
                 default: speed = 0.0f; break;
             }
             if (rigidbody != null && rigidbody.isGrounded())
-                rigidbody.AddForce(Vector3.Zero, Vector3.Transform(Vector3.Forward, Matrix.CreateRotationY(MathHelper.ToRadians(Owner.LocalEulerRotation.X))) * (float)(speed * args.gameTime.ElapsedGameTime.TotalSeconds));
+            {
+                Vector3 initialVelocity = Vector3.Transform(Vector3.Forward, Matrix.CreateRotationY(MathHelper.ToRadians(Owner.LocalEulerRotation.X))) * (float)(speed * args.gameTime.ElapsedGameTime.TotalSeconds);
+                rigidbody.AddForce(Vector3.Zero, initialVelocity.X, initialVelocity.Y, initialVelocity.Z);
+            }
         }
         private void StayForward(ReleasedActionArgs args)
         {
             Rigidbody rigidbody = Owner.GetComponent<Rigidbody>();
             if (rigidbody != null)
-            {
-                rigidbody.Stop(Vector3.Transform(Vector3.Forward, Matrix.CreateRotationY(MathHelper.ToRadians(Owner.LocalEulerRotation.X))));
-            }
+                rigidbody.AddForce(Vector3.Zero, 0, rigidbody.Velocity.Y, 0);
         }
         private void MoveBackward(PressingActionArgs args)
         {
@@ -178,15 +179,16 @@ namespace Engine.Components
                 default: speed = 0.0f; break;
             }
             if (rigidbody != null && rigidbody.isGrounded())
-                rigidbody.AddForce(Vector3.Zero, Vector3.Transform(Vector3.Backward, Matrix.CreateRotationY(MathHelper.ToRadians(Owner.LocalEulerRotation.X))) * (float)(speed * args.gameTime.ElapsedGameTime.TotalSeconds));
+            {
+                Vector3 initialVelocity = Vector3.Transform(Vector3.Backward, Matrix.CreateRotationY(MathHelper.ToRadians(Owner.LocalEulerRotation.X))) * (float)(speed * args.gameTime.ElapsedGameTime.TotalSeconds);
+                rigidbody.AddForce(Vector3.Zero, initialVelocity.X, initialVelocity.Y, initialVelocity.Z);
+            }
         }
         private void StayBackward(ReleasedActionArgs args)
         {
             Rigidbody rigidbody = Owner.GetComponent<Rigidbody>();
             if (rigidbody != null)
-            {
-                rigidbody.Stop(Vector3.Transform(Vector3.Backward, Matrix.CreateRotationY(MathHelper.ToRadians(Owner.LocalEulerRotation.X))));
-            }
+                rigidbody.AddForce(Vector3.Zero, 0, rigidbody.Velocity.Y, 0);
         }
         private void MoveLeft(PressingActionArgs args)
         {
@@ -200,13 +202,16 @@ namespace Engine.Components
                 default: speed = 0.0f; break;
             }
             if (rigidbody != null && rigidbody.isGrounded())
-                rigidbody.AddForce(Vector3.Zero, Vector3.Transform(Vector3.Left, Matrix.CreateRotationY(MathHelper.ToRadians(Owner.LocalEulerRotation.X))) * (float)(speed * args.gameTime.ElapsedGameTime.TotalSeconds));
+            {
+                Vector3 initialVelocity = Vector3.Transform(Vector3.Left, Matrix.CreateRotationY(MathHelper.ToRadians(Owner.LocalEulerRotation.X))) * (float)(speed * args.gameTime.ElapsedGameTime.TotalSeconds);
+                rigidbody.AddForce(Vector3.Zero, initialVelocity.X, initialVelocity.Y, initialVelocity.Z);
+            }
         }
         private void StayLeft(ReleasedActionArgs args)
         {
             Rigidbody rigidbody = Owner.GetComponent<Rigidbody>();
             if (rigidbody != null)
-                rigidbody.Stop(Vector3.Transform(Vector3.Left, Matrix.CreateRotationY(MathHelper.ToRadians(Owner.LocalEulerRotation.X))));
+                rigidbody.AddForce(Vector3.Zero, 0, rigidbody.Velocity.Y, 0);
         }
         private void MoveRight(PressingActionArgs args)
         {
@@ -220,13 +225,16 @@ namespace Engine.Components
                 default: speed = 0.0f; break;
             }
             if (rigidbody != null && rigidbody.isGrounded())
-                rigidbody.AddForce(Vector3.Zero, Vector3.Transform(Vector3.Right, Matrix.CreateRotationY(MathHelper.ToRadians(Owner.LocalEulerRotation.X))) * (float)(speed * args.gameTime.ElapsedGameTime.TotalSeconds));
+            {
+                Vector3 initialVelocity = Vector3.Transform(Vector3.Right, Matrix.CreateRotationY(MathHelper.ToRadians(Owner.LocalEulerRotation.X))) * (float)(speed * args.gameTime.ElapsedGameTime.TotalSeconds);
+                rigidbody.AddForce(Vector3.Zero, initialVelocity.X, initialVelocity.Y, initialVelocity.Z);
+            }
         }
         private void StayRight(ReleasedActionArgs args)
         {
             Rigidbody rigidbody = Owner.GetComponent<Rigidbody>();
             if (rigidbody != null)
-                rigidbody.Stop(Vector3.Transform(Vector3.Right, Matrix.CreateRotationY(MathHelper.ToRadians(Owner.LocalEulerRotation.X))));
+                rigidbody.AddForce(Vector3.Zero, 0, rigidbody.Velocity.Y, 0);
         }
         private void Jump(PressedActionArgs args)
         {
@@ -235,7 +243,7 @@ namespace Engine.Components
             Rigidbody rigidbody = Owner.GetComponent<Rigidbody>();
             if (rigidbody != null && rigidbody.isGrounded())
             {
-                rigidbody.AddForce(Vector3.Zero, Vector3.UnitY * 3.5f);
+                rigidbody.AddForce(Vector3.Zero, 0, 3.5f, 0);
             }
         }
 

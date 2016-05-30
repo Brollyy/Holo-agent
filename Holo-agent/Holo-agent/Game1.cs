@@ -38,7 +38,7 @@ namespace Holo_agent
         List<GameObject> gunfires;
         List<Collider> weaponColliders;
         Weapon weapon;
-        float timer, emitterTimer;
+        float timer/*, emitterTimer*/;
         SoundEffect shot;
         Texture2D gunfireTexture;
         int collision = 0;
@@ -109,19 +109,19 @@ namespace Holo_agent
             }
             floor = new GameObject("Floor", new Vector3(40, 0, -180), Quaternion.CreateFromYawPitchRoll(0, 0, MathHelper.ToRadians(90)), Vector3.One, scene);
             weapons.Add(new GameObject("Pistol", new Vector3(20, 18, -40), Quaternion.Identity, Vector3.One, scene));
-            weapons[0].AddComponent(new Weapon(WeaponTypes.Pistol, 12, 28, 12, 240, 1000, new Vector3(2.5f, -1.65f, -5.75f)));
+            weapons[0].AddComponent(new Weapon(WeaponTypes.Pistol, 12, 28, 12, 240, 1000, new Vector3(2.5f, -1.5f, -5.75f)));
             weaponColliders.Add(weapons[0].AddNewComponent<Collider>());
-            weaponColliders[0].bound = new Engine.Bounding_Volumes.BoundingBox(weaponColliders[0], Vector3.Zero, new Vector3(0.5f, 1f, 2f));
+            weaponColliders[0].bound = new Engine.Bounding_Volumes.BoundingBox(weaponColliders[0], Vector3.Zero, new Vector3(0.5f, 0.75f, 2f));
             weapons[0].AddNewComponent<WeaponInteraction>();
             weapons.Add(new GameObject("MachineGun", new Vector3(40, 18, -40), Quaternion.Identity, Vector3.One, scene));
-            weapons[1].AddComponent(new Weapon(WeaponTypes.MachineGun, 32, 72, 32, 640, 1000, new Vector3(3, -1.75f, -5.5f)));
+            weapons[1].AddComponent(new Weapon(WeaponTypes.MachineGun, 32, 72, 32, 640, 1000, new Vector3(3.5f, -1.5f, -7f)));
             weaponColliders.Add(weapons[1].AddNewComponent<Collider>());
             weaponColliders[1].bound = new Engine.Bounding_Volumes.BoundingBox(weaponColliders[1], new Vector3(0, 0, -2f), new Vector3(0.5f, 1.5f, 2.5f));
             weapons[1].AddNewComponent<WeaponInteraction>();
-            gunfires.Add(new GameObject("Pistol_Gunfire", new Vector3(1, 1, -8.5f), Quaternion.Identity, Vector3.One, scene, weapons[0]));
-            gunfires.Add(new GameObject("MachineGun_Gunfire", new Vector3(0, 1.25f, -8.5f), Quaternion.Identity, Vector3.One, scene, weapons[1]));
+            gunfires.Add(new GameObject("Pistol_Gunfire", new Vector3(1, 0.45f, -9f), Quaternion.Identity, Vector3.One, scene, weapons[0]));
+            gunfires.Add(new GameObject("MachineGun_Gunfire", new Vector3(-0.1f, 0.2f, -8.5f), Quaternion.Identity, Vector3.One, scene, weapons[1]));
             timer = 1;
-            emitterTimer = 0;
+            //emitterTimer = 0;
             player.GetComponent<PlayerController>().addWeapon(weapons[0]);
             particles = new List<SpriteInstance>();
             particleFireEmitter = new GameObject("Fire_Emitter", new Vector3(45, 12, -50), Quaternion.CreateFromAxisAngle(Vector3.UnitY, MathHelper.ToRadians(90)), Vector3.One * 2, scene);
@@ -181,7 +181,7 @@ namespace Holo_agent
                 doors[i].AddComponent(new MeshInstance(doorModel));
             }
             floor.AddComponent(new SpriteInstance(floorTexture, new Vector3(0, 160, 220), 20, 1, graphics));
-            Model pistolModel = Content.Load<Model>("Models/Pistol2");
+            Model pistolModel = Content.Load<Model>("Models/Pistol");
             weapons[0].AddComponent(new MeshInstance(pistolModel));
             gunfires[0].AddComponent(new SpriteInstance(gunfireTexture, new Vector3(0, 5, 5), 1, 1, graphics));
             gunfires[0].GetComponent<SpriteInstance>().Enabled = false;

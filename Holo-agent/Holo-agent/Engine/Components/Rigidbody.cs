@@ -1,5 +1,4 @@
 ﻿using Microsoft.Xna.Framework;
-using System;
 
 namespace Engine.Components
 {
@@ -38,7 +37,7 @@ namespace Engine.Components
             {
                 if (!isFalling)
                 {
-                    AddForce(Vector3.UnitY * Physics.GravitationalAcceleration, Vector3.Zero);
+                    AddForce(Vector3.UnitY * Physics.GravitationalAcceleration);
                     isFalling = true;
                 }
             }
@@ -114,67 +113,49 @@ namespace Engine.Components
                     return false;
             }
         }
-        public void AddForce(Vector3 acceleration, Vector3 initialVelocity)
+        public void AddForce(Vector3 acceleration, float? initialVelocityX = null, float? initialVelocityY = null, float? initialVelocityZ = null)
         {
-            if (acceleration.X != 0 || initialVelocity.X != 0)
+            if (acceleration.X != 0 || initialVelocityX != null)
             {
                 if (acceleration.X != 0)
                 {
-                    this.initialVelocity.X = velocity.X;
+                    initialVelocity.X = velocity.X;
                     this.acceleration.X += acceleration.X;
                 }
-                if (initialVelocity.X != 0)
+                if (initialVelocityX != null)
                 {
-                    this.initialVelocity.X = initialVelocity.X;
+                    initialVelocity.X = (float)initialVelocityX;
                 }
                 motionTime.X = 0;
                 initialPosition.X = Owner.GlobalPosition.X;
             }
-            if (acceleration.Y != 0 || initialVelocity.Y != 0)
+            if (acceleration.Y != 0 || initialVelocityY != null)
             {
                 if (acceleration.Y != 0)
                 {
-                    this.initialVelocity.Y = velocity.Y;
+                    initialVelocity.Y = velocity.Y;
                     this.acceleration.Y += acceleration.Y;
                 }
-                if (initialVelocity.Y != 0)
+                if (initialVelocityY != null)
                 {
-                    this.initialVelocity.Y = initialVelocity.Y;
+                    initialVelocity.Y = (float)initialVelocityY;
                 }
                 motionTime.Y = 0;
                 initialPosition.Y = Owner.GlobalPosition.Y;
             }
-            if (acceleration.Z != 0 || initialVelocity.Z != 0)
+            if (acceleration.Z != 0 || initialVelocityZ != null)
             {
                 if (acceleration.Z != 0)
                 {
-                    this.initialVelocity.Z = velocity.Z;
+                    initialVelocity.Z = velocity.Z;
                     this.acceleration.Z += acceleration.Z;
                 }
-                if (initialVelocity.Z != 0)
+                if (initialVelocityZ != null)
                 {
-                    this.initialVelocity.Z = initialVelocity.Z;
+                    initialVelocity.Z = (float)initialVelocityZ;
                 }
                 motionTime.Z = 0;
                 initialPosition.Z = Owner.GlobalPosition.Z;
-            }
-        }
-        public void Stop(Vector3 axis)
-        {
-            if (axis.X != 0)
-            {
-                initialVelocity.X = 0;
-                acceleration.X = 0;
-            }
-            if (axis.Y != 0)
-            {
-                initialVelocity.Y = 0;
-                acceleration.Y = 0;
-            }
-            if (axis.Z != 0)
-            {
-                initialVelocity.Z = 0;
-                acceleration.Z = 0;
             }
         }
     }
