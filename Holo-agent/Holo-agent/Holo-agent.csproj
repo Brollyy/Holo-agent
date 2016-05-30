@@ -64,6 +64,7 @@
     <Compile Include="Engine\Utilities\Bone.cs" />
     <Compile Include="Engine\Utilities\AnimationPlayer.cs" />
     <Compile Include="Engine\Utilities\FrameCounter.cs" />
+    <Compile Include="Engine\Utilities\Graph.cs" />
     <Compile Include="Engine\Utilities\Pair.cs" />
     <Compile Include="Engine\Utilities\Raycast.cs" />
     <Compile Include="Engine\Utilities\AnimatedModel.cs" />

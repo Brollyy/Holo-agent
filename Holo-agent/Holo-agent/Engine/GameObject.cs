@@ -11,6 +11,22 @@ namespace Engine
     /// </summary>
     public class GameObject
     {
+        private BoundingBox bound = new BoundingBox(-0.5f * Vector3.One, 0.5f * Vector3.One);
+        public BoundingBox Bound
+        {
+            get
+            {
+                return new BoundingBox(Vector3.Transform(bound.Min,LocalToWorldMatrix),
+                                       Vector3.Transform(bound.Max,LocalToWorldMatrix));
+            }
+
+            set
+            {
+                if (value.Equals(bound)) return;
+                bound = value;
+                scene.Respace(this);
+            }
+        }
 
         // TODO: Implement Instantiate and Destroy static functions (maybe?).
         private bool isVisible;
@@ -27,7 +43,6 @@ namespace Engine
         }
 
         private Scene scene;
-
         public Scene Scene
         {
             get
@@ -192,11 +207,13 @@ namespace Engine
             }
             set
             {
+                if (value.Equals(localPosition)) return;
                 localPosition = value;
                 foreach(GameObject child in children.Values)
                 {
                     child.UpdateLocalToWorldMatrix(LocalToWorldMatrix);
                 }
+                scene.Respace(this);
             }
         }
         /// <summary>
@@ -210,11 +227,13 @@ namespace Engine
             }
             set
             {
+                if (value.Equals(localRotation)) return;
                 localRotation = value;
                 foreach (GameObject child in children.Values)
                 {
                     child.UpdateLocalToWorldMatrix(LocalToWorldMatrix);
                 }
+                scene.Respace(this);
             }
         }
 
@@ -264,13 +283,16 @@ namespace Engine
             }
             set
             {
-                localRotation = Quaternion.CreateFromYawPitchRoll(MathHelper.ToRadians(value.X), 
-                                                                  MathHelper.ToRadians(value.Y), 
-                                                                  MathHelper.ToRadians(value.Z));
+                Quaternion newRot = Quaternion.CreateFromYawPitchRoll(MathHelper.ToRadians(value.X),
+                                                                      MathHelper.ToRadians(value.Y),
+                                                                      MathHelper.ToRadians(value.Z));
+                if (newRot.Equals(localRotation)) return;
+                localRotation = newRot;
                 foreach (GameObject child in children.Values)
                 {
                     child.UpdateLocalToWorldMatrix(LocalToWorldMatrix);
                 }
+                scene.Respace(this);
             }
         }
 
@@ -286,11 +308,13 @@ namespace Engine
             }
             set
             {
+                if (value.Equals(localScale)) return;
                 localScale = value;
                 foreach (GameObject child in children.Values)
                 {
                     child.UpdateLocalToWorldMatrix(LocalToWorldMatrix);
                 }
+                scene.Respace(this);
             }
         }
 
@@ -301,11 +325,13 @@ namespace Engine
 
         private void UpdateLocalToWorldMatrix(Matrix parentLocalToWorldMatrix)
         {
+            if (parentLocalToWorldMatrix.Equals(localToWorldMatrix)) return;
             localToWorldMatrix = parentLocalToWorldMatrix;
             foreach(GameObject child in children.Values)
             {
                 child.UpdateLocalToWorldMatrix(LocalToWorldMatrix);
             }
+            scene.Respace(this);
         }
 
         /// <summary>
@@ -344,11 +370,7 @@ namespace Engine
             }
             set
             {
-                localPosition = Vector3.Transform(value, Matrix.Invert(localToWorldMatrix));
-                foreach (GameObject child in children.Values)
-                {
-                    child.UpdateLocalToWorldMatrix(LocalToWorldMatrix);
-                }
+                LocalPosition = Vector3.Transform(value, Matrix.Invert(localToWorldMatrix));
             }
         }
 
@@ -363,11 +385,7 @@ namespace Engine
             }
             set
             {
-                localRotation = value * Matrix.Invert(localToWorldMatrix).Rotation;
-                foreach (GameObject child in children.Values)
-                {
-                    child.UpdateLocalToWorldMatrix(LocalToWorldMatrix);
-                }
+                LocalQuaternionRotation = value * Matrix.Invert(localToWorldMatrix).Rotation;
             }
         }
 
@@ -383,11 +401,7 @@ namespace Engine
             }
             set
             {
-                localScale = (Matrix.Invert(localToWorldMatrix) * Matrix.CreateScale(value)).Scale;
-                foreach (GameObject child in children.Values)
-                {
-                    child.UpdateLocalToWorldMatrix(LocalToWorldMatrix);
-                }
+                LocalScale = (Matrix.Invert(localToWorldMatrix) * Matrix.CreateScale(value)).Scale;
             }
         }
 
@@ -497,8 +511,6 @@ namespace Engine
 
         public void Destroy()
         {
-            Parent = null;
-
             foreach(Component comp in components)
             {
                 comp.Destroy();
@@ -509,12 +521,14 @@ namespace Engine
             {
                 child.Destroy();
             }
+
+            Parent = null;
         }
 
         /// <summary>
         /// Default constructor for GameObject. Sets unnamed, parentless object at point (0,0,0), without any rotation and scale.
         /// </summary>
-        public GameObject() : this(null, Vector3.Zero, Quaternion.Identity, Vector3.One)
+        public GameObject() : this(null, Vector3.Zero, Quaternion.Identity, Vector3.One, null)
         {
         }
 
@@ -522,7 +536,8 @@ namespace Engine
         /// Partial constructor for GameObject. Uses the same default values except as default constructor, except it gives object name.
         /// </summary>
         /// <param name="name">Name of the object.</param>
-        public GameObject(string name) : this(name, Vector3.Zero, Quaternion.Identity, Vector3.One)
+        /// <param name="scene">Scene on which the object exists.</param>
+        public GameObject(string name, Scene scene) : this(name, Vector3.Zero, Quaternion.Identity, Vector3.One, scene)
         {
         }
 
@@ -534,11 +549,16 @@ namespace Engine
         /// <param name="rotation">Local rotation of the object.</param>
         /// <param name="scale">Local scale of the object.</param>
         /// <param name="parent">Scene parent of the object (optional).</param>
-        public GameObject(string name, Vector3 position, Quaternion rotation, Vector3 scale, Scene scene = null, GameObject parent = null, bool isVisible = true)
+        public GameObject(string name, Vector3 position, Quaternion rotation, Vector3 scale, Scene scene, GameObject parent = null, BoundingBox? bound = null, bool isVisible = true)
         {
             this.name = name;
             this.scene = scene;
-            if (scene != null && parent == null) scene.AddObject(this);
+            if (scene != null)
+            {
+                if (parent != null) scene.AddObject(this);
+                else scene.AddRoom(this);
+            }
+            if (bound.HasValue) this.bound = bound.Value;
             components = new List<Component>();
             localToWorldMatrix = Matrix.Identity;
             children = new SortedList<string, GameObject>();

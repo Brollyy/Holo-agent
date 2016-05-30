@@ -92,6 +92,7 @@ namespace Engine
                     {
                         PressingActionArgs args = new PressingActionArgs(actionStates[ga].Second);
                         args.gameTime = gameTime;
+                        args.action = ga;
                         List<ProcessPressingAction> copyPressingDelegates = new List<ProcessPressingAction>(pressingDelegates[ga]);
                         foreach (ProcessPressingAction proc in copyPressingDelegates)
                         {
@@ -109,6 +110,7 @@ namespace Engine
                     {
                         PressedActionArgs args = new PressedActionArgs(time);
                         args.gameTime = gameTime;
+                        args.action = ga;
                         List<ProcessPressedAction> copyPressedDelegates = new List<ProcessPressedAction>(pressedDelegates[ga]);
                         foreach(ProcessPressedAction proc in copyPressedDelegates)
                         {
@@ -119,6 +121,7 @@ namespace Engine
                     {
                         ReleasedActionArgs args = new ReleasedActionArgs(time);
                         args.gameTime = gameTime;
+                        args.action = ga;
                         List<ProcessReleasedAction> copyReleasedDelegates = new List<ProcessReleasedAction>(releasedDelegates[ga]);
                         foreach(ProcessReleasedAction proc in copyReleasedDelegates)
                         {
@@ -296,6 +299,7 @@ namespace Engine
     public abstract class ActionArgs
     {
         public GameTime gameTime;
+        public GameAction action;
     }
 
     public class PressedActionArgs : ActionArgs
