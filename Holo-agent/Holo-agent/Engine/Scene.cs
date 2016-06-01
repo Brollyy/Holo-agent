@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Engine.Utilities;
+using Engine.Components;
 
 namespace Engine
 {
@@ -122,6 +123,49 @@ namespace Engine
                 }
             }
             objectsToRespace.Clear();
+
+            /*foreach(GraphNode<Room, BoundingBox> node in roomGraph)
+            {
+                foreach(GameObject go in node.Value.contents)
+                {
+                    Collider goCol = go.GetComponent<Collider>();
+                    if(goCol != null && go.GetComponent<Rigidbody>() != null)
+                    {
+                        foreach(GameObject go2 in node.Value.contents)
+                        {
+                            Collider go2Col = go2.GetComponent<Collider>();
+                            if(!go.Equals(go2) && go2Col != null)
+                            {
+                                int collision = goCol.Collide(go2Col);
+                                if(collision > 0)
+                                {
+                                    // Temporary
+                                    Rigidbody rig = go.GetComponent<Rigidbody>();
+                                    rig.Velocity = -rig.Velocity;
+                                }
+                            }
+                        }
+
+                        foreach(GraphNode<Room, BoundingBox> neighbour in node.Neighbours)
+                        {
+                            foreach(GameObject go2 in neighbour.Value.contents)
+                            {
+                                Collider go2Col = go2.GetComponent<Collider>();
+                                if (!go.Equals(go2) && go2Col != null)
+                                {
+                                    int collision = goCol.Collide(go2Col);
+                                    if (collision > 0)
+                                    {
+                                        // Temporary
+                                        Rigidbody rig = go.GetComponent<Rigidbody>();
+                                        rig.Velocity = -rig.Velocity;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }*/
         }
 
         public void Draw(GameTime gameTime)

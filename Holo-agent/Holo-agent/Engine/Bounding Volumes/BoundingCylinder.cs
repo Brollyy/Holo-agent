@@ -8,17 +8,17 @@ namespace Engine.Bounding_Volumes
 {
     public class BoundingCylinder : BoundingVolume
     {
-        protected override int IsOverlappingBox(BoundingBox other)
+        protected override CollisionResult IsOverlappingBox(BoundingBox other)
         {
             throw new NotImplementedException();
         }
 
-        protected override int IsOverlappingCylinder(BoundingCylinder other)
+        protected override CollisionResult IsOverlappingCylinder(BoundingCylinder other)
         {
             throw new NotImplementedException();
         }
 
-        protected override int IsOverlappingSphere(BoundingSphere other)
+        protected override CollisionResult IsOverlappingSphere(BoundingSphere other)
         {
             throw new NotImplementedException();
         }
