@@ -4,6 +4,20 @@ using System;
 
 namespace Engine.Bounding_Volumes
 {
+    public struct CollisionResult
+    {
+        public bool CollisionDetected;
+        public Plane? CollisionPlane;
+        public Vector3? CollisionPoint;
+
+        public CollisionResult(bool detect = false, Plane? plane = null, Vector3? point = null)
+        {
+            CollisionDetected = detect;
+            CollisionPlane = plane;
+            CollisionPoint = point;
+        }
+    }
+
     public abstract class BoundingVolume
     {
         public Collider Collider
@@ -30,7 +44,7 @@ namespace Engine.Bounding_Volumes
             }
         }
 
-        public int IsOverlapping(BoundingVolume other)
+        public CollisionResult IsOverlapping(BoundingVolume other)
         {
             if (other is BoundingSphere)
             {
@@ -46,7 +60,7 @@ namespace Engine.Bounding_Volumes
             }
             else if(other == null)
             {
-                return 0;
+                return new CollisionResult();
             }
             else
             {
@@ -54,9 +68,9 @@ namespace Engine.Bounding_Volumes
             }
         }
 
-        protected abstract int IsOverlappingSphere(BoundingSphere other);
-        protected abstract int IsOverlappingBox(BoundingBox other);
-        protected abstract int IsOverlappingCylinder(BoundingCylinder other);
+        protected abstract CollisionResult IsOverlappingSphere(BoundingSphere other);
+        protected abstract CollisionResult IsOverlappingBox(BoundingBox other);
+        protected abstract CollisionResult IsOverlappingCylinder(BoundingCylinder other);
 
         public BoundingVolume() : this(null, Vector3.Zero)
         {

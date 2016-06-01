@@ -173,7 +173,7 @@ namespace Engine.Bounding_Volumes
             return new Plane(normal, Vector3.Dot(normal, Vector3.Transform(halfLengths.Y * Vector3.Down, world)));
         }
 
-        protected override int IsOverlappingBox(BoundingBox other)
+        protected override CollisionResult IsOverlappingBox(BoundingBox other)
         {
             Vector3[] cornersFirst = Corners();
             Vector3[] cornersSecond = other.Corners();
@@ -203,7 +203,7 @@ namespace Engine.Bounding_Volumes
                Math.Max(min1.Y, min2.Y) > Math.Min(max1.Y, max2.Y) &&
                Math.Max(min1.Z, min2.Z) > Math.Min(max1.Z, max2.Z))
             {
-                return 0;
+                return new CollisionResult();
             }
             #endregion
 
@@ -276,7 +276,9 @@ namespace Engine.Bounding_Volumes
                                 }
                             }
 
-                            if (intersectSAT) return 6 * i + j + 1;
+                            // Hard to find exact point of collision, so just returning estimate (mid-point between centers of faces)
+                            if (intersectSAT) return new CollisionResult(true, planes2[j], 
+                                (cornersFirst[ind[4*i]] + cornersFirst[ind[4*i+2]] + cornersSecond[ind[4*j]] + cornersSecond[ind[4*j+2]]) * 0.25f);
                             #endregion
                         }
                         // Faces are on two different parallel planes, there's no intersection.
@@ -398,7 +400,9 @@ namespace Engine.Bounding_Volumes
                             }
                         }
                         if (A1 > B1 || A2 > B2) continue;
-                        if (Math.Max(A1, A2) < Math.Min(B1, B2)) return 6 * i + j + 1;
+                        float Amax = Math.Max(A1, A2), Bmin = Math.Min(B1, B2);
+                        if (Amax < Bmin)
+                            return new CollisionResult(true, planes2[j], linePoint + 0.5f*(Amax + Bmin)* N);
                     }
                 }
             }
@@ -424,15 +428,24 @@ namespace Engine.Bounding_Volumes
             }
 
             #endregion
-            return (!inside1 || !inside2) ? 0 : 7;
+            if (!inside1 || !inside2)
+            {
+                return new CollisionResult();
+            }
+            else
+            {
+                Vector3 centDiff = center1 - center2;
+                centDiff.Normalize();
+                return new CollisionResult(true, new Plane(centDiff, Vector3.Dot(centDiff, center2)), center2);
+            }
         }
 
-        protected override int IsOverlappingCylinder(BoundingCylinder other)
+        protected override CollisionResult IsOverlappingCylinder(BoundingCylinder other)
         {
             throw new NotImplementedException();
         }
 
-        protected override int IsOverlappingSphere(BoundingSphere other)
+        protected override CollisionResult IsOverlappingSphere(BoundingSphere other)
         {
             //Implemented in BoundingSphere.
             return other.IsOverlapping(this);

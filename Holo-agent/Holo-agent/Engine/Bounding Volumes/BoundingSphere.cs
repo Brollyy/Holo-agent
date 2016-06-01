@@ -20,7 +20,7 @@ namespace Engine.Bounding_Volumes
             }
         }
 
-        protected override int IsOverlappingBox(BoundingBox other)
+        protected override CollisionResult IsOverlappingBox(BoundingBox other)
         {
             // First trivial case.
             #region SPHERE_CHECK
@@ -28,7 +28,8 @@ namespace Engine.Bounding_Volumes
             sphere.Center = other.GlobalCenter();
             sphere.Radius = other.HalfDiagonal();
 
-            if (sphere.IsOverlapping(this) == 0) return 0;
+            CollisionResult resSphere = sphere.IsOverlapping(this);
+            if (!resSphere.CollisionDetected) return resSphere;
             #endregion
 
             // Need to check if any of the faces of the cube are intersecting sphere.
@@ -82,7 +83,7 @@ namespace Engine.Bounding_Volumes
                     float APAD = Vector3.Dot(AP, AD);
                     if (APAB >= 0 && APAB <= AB.LengthSquared() && APAD >= 0 && APAD <= AD.LengthSquared())
                     {
-                        return i + 1;
+                        return new CollisionResult(true, planes[i], intersect);
                     }
                     #endregion
                     // Intersection if any edge lies close enough and shares at least one point with circle.
@@ -95,30 +96,54 @@ namespace Engine.Bounding_Volumes
                         if(t1 > 0.0f && t1 < 1.0f)
                         {
                             Vector3 X = faceCorners[ind[4 * i + j]] + t1 * AB;
-                            if ((X - intersect).LengthSquared() <= interRadius) return i + 1;
+                            if ((X - intersect).LengthSquared() <= interRadius)
+                                return new CollisionResult(true, planes[i], X);
                         }
                         // Check vertices of the edge.
-                        if (AP.LengthSquared() <= interRadius) return i + 1;
-                        if ((faceCorners[ind[4 * i + ((j + 1) % 4)]] - intersect).LengthSquared() <= interRadius) return i + 1;
+                        if (AP.LengthSquared() <= interRadius)
+                            return new CollisionResult(true, planes[i], faceCorners[ind[4 * i + j]]);
+                        if ((faceCorners[ind[4 * i + ((j + 1) % 4)]] - intersect).LengthSquared() <= interRadius)
+                            return new CollisionResult(true, planes[i], faceCorners[ind[4 * i + ((j + 1) % 4)]]);
                         #endregion
                     }
                 }
             }
 
             // The sphere can still be inside the box without touching it.
-            return (inside ? 7 : 0);
+            if(inside)
+            {
+                Vector3 otherCenter = other.GlobalCenter();
+                Vector3 centerDiff = center - otherCenter;
+                centerDiff.Normalize();
+                return new CollisionResult(true, new Plane(centerDiff, Vector3.Dot(otherCenter, centerDiff)), otherCenter);
+            }
+            else
+            {
+                return new CollisionResult();
+            }
 
         }
 
-        protected override int IsOverlappingCylinder(BoundingCylinder other)
+        protected override CollisionResult IsOverlappingCylinder(BoundingCylinder other)
         {
             throw new NotImplementedException();
         }
 
-        protected override int IsOverlappingSphere(BoundingSphere other)
+        protected override CollisionResult IsOverlappingSphere(BoundingSphere other)
         {
-            double radiusSquared = (Radius + other.Radius) * (Radius + other.Radius);
-            return (radiusSquared.CompareTo((GlobalCenter() - other.GlobalCenter()).LengthSquared()) >= 0 ? 1 : 0);
+            double radiusSumSquared = (Radius + other.Radius) * (Radius + other.Radius);
+            Vector3 otherCenter = other.GlobalCenter();
+            Vector3 centerDiff = GlobalCenter() - otherCenter;
+            if (radiusSumSquared > centerDiff.LengthSquared())
+            {
+                centerDiff.Normalize();
+                CollisionResult res;
+                res.CollisionDetected = true;
+                res.CollisionPoint = otherCenter + (float)other.Radius * centerDiff;
+                res.CollisionPlane = new Plane(centerDiff, Vector3.Dot(res.CollisionPoint.Value, centerDiff));
+                return res;
+            }
+            else return new CollisionResult();
         }
 
         public BoundingSphere() : this(null, Vector3.Zero, 1.0f)

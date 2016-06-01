@@ -6,9 +6,9 @@ namespace Engine.Components
     public class Collider : Component
     {
         public BoundingVolume bound;
-        public int Collide(Collider other)
+        public CollisionResult Collide(Collider other)
         {
-            if (bound == null || other == null) return 0;
+            if (bound == null || other == null) return new CollisionResult();
             return bound.IsOverlapping(other.bound);
         }
 

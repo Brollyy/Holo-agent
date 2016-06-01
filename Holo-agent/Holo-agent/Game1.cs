@@ -41,7 +41,7 @@ namespace Holo_agent
         float timer/*, emitterTimer*/;
         SoundEffect shot;
         Texture2D gunfireTexture;
-        int collision = 0;
+        Engine.Bounding_Volumes.CollisionResult collision = new Engine.Bounding_Volumes.CollisionResult();
         Texture2D floorTexture;
         public Game1()
         {
@@ -250,7 +250,7 @@ namespace Holo_agent
             for (int i = 0; i < 8; ++i)
             {
                 collision = player.GetComponent<Collider>().Collide(columns[i].GetComponent<Collider>());
-                if (collision != 0)
+                if (collision.CollisionDetected)
                 {
                     player.GetComponent<PlayerController>().Revert();
                 }
@@ -258,7 +258,7 @@ namespace Holo_agent
             for (int i = 0; i < 6; ++i)
             {
                 collision = player.GetComponent<Collider>().Collide(walls[i].GetComponent<Collider>());
-                if (collision != 0)
+                if (collision.CollisionDetected)
                 {
                     player.GetComponent<PlayerController>().Revert();
                 }
@@ -266,7 +266,7 @@ namespace Holo_agent
             for (int i = 0; i < 2; ++i)
             {
                 collision = player.GetComponent<Collider>().Collide(doors[i].GetComponent<Collider>());
-                if (collision != 0)
+                if (collision.CollisionDetected)
                 {
                     player.GetComponent<PlayerController>().Revert();
                 }
@@ -274,7 +274,7 @@ namespace Holo_agent
 	        for (int i = 0; i < weaponColliders.Count; i++)
             {
                 collision = player.GetComponent<Collider>().Collide(weaponColliders[i]);
-                if (collision != 0 && weapons[i].GetComponent<Weapon>().Collision == true)
+                if (collision.CollisionDetected && weapons[i].GetComponent<Weapon>().Collision == true)
                 {
                     player.GetComponent<PlayerController>().Revert();
                 }
