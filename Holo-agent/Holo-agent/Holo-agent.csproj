@@ -42,6 +42,7 @@
     <Compile Include="Engine\Bounding Volumes\BoundingCylinder.cs" />
     <Compile Include="Engine\Bounding Volumes\BoundingSphere.cs" />
     <Compile Include="Engine\Bounding Volumes\BoundingVolume.cs" />
+    <Compile Include="Engine\Components\AIController.cs" />
     <Compile Include="Engine\Components\AnimationController.cs" />
     <Compile Include="Engine\Components\Camera.cs" />
     <Compile Include="Engine\Components\CharacterController.cs" />
@@ -63,6 +64,7 @@
     <Compile Include="Engine\Scene.cs" />
     <Compile Include="Engine\Utilities\Bone.cs" />
     <Compile Include="Engine\Utilities\AnimationPlayer.cs" />
+    <Compile Include="Engine\Utilities\DecisionTree.cs" />
     <Compile Include="Engine\Utilities\FrameCounter.cs" />
     <Compile Include="Engine\Utilities\Graph.cs" />
     <Compile Include="Engine\Utilities\Pair.cs" />
