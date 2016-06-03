@@ -55,7 +55,12 @@ namespace Engine.Utilities
             currentlyProcessedDecision = null;
         }
 
-        public void Decide(DecisionTreeNode node, List<object> attributes)
+        public void InterruptCurrentDecision()
+        {
+            currentlyProcessedDecision = null;
+        }
+
+        private void Decide(DecisionTreeNode node, List<object> attributes)
         {
             if(node.value != null)
             {

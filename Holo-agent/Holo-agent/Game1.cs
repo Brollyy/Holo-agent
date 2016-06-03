@@ -24,6 +24,7 @@ namespace Holo_agent
         FrameCounter frameCounter;
         Scene scene;
         GameObject player;
+        GameObject enemy;
         GameObject[] columns;
         GameObject ladder;
         GameObject tile;
@@ -84,6 +85,8 @@ namespace Holo_agent
             Camera cameraComp = new Camera(45, graphics.GraphicsDevice.Viewport.AspectRatio, 1, 1000);
             camera.AddComponent(cameraComp);
             scene.Camera = camera;
+            enemy = new GameObject("Enemy", new Vector3(30, 18, -150), Quaternion.CreateFromYawPitchRoll(MathHelper.ToRadians(180), 0, 0), Vector3.One, scene, room);
+            enemy.AddComponent(new EnemyController(player));
             for (int i = 0; i < 8; ++i)
             {
                 columns[i] = new GameObject("Column" + i, new Vector3(80 * (i % 2), 0, -120 * (i / 2)), Quaternion.CreateFromYawPitchRoll(0, MathHelper.ToRadians(270), 0), new Vector3(0.1f, 0.1f, 0.2f), scene, room);
@@ -182,6 +185,9 @@ namespace Holo_agent
             runClip.RemapBones(boneDict);*/
             player.GetComponent<PlayerController>().PlayerMesh.Model.Clips.Add(runClip);
             player.GetComponent<PlayerController>().PlayerMesh.Offset = new Vector3(0, -18, 0);
+            enemy.AddComponent(new MeshInstance(playerModel));
+            enemy.GetComponent<MeshInstance>().Model.Clips.Add(runClip);
+            enemy.GetComponent<MeshInstance>().Offset = new Vector3(0, -18, 0);
             for (int i = 0; i < 7; ++i)
             {
                 walls[i].AddComponent(new MeshInstance(tileModel));
