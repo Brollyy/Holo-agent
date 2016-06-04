@@ -39,6 +39,7 @@ namespace Engine.Components
     {
         WALK = 0,
         RUN,
-        CROUCH
+        CROUCH,
+        IDLE
     }
 }

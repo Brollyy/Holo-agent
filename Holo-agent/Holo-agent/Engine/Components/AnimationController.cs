@@ -46,6 +46,11 @@ namespace Engine.Components
 
         public void Blend(string name, float time)
         {
+            if(isBlending)
+            {
+                animPlayer = blendAnimPlayer;
+            }
+
             int blendingIndex = clipIndex[name];
             if (blendingIndex >= 0)
             {

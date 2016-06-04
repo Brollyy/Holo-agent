@@ -38,7 +38,7 @@ namespace Engine.Utilities
         {
             if (parent == null) return null;
             DecisionTreeNode node = new DecisionTreeNode(decision);
-            node.value.EndDecision = EndDecision;
+            if(node.value != null) node.value.EndDecision = EndDecision;
             parent.connections.Add(new Pair<Predicate<List<object>>, DecisionTreeNode>(edgeCondition, node));
             return node;
         }
@@ -75,6 +75,7 @@ namespace Engine.Utilities
                 {
                     Decide(pair.Second, attributes);
                 }
+                if (currentlyProcessedDecision != null) return;
             }
         }
 
