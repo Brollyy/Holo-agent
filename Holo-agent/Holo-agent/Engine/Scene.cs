@@ -84,6 +84,21 @@ namespace Engine
             }
         }
 
+        public GameObject FindRoomContaining(GameObject gameObject)
+        {
+            if (gameObject.Parent == null) return null;
+
+            foreach(GraphNode<Room, BoundingBox> room in roomGraph)
+            {
+                if(room.Value.go.Bound.Intersects(gameObject.Bound))
+                {
+                    return room.Value.go;
+                }
+            }
+
+            return null;
+        }
+
         public void Destroy(GameObject gameObject)
         {
             objectsToDestroy.Add(gameObject);

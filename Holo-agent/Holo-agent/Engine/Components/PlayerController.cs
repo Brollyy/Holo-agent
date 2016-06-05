@@ -74,7 +74,7 @@ namespace Engine.Components
                 //.....................................................................//
                 weapons[index].GetComponent<Weapon>().Collision = true;
                 weapons[index].IsVisible = true;
-                weapons[index].Parent = null;
+                weapons[index].Parent = Owner.Scene.FindRoomContaining(weapon);
                 weapons[index] = null;
                 weapon.GlobalScale = Vector3.One;
             }
