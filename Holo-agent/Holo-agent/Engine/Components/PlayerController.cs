@@ -89,7 +89,7 @@ namespace Engine.Components
             }
             weapon.GetComponent<Weapon>().IsArmed = true;
             weapon.IsVisible = true;
-            if (weapon.Parent == null)
+            if (weapon.Parent != Owner)
             {
                 weapon.Parent = Owner;
                 weapon.LocalScale = Vector3.One;
@@ -313,7 +313,7 @@ namespace Engine.Components
             {
                 Interaction interact = closestObject.GetComponent<Interaction>();
                 if (canInteract(ref closestObject, ref closestObjectDistance))
-                    interact.Interact(closestObject);
+                    interact.Interact(Owner);
                 System.Console.WriteLine(closestObject.Name + " " + closestObjectDistance);
             }
             else

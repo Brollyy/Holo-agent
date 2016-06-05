@@ -6,13 +6,9 @@ namespace Engine.Components
     {
         public override void Interact(GameObject go)
         {
-            List<GameObject> objects = Owner.Scene.GetObjects();
-            foreach(GameObject gameObject in objects)
+            if (go.GetComponent<PlayerController>() != null)
             {
-                if (gameObject.GetComponent<PlayerController>() != null)
-                {
-                    gameObject.GetComponent<PlayerController>().addWeapon(go);
-                }
+                go.GetComponent<PlayerController>().addWeapon(Owner);
             }
         }
     }
