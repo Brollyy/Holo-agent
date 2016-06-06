@@ -80,6 +80,8 @@ namespace Engine.Components
                     gunfire = true;
                     if (gameObject != null && distance != null && distance <= 1000.0f)
                     {
+                        CharacterController contr = gameObject.GetComponent<CharacterController>();
+                        if (contr != null) contr.DealDamage(5);
                         info = gameObject.Name + " " + distance;
                     }
                     machineGunTimer = MACHINE_GUN_TIMER;
@@ -91,6 +93,8 @@ namespace Engine.Components
                 gunfire = true;
                 if (gameObject != null && distance <= 1000.0f)
                 {
+                    CharacterController contr = gameObject.GetComponent<CharacterController>();
+                    if (contr != null) contr.DealDamage(10);
                     info = gameObject.Name + " " + distance;
                 }
                 isLocked = true;

@@ -18,6 +18,14 @@ namespace Engine.Components
 
         public Movement Movement { get { return movement; } }
 
+        private float health = 100;
+
+        public void DealDamage(float amount)
+        {
+            health -= amount;
+            if (health <= 0) Owner.Scene.Destroy(Owner);
+        }
+
         public CharacterController() : 
             this(75.0f, 0.5f, 125.0f, 1.0f, 35.0f, 0.0f)
         {

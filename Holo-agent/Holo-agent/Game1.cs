@@ -95,6 +95,8 @@ namespace Holo_agent
             enemy.AddNewComponent<Rigidbody>();
             enemy.GetComponent<Rigidbody>().Initialize(80);
             enemy.GetComponent<Rigidbody>().GravityEnabled = false;
+            Collider enemyCol = enemy.AddNewComponent<Collider>();
+            enemyCol.bound = new Engine.Bounding_Volumes.BoundingBox(enemyCol, new Vector3(0,-9.5f,0), new Vector3(2, 9.5f, 2));
             for (int i = 0; i < 8; ++i)
             {
                 columns[i] = new GameObject("Column" + i, new Vector3(80 * (i % 2), 0, -120 * (i / 2)), Quaternion.CreateFromYawPitchRoll(0, MathHelper.ToRadians(270), 0), new Vector3(0.1f, 0.1f, 0.2f), scene, room);
@@ -351,58 +353,8 @@ namespace Holo_agent
                 effect.View = scene.Camera.GetComponent<Camera>().ViewMatrix;
                 effect.Projection = scene.Camera.GetComponent<Camera>().ProjectionMatrix;
                 effect.CurrentTechnique.Passes[0].Apply();
-                short[] indexes = new short[24]
-                {
-                    0, 1, 1, 2, 2, 3, 3, 0,
-                    4, 5, 5, 6, 6, 7, 7, 4,
-                    0, 4, 1, 5, 2, 6, 3, 7
-                };
 
-                for (int i = 0; i < 8; ++i)
-                {
-                    Engine.Bounding_Volumes.BoundingBox box = (columns[i].GetComponent<Collider>().bound as Engine.Bounding_Volumes.BoundingBox);
-                    Vector3[] corners = box.Corners();
-
-                    VertexPosition[] vertices = new VertexPosition[8];
-                    for (int j = 0; j < 8; ++j)
-                    {
-                        vertices[j].Position = corners[j];
-                    }
-
-                    graphics.GraphicsDevice.DrawUserIndexedPrimitives<VertexPosition>(PrimitiveType.LineList,
-                                                                                      vertices, 0, 8,
-                                                                                      indexes, 0, 12);
-                }
-                for (int i = 0; i < 6; ++i)
-                {
-                    Engine.Bounding_Volumes.BoundingBox box = (walls[i].GetComponent<Collider>().bound as Engine.Bounding_Volumes.BoundingBox);
-                    Vector3[] corners = box.Corners();
-
-                    VertexPosition[] vertices = new VertexPosition[8];
-                    for (int j = 0; j < 8; ++j)
-                    {
-                        vertices[j].Position = corners[j];
-                    }
-
-                    graphics.GraphicsDevice.DrawUserIndexedPrimitives<VertexPosition>(PrimitiveType.LineList,
-                                                                                      vertices, 0, 8,
-                                                                                      indexes, 0, 12);
-                }
-                for (int i = 0; i < 2; ++i)
-                {
-                    Engine.Bounding_Volumes.BoundingBox box = (doors[i].GetComponent<Collider>().bound as Engine.Bounding_Volumes.BoundingBox);
-                    Vector3[] corners = box.Corners();
-
-                    VertexPosition[] vertices = new VertexPosition[8];
-                    for (int j = 0; j < 8; ++j)
-                    {
-                        vertices[j].Position = corners[j];
-                    }
-
-                    graphics.GraphicsDevice.DrawUserIndexedPrimitives<VertexPosition>(PrimitiveType.LineList,
-                                                                                      vertices, 0, 8,
-                                                                                      indexes, 0, 12);
-                }
+                scene.DrawDebug(gameTime, graphics);
 
                 //Ray
                 VertexPosition[] line = new VertexPosition[2];
