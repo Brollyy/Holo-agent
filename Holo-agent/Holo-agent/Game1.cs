@@ -19,7 +19,7 @@ namespace Holo_agent
     {
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
-        Texture2D crosshairTexture;
+        Texture2D crosshair;
         SpriteFont font;
         FrameCounter frameCounter;
         Scene scene;
@@ -38,15 +38,20 @@ namespace Holo_agent
         List<GameObject> gunfires;
         List<Collider> weaponColliders;
         Weapon weapon;
-        float timer/*, emitterTimer*/;
+        float timer/*, emitterTimer*/, objectiveTimer;
         SoundEffect shot;
         Texture2D gunfireTexture;
         Engine.Bounding_Volumes.CollisionResult collision = new Engine.Bounding_Volumes.CollisionResult();
         Texture2D floorTexture;
+        Texture2D minimapFrame;
+        GameState gameState = GameState.Menu;
+        GameMenu gameMenu;
+        Vector2 objectivePosition = Vector2.UnitY * -500;
         public Game1()
         {
             graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
+            gameMenu = new GameMenu();
             // Uncomment to enable 60+ FPS.
             /*graphics.SynchronizeWithVerticalRetrace = false;
             this.IsFixedTimeStep = false;*/
@@ -66,7 +71,7 @@ namespace Holo_agent
             columns = new GameObject[8];
             walls = new GameObject[7];
             doors = new GameObject[2];
-	        weapons = new List<GameObject>();
+            weapons = new List<GameObject>();
             gunfires = new List<GameObject>();
             weaponColliders = new List<Collider>();
             scene = new Scene();
@@ -80,7 +85,7 @@ namespace Holo_agent
             player.GetComponent<Rigidbody>().GravityEnabled = false;
             Collider playerCol = player.AddNewComponent<Collider>();
             playerCol.bound = new Engine.Bounding_Volumes.BoundingBox(playerCol, Vector3.Zero, 10f * Vector3.One);
-            GameObject camera = new GameObject("Camera", new Vector3(0,0,0), Quaternion.Identity, Vector3.One, scene, player);
+            GameObject camera = new GameObject("Camera", new Vector3(0, 0, 0), Quaternion.Identity, Vector3.One, scene, player);
             Camera cameraComp = new Camera(45, graphics.GraphicsDevice.Viewport.AspectRatio, 1, 1000);
             camera.AddComponent(cameraComp);
             scene.Camera = camera;
@@ -88,26 +93,26 @@ namespace Holo_agent
             {
                 columns[i] = new GameObject("Column" + i, new Vector3(80 * (i % 2), 0, -120 * (i / 2)), Quaternion.CreateFromYawPitchRoll(0, MathHelper.ToRadians(270), 0), new Vector3(0.1f, 0.1f, 0.2f), scene, room);
                 Collider columnCol = columns[i].AddNewComponent<Collider>();
-                columnCol.bound = new Engine.Bounding_Volumes.BoundingBox(columnCol, new Vector3(0,30,0), new Vector3(60,60,150));
+                columnCol.bound = new Engine.Bounding_Volumes.BoundingBox(columnCol, new Vector3(0, 30, 0), new Vector3(60, 60, 150));
             }
             ladder = new GameObject("Ladder", new Vector3(60, 15, -60), Quaternion.CreateFromYawPitchRoll(MathHelper.ToRadians(225), MathHelper.ToRadians(270), 0), new Vector3(0.15f, 0.15f, 0.15f), scene, room);
             tile = new GameObject("Ceiling panel", new Vector3(40, 0.05f, -60), Quaternion.CreateFromYawPitchRoll(MathHelper.ToRadians(225), MathHelper.ToRadians(270), 0), new Vector3(0.1f, 0.1f, 0.1f), scene, room);
-            for(int i = 0; i < 4; ++i)
+            for (int i = 0; i < 4; ++i)
             {
-                walls[i] = new GameObject("Wall" + i, new Vector3(-60 + (i % 2) * 200, 30, 40 - 440*(i/2)), Quaternion.CreateFromYawPitchRoll(0, 0, 0), new Vector3(1, 0.5f, 1), scene, room);
+                walls[i] = new GameObject("Wall" + i, new Vector3(-60 + (i % 2) * 200, 30, 40 - 440 * (i / 2)), Quaternion.CreateFromYawPitchRoll(0, 0, 0), new Vector3(1, 0.5f, 1), scene, room);
                 Collider wallCol = walls[i].AddNewComponent<Collider>();
                 wallCol.bound = new Engine.Bounding_Volumes.BoundingBox(wallCol, new Vector3(0, 0, 1.5f), new Vector3(60, 60, 2));
             }
-            for(int i = 4; i < 6; ++i)
+            for (int i = 4; i < 6; ++i)
             {
-                walls[i] = new GameObject("Wall" + i, new Vector3(200 - 320*(i%2), 30, -180), Quaternion.CreateFromYawPitchRoll(MathHelper.ToRadians(90), 0, 0), new Vector3(3.75f, 0.5f, 1), scene, room);
+                walls[i] = new GameObject("Wall" + i, new Vector3(200 - 320 * (i % 2), 30, -180), Quaternion.CreateFromYawPitchRoll(MathHelper.ToRadians(90), 0, 0), new Vector3(3.75f, 0.5f, 1), scene, room);
                 Collider wallCol = walls[i].AddNewComponent<Collider>();
                 wallCol.bound = new Engine.Bounding_Volumes.BoundingBox(wallCol, new Vector3(1.5f, 0, 0), new Vector3(60, 60, 2));
             }
             walls[6] = new GameObject("Ceiling", new Vector3(40, 60, -180), Quaternion.CreateFromYawPitchRoll(0, MathHelper.ToRadians(270), 0), new Vector3(2.7f, 3.66f, 1f), scene, room);
-            for(int i = 0; i < 2; ++i)
+            for (int i = 0; i < 2; ++i)
             {
-                GameObject doorHandler = new GameObject("DoorDummy" + i, new Vector3(40+(2*i-1)*40, 30, 42.5f - ((i+1)%2)*442.5f), Quaternion.CreateFromYawPitchRoll(MathHelper.ToRadians((i%2)*180), 0, 0), Vector3.One, scene, room);
+                GameObject doorHandler = new GameObject("DoorDummy" + i, new Vector3(40 + (2 * i - 1) * 40, 30, 42.5f - ((i + 1) % 2) * 442.5f), Quaternion.CreateFromYawPitchRoll(MathHelper.ToRadians((i % 2) * 180), 0, 0), Vector3.One, scene, room);
                 doors[i] = new GameObject("Door" + i, new Vector3(40 * (1 - 2 * i), 0, 0), Quaternion.Identity, new Vector3(0.1f, 0.165f, 0.1f), scene, doorHandler);
                 doors[i].AddNewComponent<DoorInteraction>();
                 Collider doorCol = doors[i].AddNewComponent<Collider>();
@@ -124,10 +129,11 @@ namespace Holo_agent
             weaponColliders.Add(weapons[1].AddNewComponent<Collider>());
             weaponColliders[1].bound = new Engine.Bounding_Volumes.BoundingBox(weaponColliders[1], new Vector3(0, 0, -2f), new Vector3(0.5f, 1.5f, 2.5f));
             weapons[1].AddNewComponent<WeaponInteraction>();
-            gunfires.Add(new GameObject("Pistol_Gunfire", new Vector3(1, 0.45f, -9f), Quaternion.Identity, Vector3.One, scene, weapons[0]));
-            gunfires.Add(new GameObject("MachineGun_Gunfire", new Vector3(-0.1f, 0.2f, -8.5f), Quaternion.Identity, Vector3.One, scene, weapons[1]));
+            gunfires.Add(new GameObject("Pistol_Gunfire", new Vector3(0, 0.6f, -4), Quaternion.Identity, Vector3.One * 0.5f, scene, weapons[0]));
+            gunfires.Add(new GameObject("MachineGun_Gunfire", new Vector3(0, 0.15f, -8.5f), Quaternion.Identity, Vector3.One, scene, weapons[1]));
             timer = 1;
             //emitterTimer = 0;
+            objectiveTimer = 2;
             player.GetComponent<PlayerController>().addWeapon(weapons[0]);
             particles = new List<SpriteInstance>();
             particleFireEmitter = new GameObject("Fire_Emitter", new Vector3(45, 12, -50), Quaternion.CreateFromAxisAngle(Vector3.UnitY, MathHelper.ToRadians(90)), Vector3.One * 2, scene, room);
@@ -140,9 +146,7 @@ namespace Holo_agent
             testBox = new GameObject("TestBox", new Vector3(40, 55, -60), Quaternion.Identity, Vector3.One * 0.25f, scene, room);
             testBox.AddNewComponent<Rigidbody>();
             testBox.GetComponent<Rigidbody>().Initialize(10);
-            
             Physics.Initialize();
-            Mouse.SetPosition(graphics.PreferredBackBufferWidth / 2, graphics.PreferredBackBufferHeight / 2);
             base.Initialize();
         }
 
@@ -154,10 +158,12 @@ namespace Holo_agent
         {
             // Create a new SpriteBatch, which can be used to draw textures.
             spriteBatch = new SpriteBatch(GraphicsDevice);
+            gameMenu.LoadContent(Content);
             Model columnModel = Content.Load<Model>("Models/column_001");
             floorTexture = Content.Load<Texture2D>("Textures/Ground");
             gunfireTexture = Content.Load<Texture2D>("Textures/Gunfire");
-            crosshairTexture = Content.Load<Texture2D>("Textures/Crosshair");
+            crosshair = Content.Load<Texture2D>("Textures/Crosshair");
+            minimapFrame = Content.Load<Texture2D>("Textures/Minimap_Frame");
             font = Content.Load<SpriteFont>("Textures/Arial");
             shot = Content.Load<SoundEffect>("Sounds/Pistol");
 
@@ -219,8 +225,7 @@ namespace Holo_agent
             Model testBallModel = Content.Load<Model>("Models/TestBall");
             testBall.AddComponent(new MeshInstance(testBallModel));
             Model testBoxModel = Content.Load<Model>("Models/TestBox");
-            testBox.AddComponent(new MeshInstance(testBoxModel));
-            
+            testBox.AddComponent(new MeshInstance(testBoxModel));   
         }
 
         /// <summary>
@@ -239,64 +244,79 @@ namespace Holo_agent
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Update(GameTime gameTime)
         {
-            frameCounter.Update(gameTime);
-
-            Input.Update(gameTime, graphics);
-
-            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
-                Exit();
-
-            scene.Update(gameTime);
-            for (int i = 0; i < 8; ++i)
+            gameMenu.Update(ref gameState, this);
+            if (gameState == GameState.Menu)
             {
-                collision = player.GetComponent<Collider>().Collide(columns[i].GetComponent<Collider>());
-                if (collision.CollisionDetected)
-                {
-                    player.GetComponent<PlayerController>().Revert();
-                }
+                if (!IsMouseVisible)
+                    IsMouseVisible = true;
             }
-            for (int i = 0; i < 6; ++i)
+            if (gameState == GameState.GameRunning)
             {
-                collision = player.GetComponent<Collider>().Collide(walls[i].GetComponent<Collider>());
-                if (collision.CollisionDetected)
+                if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
+                    Exit();
+                if (IsMouseVisible)
                 {
-                    player.GetComponent<PlayerController>().Revert();
+                    IsMouseVisible = false;
+                    Mouse.SetPosition(graphics.PreferredBackBufferWidth / 2, graphics.PreferredBackBufferHeight / 2);
                 }
-            }
-            for (int i = 0; i < 2; ++i)
-            {
-                collision = player.GetComponent<Collider>().Collide(doors[i].GetComponent<Collider>());
-                if (collision.CollisionDetected)
+                frameCounter.Update(gameTime);
+                Input.Update(gameTime, graphics);
+                scene.Update(gameTime);
+                for (int i = 0; i < 8; ++i)
                 {
-                    player.GetComponent<PlayerController>().Revert();
+                    collision = player.GetComponent<Collider>().Collide(columns[i].GetComponent<Collider>());
+                    if (collision.CollisionDetected)
+                    {
+                        player.GetComponent<PlayerController>().Revert();
+                    }
                 }
-            }
-	        for (int i = 0; i < weaponColliders.Count; i++)
-            {
-                collision = player.GetComponent<Collider>().Collide(weaponColliders[i]);
-                if (collision.CollisionDetected && weapons[i].GetComponent<Weapon>().Collision == true)
+                for (int i = 0; i < 6; ++i)
                 {
-                    player.GetComponent<PlayerController>().Revert();
+                    collision = player.GetComponent<Collider>().Collide(walls[i].GetComponent<Collider>());
+                    if (collision.CollisionDetected)
+                    {
+                        player.GetComponent<PlayerController>().Revert();
+                    }
                 }
+                for (int i = 0; i < 2; ++i)
+                {
+                    collision = player.GetComponent<Collider>().Collide(doors[i].GetComponent<Collider>());
+                    if (collision.CollisionDetected)
+                    {
+                        player.GetComponent<PlayerController>().Revert();
+                    }
+                }
+                for (int i = 0; i < weaponColliders.Count; i++)
+                {
+                    collision = player.GetComponent<Collider>().Collide(weaponColliders[i]);
+                    if (collision.CollisionDetected && weapons[i].GetComponent<Weapon>().Collision == true)
+                    {
+                        player.GetComponent<PlayerController>().Revert();
+                    }
+                }
+                timer -= (float)gameTime.ElapsedGameTime.TotalSeconds;
+                if (objectiveTimer > 0)
+                    objectiveTimer -= (float)gameTime.ElapsedGameTime.TotalSeconds;
+                else
+                    objectivePosition = Vector2.Lerp(objectivePosition, new Vector2(objectivePosition.X, -250), 0.05f);
+                if (player.GetComponent<PlayerController>() != null)
+                    weapon = player.GetComponent<PlayerController>().getWeapon();
+                if (weapon != null)
+                    gunfire = weapon.getGunfireInstance();
+                /*emitterTimer += (float)gameTime.ElapsedGameTime.TotalSeconds;
+                if (emitterTimer >= 6)
+                {
+                    particleFireEmitter.GetComponent<ParticleSystem>().Destroy();
+                    particleFireEmitter.Destroy();
+                    particleSmokeEmitter.GetComponent<ParticleSystem>().Destroy();
+                    particleSmokeEmitter.Destroy();
+                    emitterTimer = 0;
+                }*/
+                /*if (particleBloodEmitter.GetComponent<ParticleSystem>().getParticlesCount() == 0)
+                    particleBloodEmitter.GetComponent<ParticleSystem>().Init();
+                if (particleExplosionEmitter.GetComponent<ParticleSystem>().getParticlesCount() == 0)
+                    particleExplosionEmitter.GetComponent<ParticleSystem>().Init();*/
             }
-            timer -= (float)gameTime.ElapsedGameTime.TotalSeconds;
-	        if (player.GetComponent<PlayerController>() != null)
-                weapon = player.GetComponent<PlayerController>().getWeapon();
-            if (weapon != null)
-                gunfire = weapon.getGunfireInstance();
-            /*emitterTimer += (float)gameTime.ElapsedGameTime.TotalSeconds;
-            if (emitterTimer >= 6)
-            {
-                particleFireEmitter.GetComponent<ParticleSystem>().Destroy();
-                particleFireEmitter.Destroy();
-                particleSmokeEmitter.GetComponent<ParticleSystem>().Destroy();
-                particleSmokeEmitter.Destroy();
-                emitterTimer = 0;
-            }*/
-            /*if (particleBloodEmitter.GetComponent<ParticleSystem>().getParticlesCount() == 0)
-                particleBloodEmitter.GetComponent<ParticleSystem>().Init();
-            if (particleExplosionEmitter.GetComponent<ParticleSystem>().getParticlesCount() == 0)
-                particleExplosionEmitter.GetComponent<ParticleSystem>().Init();*/
             base.Update(gameTime);
         }
 
@@ -307,113 +327,132 @@ namespace Holo_agent
         protected override void Draw(GameTime gameTime)
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
-
-            scene.Draw(gameTime);
-
-#if DRAW_DEBUG_WIREFRAME
-            RasterizerState originalState = GraphicsDevice.RasterizerState;
-            RasterizerState rasterizerState = new RasterizerState();
-            rasterizerState.FillMode = FillMode.WireFrame;
-            GraphicsDevice.RasterizerState = rasterizerState;
-            BasicEffect effect = new BasicEffect(graphics.GraphicsDevice);
-            effect.World = Matrix.Identity;
-            effect.View = scene.Camera.GetComponent<Camera>().ViewMatrix;
-            effect.Projection = scene.Camera.GetComponent<Camera>().ProjectionMatrix;
-            effect.CurrentTechnique.Passes[0].Apply();
-            short[] indexes = new short[24]
+            if (gameState == GameState.Menu)
             {
-                0, 1, 1, 2, 2, 3, 3, 0,
-                4, 5, 5, 6, 6, 7, 7, 4,
-                0, 4, 1, 5, 2, 6, 3, 7
-            };
-
-            for (int i = 0; i < 8; ++i)
+                gameMenu.Draw(spriteBatch);
+            }
+            if (gameState == GameState.GameRunning)
             {
-                Engine.Bounding_Volumes.BoundingBox box = (columns[i].GetComponent<Collider>().bound as Engine.Bounding_Volumes.BoundingBox);
-                Vector3[] corners = box.Corners();
-
-                VertexPosition[] vertices = new VertexPosition[8];
-                for (int j = 0; j < 8; ++j)
+                scene.Draw(gameTime);
+                #if DRAW_DEBUG_WIREFRAME
+                RasterizerState originalState = GraphicsDevice.RasterizerState;
+                RasterizerState rasterizerState = new RasterizerState();
+                rasterizerState.FillMode = FillMode.WireFrame;
+                GraphicsDevice.RasterizerState = rasterizerState;
+                BasicEffect effect = new BasicEffect(graphics.GraphicsDevice);
+                effect.World = Matrix.Identity;
+                effect.View = scene.Camera.GetComponent<Camera>().ViewMatrix;
+                effect.Projection = scene.Camera.GetComponent<Camera>().ProjectionMatrix;
+                effect.CurrentTechnique.Passes[0].Apply();
+                short[] indexes = new short[24]
                 {
-                    vertices[j].Position = corners[j];
+                    0, 1, 1, 2, 2, 3, 3, 0,
+                    4, 5, 5, 6, 6, 7, 7, 4,
+                    0, 4, 1, 5, 2, 6, 3, 7
+                };
+
+                for (int i = 0; i < 8; ++i)
+                {
+                    Engine.Bounding_Volumes.BoundingBox box = (columns[i].GetComponent<Collider>().bound as Engine.Bounding_Volumes.BoundingBox);
+                    Vector3[] corners = box.Corners();
+
+                    VertexPosition[] vertices = new VertexPosition[8];
+                    for (int j = 0; j < 8; ++j)
+                    {
+                        vertices[j].Position = corners[j];
+                    }
+
+                    graphics.GraphicsDevice.DrawUserIndexedPrimitives<VertexPosition>(PrimitiveType.LineList,
+                                                                                      vertices, 0, 8,
+                                                                                      indexes, 0, 12);
+                }
+                for (int i = 0; i < 6; ++i)
+                {
+                    Engine.Bounding_Volumes.BoundingBox box = (walls[i].GetComponent<Collider>().bound as Engine.Bounding_Volumes.BoundingBox);
+                    Vector3[] corners = box.Corners();
+
+                    VertexPosition[] vertices = new VertexPosition[8];
+                    for (int j = 0; j < 8; ++j)
+                    {
+                        vertices[j].Position = corners[j];
+                    }
+
+                    graphics.GraphicsDevice.DrawUserIndexedPrimitives<VertexPosition>(PrimitiveType.LineList,
+                                                                                      vertices, 0, 8,
+                                                                                      indexes, 0, 12);
+                }
+                for (int i = 0; i < 2; ++i)
+                {
+                    Engine.Bounding_Volumes.BoundingBox box = (doors[i].GetComponent<Collider>().bound as Engine.Bounding_Volumes.BoundingBox);
+                    Vector3[] corners = box.Corners();
+
+                    VertexPosition[] vertices = new VertexPosition[8];
+                    for (int j = 0; j < 8; ++j)
+                    {
+                        vertices[j].Position = corners[j];
+                    }
+
+                    graphics.GraphicsDevice.DrawUserIndexedPrimitives<VertexPosition>(PrimitiveType.LineList,
+                                                                                      vertices, 0, 8,
+                                                                                      indexes, 0, 12);
                 }
 
-                graphics.GraphicsDevice.DrawUserIndexedPrimitives<VertexPosition>(PrimitiveType.LineList,
-                                                                                  vertices, 0, 8,
-                                                                                  indexes, 0, 12);
-            }
-            for (int i = 0; i < 6; ++i)
-            {
-                Engine.Bounding_Volumes.BoundingBox box = (walls[i].GetComponent<Collider>().bound as Engine.Bounding_Volumes.BoundingBox);
-                Vector3[] corners = box.Corners();
+                //Ray
+                VertexPosition[] line = new VertexPosition[2];
+                line[0].Position = player.GlobalPosition - new Vector3(0, 1, 0);
+                line[1].Position = line[0].Position + player.LocalToWorldMatrix.Forward * 100.0f;
+                graphics.GraphicsDevice.DrawUserPrimitives<VertexPosition>(PrimitiveType.LineList, line, 0, 1);
 
-                VertexPosition[] vertices = new VertexPosition[8];
-                for (int j = 0; j < 8; ++j)
+                GraphicsDevice.RasterizerState = originalState;
+                #endif
+                spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.AnisotropicWrap, DepthStencilState.Default, RasterizerState.CullNone);
+                if (player.GetComponent<PlayerController>() != null)
                 {
-                    vertices[j].Position = corners[j];
+                    spriteBatch.Draw(crosshair, new Vector2((graphics.PreferredBackBufferWidth / 2) - (crosshair.Width / 2), (graphics.PreferredBackBufferHeight / 2) - (crosshair.Height / 2)), player.GetComponent<PlayerController>().CrosshairColor);
+                    if(player.GetComponent<PlayerController>().CrosshairColor == Color.Lime)
+                    {
+                        spriteBatch.DrawString(font, "Press E to interact", new Vector2(275, 350), Color.Purple, 0, Vector2.Zero, 0.25f, SpriteEffects.None, 0);
+                    }
+                    spriteBatch.Draw(minimapFrame, new Vector2(5, 5), null, Color.White, 0, Vector2.Zero, new Vector2(0.35f, 0.35f), SpriteEffects.None, 0);
+                    spriteBatch.DrawString(font, "Minimap\nwill\nbe\nhere", new Vector2(15, 15), Color.Purple, 0, Vector2.Zero, 0.25f, SpriteEffects.None, 0);
                 }
-
-                graphics.GraphicsDevice.DrawUserIndexedPrimitives<VertexPosition>(PrimitiveType.LineList,
-                                                                                  vertices, 0, 8,
-                                                                                  indexes, 0, 12);
-            }
-            for (int i = 0; i < 2; ++i)
-            {
-                Engine.Bounding_Volumes.BoundingBox box = (doors[i].GetComponent<Collider>().bound as Engine.Bounding_Volumes.BoundingBox);
-                Vector3[] corners = box.Corners();
-
-                VertexPosition[] vertices = new VertexPosition[8];
-                for (int j = 0; j < 8; ++j)
+                if (Keyboard.GetState().IsKeyDown(Keys.Tab))
                 {
-                    vertices[j].Position = corners[j];
+                    objectivePosition = new Vector2(250, 150);
+                    objectiveTimer = 2;
                 }
-
-                graphics.GraphicsDevice.DrawUserIndexedPrimitives<VertexPosition>(PrimitiveType.LineList,
-                                                                                  vertices, 0, 8,
-                                                                                  indexes, 0, 12);
-            }
-
-            //Ray
-            VertexPosition[] line = new VertexPosition[2];
-            line[0].Position = player.GlobalPosition - new Vector3(0, 1, 0);
-            line[1].Position = line[0].Position + player.LocalToWorldMatrix.Forward * 100.0f;
-            graphics.GraphicsDevice.DrawUserPrimitives<VertexPosition>(PrimitiveType.LineList, line, 0, 1);
-
-            GraphicsDevice.RasterizerState = originalState;
-#endif
-            spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.AnisotropicWrap, DepthStencilState.Default, RasterizerState.CullNone);
-                        if (player.GetComponent<PlayerController>() != null)
-                spriteBatch.Draw(crosshairTexture, new Vector2((graphics.PreferredBackBufferWidth / 2) - (crosshairTexture.Width / 2), (graphics.PreferredBackBufferHeight / 2) - (crosshairTexture.Height / 2)), player.GetComponent<PlayerController>().CrosshairColor);
-            if (weapon != null)
-            {
-                spriteBatch.DrawString(font, weapon.getMagazine() + "/" + weapon.getAmmo(), new Vector2(10, 410), Color.Red, 0, Vector2.Zero, 4, SpriteEffects.None, 0);
-                if (weapon.info != null)
-                    spriteBatch.DrawString(font, weapon.info, new Vector2(50, 60), Color.SeaGreen);
-                if (weapon.getGunfire())
+                spriteBatch.DrawString(font, "[Some objective]", objectivePosition, Color.Purple, 0, Vector2.Zero, 0.35f, SpriteEffects.None, 0);
+                if (weapon != null)
                 {
-                    timer = 1;
-                    if (timer >= 0)
-                        gunfire.GetComponent<SpriteInstance>().Draw(gameTime);
-                    weapon.setGunfire(false);
-                    shot.Play();
+                    spriteBatch.DrawString(font, weapon.getMagazine() + "/" + weapon.getAmmo(), new Vector2(625, 410), Color.Red, 0, Vector2.Zero, 0.5f, SpriteEffects.None, 0);
+                    /*if (weapon.info != null)
+                        spriteBatch.DrawString(font, weapon.info, new Vector2(50, 60), Color.SeaGreen);*/
+                    if (weapon.getGunfire())
+                    {
+                        timer = 1;
+                        if (timer >= 0)
+                            gunfire.GetComponent<SpriteInstance>().Draw(gameTime);
+                        weapon.setGunfire(false);
+                        shot.Play();
+                    }
                 }
+                /*spriteBatch.DrawString(font, frameCounter.AverageFramesPerSecond.ToString(), new Vector2(50, 45), Color.Black);
+                if (particleFireEmitter.GetComponent<ParticleSystem>().getParticlesCount() != null)
+                    spriteBatch.DrawString(font, "Fire Particles: " + particleFireEmitter.GetComponent<ParticleSystem>().getParticlesCount().ToString(), new Vector2(50, 75), Color.Purple);
+                if (particleExplosionEmitter.GetComponent<ParticleSystem>().getParticlesCount() != null)
+                    spriteBatch.DrawString(font, "Explosion Particles: " + particleExplosionEmitter.GetComponent<ParticleSystem>().getParticlesCount().ToString(), new Vector2(50, 90), Color.Purple);
+                if (particleSmokeEmitter.GetComponent<ParticleSystem>().getParticlesCount() != null)
+                    spriteBatch.DrawString(font, "Smoke Particles: " + particleSmokeEmitter.GetComponent<ParticleSystem>().getParticlesCount().ToString(), new Vector2(50, 105), Color.Purple);
+                if (particleBloodEmitter.GetComponent<ParticleSystem>().getParticlesCount() != null)
+                    spriteBatch.DrawString(font, "Blood Particles: " + particleBloodEmitter.GetComponent<ParticleSystem>().getParticlesCount().ToString(), new Vector2(50, 120), Color.Purple);
+                if (player != null)
+                    spriteBatch.DrawString(font, "Player Y position: " + player.GlobalPosition.Y.ToString() + ", velocity: " + player.GetComponent<Rigidbody>().Velocity.ToString(), new Vector2(50, 15), Color.DarkGreen);
+                if (testBall != null)
+                    spriteBatch.DrawString(font, "TestBall position: " + testBall.GlobalPosition.ToString() + ", velocity: " + testBall.GetComponent<Rigidbody>().Velocity.ToString(), new Vector2(50, 135), Color.DarkGreen);
+                if (testBox != null)
+                    spriteBatch.DrawString(font, "TestBox position: " + testBox.GlobalPosition.ToString() + ", velocity: " + testBox.GetComponent<Rigidbody>().Velocity.ToString(), new Vector2(50, 150), Color.DarkGreen);*/
+                spriteBatch.End();
             }
-            spriteBatch.DrawString(font, frameCounter.AverageFramesPerSecond.ToString(), new Vector2(50, 45), Color.Black);
-            if (particleFireEmitter.GetComponent<ParticleSystem>().getParticlesCount() != null)
-                spriteBatch.DrawString(font, "Fire Particles: " + particleFireEmitter.GetComponent<ParticleSystem>().getParticlesCount().ToString(), new Vector2(50, 75), Color.Purple);
-            if (particleExplosionEmitter.GetComponent<ParticleSystem>().getParticlesCount() != null)
-                spriteBatch.DrawString(font, "Explosion Particles: " + particleExplosionEmitter.GetComponent<ParticleSystem>().getParticlesCount().ToString(), new Vector2(50, 90), Color.Purple);
-            if (particleSmokeEmitter.GetComponent<ParticleSystem>().getParticlesCount() != null)
-                spriteBatch.DrawString(font, "Smoke Particles: " + particleSmokeEmitter.GetComponent<ParticleSystem>().getParticlesCount().ToString(), new Vector2(50, 105), Color.Purple);
-            if (particleBloodEmitter.GetComponent<ParticleSystem>().getParticlesCount() != null)
-                spriteBatch.DrawString(font, "Blood Particles: " + particleBloodEmitter.GetComponent<ParticleSystem>().getParticlesCount().ToString(), new Vector2(50, 120), Color.Purple);
-            if (player != null)
-                spriteBatch.DrawString(font, "Player Y position: " + player.GlobalPosition.Y.ToString() + ", velocity: " + player.GetComponent<Rigidbody>().Velocity.ToString(), new Vector2(50, 15), Color.DarkGreen);
-            if (testBall != null)
-                spriteBatch.DrawString(font, "TestBall position: " + testBall.GlobalPosition.ToString() + ", velocity: " + testBall.GetComponent<Rigidbody>().Velocity.ToString(), new Vector2(50, 135), Color.DarkGreen);
-            if (testBox != null)
-                spriteBatch.DrawString(font, "TestBox position: " + testBox.GlobalPosition.ToString() + ", velocity: " + testBox.GetComponent<Rigidbody>().Velocity.ToString(), new Vector2(50, 150), Color.DarkGreen);
-            spriteBatch.End();
             base.Draw(gameTime);
         }
     }

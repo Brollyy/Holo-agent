@@ -144,7 +144,7 @@ namespace Engine
             }
             oldMouseWheelValue = mouseWheelValue;
             mouseWheelValue = mouseState.ScrollWheelValue;
-           Mouse.SetPosition(graphics.PreferredBackBufferWidth / 2, graphics.PreferredBackBufferHeight / 2);
+            Mouse.SetPosition(graphics.PreferredBackBufferWidth / 2, graphics.PreferredBackBufferHeight / 2);
         }
 
         public static void BindActionHandler(GameAction action, ProcessInputAction processFunction)
