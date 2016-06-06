@@ -24,6 +24,29 @@ namespace Engine.Utilities
             set;
         }
 
+        public float? Intersect(Microsoft.Xna.Framework.BoundingBox bound)
+        {
+            float tfirst = 0.0f, tlast = Length;
+
+            if (!RaySlabIntersect(StartPosition.X,
+                                  Direction.X,
+                                  bound.Min.X,
+                                  bound.Max.X,
+                                  ref tfirst, ref tlast)) return null;
+            if (!RaySlabIntersect(StartPosition.Y,
+                                  Direction.Y,
+                                  bound.Min.Y,
+                                  bound.Max.Y,
+                                  ref tfirst, ref tlast)) return null;
+            if (!RaySlabIntersect(StartPosition.Z,
+                                  Direction.Z,
+                                  bound.Min.Z,
+                                  bound.Max.Z,
+                                  ref tfirst, ref tlast)) return null;
+
+            return tfirst;
+        }
+
         public float? Intersect(BoundingVolume bound)
         {
             if(bound is Bounding_Volumes.BoundingBox)

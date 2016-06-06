@@ -278,10 +278,9 @@ namespace Engine.Components
             if (movement == Movement.RUN) movement = Movement.WALK;
         }
 
-        public void Ray(ref GameObject closestGameObject, ref float? closest, float maxDistance)
+        private void Ray(ref GameObject closestGameObject, ref float? closest, float maxDistance, List<GameObject> objects)
         {
             Raycast ray = new Raycast(Owner.GlobalPosition, Owner.LocalToWorldMatrix.Forward, maxDistance);
-            List<GameObject> objects = Owner.Scene.GetObjects();
             foreach (GameObject go in objects)
             {
                 if (go == Owner) continue;
@@ -300,6 +299,7 @@ namespace Engine.Components
                 }
             }
         }
+
         private bool canInteract(ref GameObject closestGo, ref float? closest)
         {
             if (closest <= 100.0f && closestGo.GetComponent<Interaction>() != null)
@@ -430,7 +430,7 @@ namespace Engine.Components
             lastRotation = Owner.LocalQuaternionRotation;
             closestObjectDistance = null;
             closestObject = null;
-            Ray(ref closestObject, ref closestObjectDistance, 1000.0f);
+            Ray(ref closestObject, ref closestObjectDistance, 1000.0f, Owner.Scene.GetNearbyObjects(Owner));
             if (canInteract(ref closestObject, ref closestObjectDistance))
                 crosshairColor = Color.Lime;
             else

@@ -86,7 +86,7 @@ namespace Holo_agent
             camera.AddComponent(cameraComp);
             scene.Camera = camera;
             enemy = new GameObject("Enemy", new Vector3(30, 18, -150), Quaternion.CreateFromYawPitchRoll(MathHelper.ToRadians(180), 0, 0), Vector3.One, scene, room);
-            enemy.AddComponent(new EnemyController(player));
+            enemy.AddComponent(new EnemyController());
             enemy.AddNewComponent<Rigidbody>();
             enemy.GetComponent<Rigidbody>().Initialize(80);
             enemy.GetComponent<Rigidbody>().GravityEnabled = false;

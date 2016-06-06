@@ -61,6 +61,8 @@ namespace Engine.Components
 
     public class EnemyController : AIController
     {
+        private float range;
+
         private void Turn(float xMove, float yMove, GameTime gameTime)
         {
             Vector3 rot = Owner.LocalEulerRotation;
@@ -105,18 +107,77 @@ namespace Engine.Components
                 }
             }
 
+            
+            LookForTarget();
+
             base.Update(gameTime);
         }
 
-        public EnemyController(GameObject target) : base()
+        private GameObject Ray(float maxDistance, List<GameObject> objects, Vector3 direction)
+        {
+            float? closest = null;
+            GameObject closestGameObject = null;
+            Raycast ray = new Raycast(Owner.GlobalPosition, direction, maxDistance);
+            foreach (GameObject go in objects)
+            {
+                if (go == Owner) continue;
+                Collider col = go.GetComponent<Collider>();
+                if (go.IsVisible)
+                {
+                    float? distance = (col != null ? ray.Intersect(col.bound) : ray.Intersect(go.Bound));
+                    if (distance != null)
+                    {
+                        if (closest == null || distance < closest)
+                        {
+                            closest = distance;
+                            closestGameObject = go;
+                        }
+                    }
+                }
+            }
+            return closestGameObject;
+        }
+
+        private void LookForTarget()
+        {
+            List<GameObject> nearbyObjects = Owner.Scene.GetNearbyObjects(Owner);
+            attributes[1] = null;
+            foreach(GameObject go in nearbyObjects)
+            {
+                if(go.IsVisible && (go.GlobalPosition - Owner.GlobalPosition).LengthSquared() < range*range)
+                {
+                    if(go.Name.Equals("Player")) // Possibly temporary, but seems good
+                    {
+                        if (attributes[1] == null &&
+                            Ray(range, Owner.Scene.GetNearbyObjects(Owner), Vector3.Normalize(go.GlobalPosition - Owner.GlobalPosition)) == go)
+                        {
+                            attributes[1] = go;
+                        }
+                    }
+
+                    if (go.GetComponent<HologramPlayback>() != null)
+                    {
+                        if (Ray(range, Owner.Scene.GetNearbyObjects(Owner), Vector3.Normalize(go.GlobalPosition - Owner.GlobalPosition)) == go)
+                        {
+                            attributes[1] = go;
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+
+        public EnemyController(float range = 200) : base()
         {
             movement = Movement.IDLE;
+            this.range = range;
 
             attributes.Add(this);   // EnemyController
-            attributes.Add(target); // Target
+            attributes.Add(null); // Target
 
             // Decision tree
             DecisionTreeNode targetNode = decisionTree.AddNode(decisionTree.root, (x => x[1] != null), null);
+            decisionTree.AddNode(decisionTree.root, (x => true), new PerformMovement(StopMoving));
             decisionTree.AddNode(targetNode, 
                 (x => (Matrix.CreateFromQuaternion((x[0] as EnemyController).Owner.GlobalRotation).Forward -
                       Vector3.Normalize((x[1] as GameObject).GlobalPosition - (x[0] as EnemyController).Owner.GlobalPosition)).LengthSquared() > 0.1f),
