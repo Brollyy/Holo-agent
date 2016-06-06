@@ -515,12 +515,16 @@ namespace Engine
             {
                 comp.Destroy();
             }
+            components.Clear();
 
             List<GameObject> copyChildren = new List<GameObject>(children.Values);
             foreach(GameObject child in copyChildren)
             {
                 child.Destroy();
             }
+            children.Clear();
+
+            Scene.RemoveObject(this);
 
             Parent = null;
         }
@@ -555,8 +559,8 @@ namespace Engine
             this.scene = scene;
             if (scene != null)
             {
-                if (parent != null) scene.AddObject(this);
-                else scene.AddRoom(this);
+                if(name != null && name.StartsWith("Room")) scene.AddRoom(this);
+                else scene.AddObject(this);
             }
             if (bound.HasValue) this.bound = bound.Value;
             components = new List<Component>();

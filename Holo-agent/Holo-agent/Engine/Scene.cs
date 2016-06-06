@@ -19,7 +19,7 @@ namespace Engine
         private GameObject activeCamera;
         private List<GameObject> objectsToRespace;
 
-        public List<GameObject> GetObjects()
+        public List<GameObject> GetAllObjects()
         {
             List<GameObject> allObjects = new List<GameObject>();
             foreach(GraphNode<Room,BoundingBox> node in roomGraph)
@@ -28,6 +28,24 @@ namespace Engine
                 PopulateGameObjectList(ref allObjects, room.go);
             }
             return allObjects;
+        }
+
+        public List<GameObject> GetNearbyObjects(GameObject go)
+        {
+            List<GameObject> nearbyObjects = new List<GameObject>();
+            foreach (GraphNode<Room, BoundingBox> node in roomGraph)
+            {
+                if (node.Value.contents.Contains(go))
+                {
+                    nearbyObjects.AddRange(node.Value.contents);
+                    foreach (GraphNode<Room, BoundingBox> neighbour in node.Neighbours)
+                    {
+                        nearbyObjects.AddRange(neighbour.Value.contents);
+                    }
+                    break;
+                }
+            }
+            return nearbyObjects;
         }
 
         private void PopulateGameObjectList(ref List<GameObject> list, GameObject go)
@@ -69,6 +87,15 @@ namespace Engine
                 {
                     room.contents.Add(go);
                 }
+            }
+        }
+
+        public void RemoveObject(GameObject go)
+        {
+            foreach (GraphNode<Room, BoundingBox> node in roomGraph)
+            {
+                Room room = node.Value;
+                room.contents.Remove(go);
             }
         }
 
@@ -196,6 +223,7 @@ namespace Engine
                     {
                         roomsToRender.Add(neighbour.Value);
                     }
+                    break;
                 }
             }
 

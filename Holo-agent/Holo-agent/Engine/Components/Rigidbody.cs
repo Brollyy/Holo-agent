@@ -105,7 +105,7 @@ namespace Engine.Components
         }
         public bool isGrounded()
         {
-            if (Owner.GetComponent<PlayerController>() == null) //Temporary
+            if (Owner.GetComponent<CharacterController>() == null) //Temporary
             {
                 if (Owner.GlobalPosition.Y <= 0) //Temporary
                     return true;
