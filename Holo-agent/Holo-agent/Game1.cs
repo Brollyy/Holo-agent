@@ -409,6 +409,10 @@ namespace Holo_agent
                 if (player.GetComponent<PlayerController>() != null)
                 {
                     spriteBatch.Draw(crosshair, new Vector2((graphics.PreferredBackBufferWidth / 2) - (crosshair.Width / 2), (graphics.PreferredBackBufferHeight / 2) - (crosshair.Height / 2)), player.GetComponent<PlayerController>().CrosshairColor);
+                    if(player.GetComponent<PlayerController>().CrosshairColor == Color.Lime)
+                    {
+                        spriteBatch.DrawString(font, "Press E to interact", new Vector2(275, 350), Color.Purple, 0, Vector2.Zero, 0.25f, SpriteEffects.None, 0);
+                    }
                     spriteBatch.Draw(minimapFrame, new Vector2(5, 5), null, Color.White, 0, Vector2.Zero, new Vector2(0.35f, 0.35f), SpriteEffects.None, 0);
                     spriteBatch.DrawString(font, "Minimap\nwill\nbe\nhere", new Vector2(15, 15), Color.Purple, 0, Vector2.Zero, 0.25f, SpriteEffects.None, 0);
                 }
@@ -421,8 +425,8 @@ namespace Holo_agent
                 if (weapon != null)
                 {
                     spriteBatch.DrawString(font, weapon.getMagazine() + "/" + weapon.getAmmo(), new Vector2(625, 410), Color.Red, 0, Vector2.Zero, 0.5f, SpriteEffects.None, 0);
-                    if (weapon.info != null)
-                        spriteBatch.DrawString(font, weapon.info, new Vector2(50, 60), Color.SeaGreen);
+                    /*if (weapon.info != null)
+                        spriteBatch.DrawString(font, weapon.info, new Vector2(50, 60), Color.SeaGreen);*/
                     if (weapon.getGunfire())
                     {
                         timer = 1;
