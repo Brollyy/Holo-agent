@@ -62,6 +62,7 @@ namespace Engine.Components
     public class EnemyController : AIController
     {
         private float range;
+        private GameTime lastSearch = new GameTime();
 
         private void Turn(float xMove, float yMove, GameTime gameTime)
         {
@@ -81,7 +82,7 @@ namespace Engine.Components
             if (movement == Movement.WALK) return;
             
             movement = Movement.WALK;
-            Owner.GetComponent<AnimationController>().Blend("run", 0.2f);
+            Owner.GetComponent<AnimationController>().PlayAnimation("run");
         }
 
         private void StopMoving()
@@ -89,7 +90,7 @@ namespace Engine.Components
             if (movement == Movement.IDLE) return;
 
             movement = Movement.IDLE;
-            Owner.GetComponent<AnimationController>().Blend("idle", 0.2f);
+            Owner.GetComponent<AnimationController>().StopAnimation("run");
             Rigidbody rigidbody = Owner.GetComponent<Rigidbody>();
             if (rigidbody != null)
                 rigidbody.AddForce(Vector3.Zero, 0, rigidbody.Velocity.Y, 0);
@@ -107,8 +108,11 @@ namespace Engine.Components
                 }
             }
 
-            
-            LookForTarget();
+            if (gameTime.TotalGameTime.Subtract(lastSearch.TotalGameTime).TotalSeconds > 0.5)
+            {
+                LookForTarget();
+                lastSearch = gameTime;
+            }
 
             base.Update(gameTime);
         }
@@ -122,7 +126,7 @@ namespace Engine.Components
             {
                 if (go == Owner) continue;
                 Collider col = go.GetComponent<Collider>();
-                if (go.IsVisible)
+                if (go.IsVisible && go.Name != "Level")
                 {
                     float? distance = (col != null ? ray.Intersect(col.bound) : ray.Intersect(go.Bound));
                     if (distance != null)
@@ -184,7 +188,7 @@ namespace Engine.Components
                 new TurnToTarget(Turn));
             DecisionTreeNode moveNode = decisionTree.AddNode(targetNode, (x => true), null);
             decisionTree.AddNode(moveNode, 
-                (x => ((x[0] as EnemyController).Owner.GlobalPosition - (x[1] as GameObject).GlobalPosition).Length() > 10.0f), 
+                (x => ((x[0] as EnemyController).Owner.GlobalPosition - (x[1] as GameObject).GlobalPosition).Length() > 20.0f), 
                 new PerformMovement(MoveForward));
             decisionTree.AddNode(moveNode, (x => true), new PerformMovement(StopMoving));
         }

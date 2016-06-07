@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Engine.Components;
 using System.Reflection;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace Engine
 {
@@ -495,18 +496,39 @@ namespace Engine
 
         public void Draw(GameTime gameTime)
         {
-            if (isVisible == true)
+            if (isVisible)
             {
                 foreach (Component comp in components)
                 {
                     if (comp.Enabled) comp.Draw(gameTime);
                 }
-
-                foreach (GameObject child in children.Values)
-                {
-                    child.Draw(gameTime);
-                }
             }
+        }
+
+        public void DrawDebug(GameTime gameTime, GraphicsDeviceManager graphics)
+        {
+            short[] indexes = new short[24]
+            {
+                0, 1, 1, 2, 2, 3, 3, 0,
+                4, 5, 5, 6, 6, 7, 7, 4,
+                0, 4, 1, 5, 2, 6, 3, 7
+            };
+
+            if (bound != null)
+            {
+                Vector3[] corners = Bound.GetCorners();
+
+                VertexPosition[] vertices = new VertexPosition[8];
+                for (int j = 0; j < 8; ++j)
+                {
+                    vertices[j].Position = corners[j];
+                }
+
+                graphics.GraphicsDevice.DrawUserIndexedPrimitives<VertexPosition>(PrimitiveType.LineList, vertices, 0, 8, indexes, 0, 12);
+            }
+
+            Collider col = GetComponent<Collider>();
+            if (col != null) col.DrawDebug(gameTime, graphics);
         }
 
         public void Destroy()
@@ -557,11 +579,6 @@ namespace Engine
         {
             this.name = name;
             this.scene = scene;
-            if (scene != null)
-            {
-                if(name != null && name.StartsWith("Room")) scene.AddRoom(this);
-                else scene.AddObject(this);
-            }
             if (bound.HasValue) this.bound = bound.Value;
             components = new List<Component>();
             localToWorldMatrix = Matrix.Identity;
@@ -570,6 +587,11 @@ namespace Engine
             localPosition = position;
             localRotation = rotation;
             localScale = scale;
+            if (scene != null)
+            {
+                if (name != null && name.StartsWith("Room")) scene.AddRoom(this);
+                else scene.AddObject(this);
+            }
             this.isVisible = isVisible;
         }
 

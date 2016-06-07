@@ -160,7 +160,7 @@ namespace Engine.Utilities
                     if (effect is BasicEffect)
                     {
                         BasicEffect beffect = effect as BasicEffect;
-                        beffect.World = /*boneTransforms[modelMesh.ParentBone.Index] */ owner.LocalToWorldMatrix;
+                        beffect.World = boneTransforms[modelMesh.ParentBone.Index] * owner.LocalToWorldMatrix;
                         beffect.View = camera.ViewMatrix;
                         beffect.Projection = camera.ProjectionMatrix;
                         beffect.EnableDefaultLighting();

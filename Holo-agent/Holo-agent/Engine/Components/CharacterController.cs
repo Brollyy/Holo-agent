@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Xna.Framework;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -16,6 +17,9 @@ namespace Engine.Components
         protected float crouchVolume;
         protected Movement movement;
 
+        protected Vector3 lastPosition, lastPosition2;
+        protected Quaternion lastRotation, lastRotation2;
+
         public Movement Movement { get { return movement; } }
 
         private float health = 100;
@@ -24,6 +28,22 @@ namespace Engine.Components
         {
             health -= amount;
             if (health <= 0) Owner.Scene.Destroy(Owner);
+        }
+
+        public void Revert()
+        {
+            Owner.LocalPosition = lastPosition2;
+            Owner.LocalQuaternionRotation = lastRotation2;
+            lastPosition = lastPosition2;
+            lastRotation = lastRotation2;
+        }
+
+        public override void Update(GameTime gameTime)
+        {
+            lastPosition2 = lastPosition;
+            lastPosition = Owner.LocalPosition;
+            lastRotation2 = lastRotation;
+            lastRotation = Owner.LocalQuaternionRotation;
         }
 
         public CharacterController() : 

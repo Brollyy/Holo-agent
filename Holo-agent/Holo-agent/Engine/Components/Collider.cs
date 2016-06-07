@@ -35,8 +35,6 @@ namespace Engine.Components
 
                 graphics.GraphicsDevice.DrawUserIndexedPrimitives<VertexPosition>(PrimitiveType.LineList, vertices, 0, 8, indexes, 0, 12);
             }
-
-            base.Draw(gameTime);
         }
 
         public Collider() : this(null)

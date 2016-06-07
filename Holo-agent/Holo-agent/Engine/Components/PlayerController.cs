@@ -16,8 +16,6 @@ namespace Engine.Components
         private Vector3 playerCameraPosition;
         private Quaternion playerCameraRotation;
         private Vector3 playerCameraScale;
-        private Vector3 lastPosition, lastPosition2;
-        private Quaternion lastRotation, lastRotation2;
         private float? closestObjectDistance;
         private GameObject closestObject;
         private Color crosshairColor;
@@ -401,7 +399,10 @@ namespace Engine.Components
                 {
                     hologramPlayback.AddComponent(PlayerMesh);
                     AnimationController anim = hologramPlayback.AddNewComponent<AnimationController>();
-                    anim.BindAnimation("run", PlayerMesh.Model.Clips[1], true);
+                    anim.BindAnimation("runForward", PlayerMesh.Model.Clips[1], true);
+                    anim.BindAnimation("runBackward", PlayerMesh.Model.Clips[1], true);
+                    anim.BindAnimation("strafeLeft", PlayerMesh.Model.Clips[1], true);
+                    anim.BindAnimation("strafeRight", PlayerMesh.Model.Clips[1], true);
                     anim.BindAnimation("idle", null, false);
                     anim.SetBindPose(PlayerMesh.Model.Clips[0]);
                 }
@@ -415,19 +416,10 @@ namespace Engine.Components
             if(PlayerMesh != null) PlayerMesh.Owner.RemoveComponent(PlayerMesh);
         }
 
-        public void Revert()
-        {
-            Owner.LocalPosition = lastPosition2;
-            Owner.LocalQuaternionRotation = lastRotation2;
-            lastPosition = lastPosition2;
-            lastRotation = lastRotation2;
-        }
         public override void Update(GameTime gameTime)
         {
-            lastPosition2 = lastPosition;
-            lastPosition = Owner.LocalPosition;
-            lastRotation2 = lastRotation;
-            lastRotation = Owner.LocalQuaternionRotation;
+            base.Update(gameTime);
+
             closestObjectDistance = null;
             closestObject = null;
             Ray(ref closestObject, ref closestObjectDistance, 1000.0f, Owner.Scene.GetNearbyObjects(Owner));

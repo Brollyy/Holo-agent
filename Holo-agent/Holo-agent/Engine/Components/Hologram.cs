@@ -16,6 +16,13 @@ namespace Engine.Components
 
         private void StopRecording(PressedActionArgs args)
         {
+            foreach (Pair<Pair<float, float?>, Pair<GameAction, bool>> action in path.Actions)
+            {
+                if (action.First.Second == null)
+                {
+                    action.First.Second = sampleTime * path.LocalPositions.Count + time;
+                }
+            }
             if (handler != null) handler(path);
             Owner.Scene.Destroy(Owner);
         }
@@ -89,45 +96,57 @@ namespace Engine.Components
             time = 0.0f;
             path.NumberOfSteps = numberOfSamples;
             this.sampleTime = recordingTime / (float)(numberOfSamples);
-            path.Actions = new List<Pair<Pair<float, float?>, GameAction>>();
+            path.Actions = new List<Pair<Pair<float, float?>, Pair<GameAction, bool>>>();
             path.LocalPositions = new List<Vector3>();
             path.LocalRotations = new List<float>();
         }
 
         private void StopRunning(ReleasedActionArgs args)
         {
-            int i = path.Actions.FindLastIndex(x => x.Second == GameAction.RUN);
-            path.Actions[i].First.Second = path.LocalPositions.Count * sampleTime + time;
+            int i = path.Actions.FindLastIndex(x => x.Second.First == GameAction.RUN);
+            if (i >= 0) path.Actions[i].First.Second = path.LocalPositions.Count * sampleTime + time;
+            else path.Actions.Add(new Pair<Pair<float, float?>, Pair<GameAction, bool>>(
+                new Pair<float, float?>(0, path.LocalPositions.Count * sampleTime + time),
+                new Pair<GameAction, bool>(GameAction.RUN, false)));
         }
 
         private void Run(PressedActionArgs args)
         {
             float timer = path.LocalPositions.Count * sampleTime + time;
-            path.Actions.Add(new Pair<Pair<float, float?>, GameAction>(new Pair<float, float?>(timer, null), GameAction.RUN));
+            path.Actions.Add(new Pair<Pair<float, float?>, Pair<GameAction, bool>>(new Pair<float, float?>(timer, null), 
+                                                                                   new Pair<GameAction, bool>(GameAction.RUN, false)));
         }
 
         private void StopCrouching(ReleasedActionArgs args)
         {
-            int i = path.Actions.FindLastIndex(x => x.Second == GameAction.CROUCH);
-            path.Actions[i].First.Second = path.LocalPositions.Count * sampleTime + time;
+            int i = path.Actions.FindLastIndex(x => x.Second.First == GameAction.CROUCH);
+            if (i >= 0) path.Actions[i].First.Second = path.LocalPositions.Count * sampleTime + time;
+            else path.Actions.Add(new Pair<Pair<float, float?>, Pair<GameAction, bool>>(
+                new Pair<float, float?>(0, path.LocalPositions.Count * sampleTime + time),
+                new Pair<GameAction, bool>(GameAction.CROUCH, false)));
         }
 
         private void Crouch(PressedActionArgs args)
         {
             float timer = path.LocalPositions.Count * sampleTime + time;
-            path.Actions.Add(new Pair<Pair<float, float?>, GameAction>(new Pair<float, float?>(timer, null), GameAction.CROUCH));
+            path.Actions.Add(new Pair<Pair<float, float?>, Pair<GameAction, bool>>(new Pair<float, float?>(timer, null),
+                                                                                   new Pair<GameAction, bool>(GameAction.CROUCH, false)));
         }
 
         private void StopMoving(ReleasedActionArgs args)
         {
-            int i = path.Actions.FindLastIndex(x => x.Second == args.action);
-            path.Actions[i].First.Second = path.LocalPositions.Count * sampleTime + time;
+            int i = path.Actions.FindLastIndex(x => x.Second.First == args.action);
+            if (i >= 0) path.Actions[i].First.Second = path.LocalPositions.Count * sampleTime + time;
+            else path.Actions.Add(new Pair<Pair<float, float?>, Pair<GameAction, bool>>(
+                new Pair<float, float?>(0, path.LocalPositions.Count * sampleTime + time),
+                new Pair<GameAction, bool>(args.action, false)));
         }
 
         private void Move(PressedActionArgs args)
         {
             float timer = path.LocalPositions.Count * sampleTime + time;
-            path.Actions.Add(new Pair<Pair<float, float?>, GameAction>(new Pair<float, float?>(timer, null), args.action));
+            path.Actions.Add(new Pair<Pair<float, float?>, Pair<GameAction, bool>>(new Pair<float, float?>(timer, null),
+                                                                                   new Pair<GameAction, bool>(args.action, false)));
         }
     }
 
@@ -142,7 +161,6 @@ namespace Engine.Components
         private float overallTime;
         private float time;
         private int index;
-        private string currentAnimation = "idle";
 
         private void StopPlayback(PressedActionArgs args)
         {
@@ -155,27 +173,46 @@ namespace Engine.Components
             overallTime += (float)gameTime.ElapsedGameTime.TotalSeconds;
             if (overallTime < path.Duration)
             {
-                Pair<Pair<float,float?>,GameAction> action = path.Actions.Find(x => (x.First.First < overallTime && x.First.Second > overallTime));
-                string animationName = "idle";
-                if (action != null)
+                List<Pair<Pair<float,float?>,Pair<GameAction,bool>>> currentActions = path.Actions.FindAll(x => (x.First.First < overallTime && x.First.Second > overallTime));
+                foreach(Pair<Pair<float, float?>, Pair<GameAction, bool>> action in path.Actions)
                 {
-                    switch (action.Second)
+                    if(action.First.First < overallTime && action.First.Second > overallTime && !action.Second.Second)
                     {
-                        case GameAction.CROUCH: break;
-                        case GameAction.JUMP: break;
-                        case GameAction.RUN:
-                        case GameAction.MOVE_FORWARD:
-                        case GameAction.MOVE_BACKWARD:
-                        case GameAction.STRAFE_LEFT:
-                        case GameAction.STRAFE_RIGHT: animationName = "run"; break;
+                        action.Second.Second = true;
+                        AnimationController contr = Owner.GetComponent<AnimationController>();
+                        if (contr != null)
+                        {
+                            switch (action.Second.First)
+                            {
+                                case GameAction.CROUCH: break;
+                                case GameAction.JUMP: break;
+                                case GameAction.RUN: break;
+                                case GameAction.MOVE_FORWARD: contr.PlayAnimation("runForward", 1, 0.2f); break;
+                                case GameAction.MOVE_BACKWARD: contr.PlayAnimation("runBackward", 1, 0.2f); break;
+                                case GameAction.STRAFE_LEFT: contr.PlayAnimation("strafeLeft", 1, 0.2f); break;
+                                case GameAction.STRAFE_RIGHT: contr.PlayAnimation("strafeRight", 1, 0.2f); break;
+                            }
+                        }
                     }
-                }
 
-                if(!animationName.Equals(currentAnimation))
-                {
-                    currentAnimation = animationName;
-                    AnimationController contr = Owner.GetComponent<AnimationController>();
-                    if (contr != null) contr.Blend(currentAnimation, 0.2f);
+                    if(action.First.Second < overallTime && action.Second.Second)
+                    {
+                        action.Second.Second = false;
+                        AnimationController contr = Owner.GetComponent<AnimationController>();
+                        if (contr != null)
+                        {
+                            switch (action.Second.First)
+                            {
+                                case GameAction.CROUCH: break;
+                                case GameAction.JUMP: break;
+                                case GameAction.RUN: break;
+                                case GameAction.MOVE_FORWARD: contr.StopAnimation("runForward", 0.2f); break;
+                                case GameAction.MOVE_BACKWARD: contr.StopAnimation("runBackward", 0.2f); break;
+                                case GameAction.STRAFE_LEFT: contr.StopAnimation("strafeLeft", 0.2f); break;
+                                case GameAction.STRAFE_RIGHT: contr.StopAnimation("strafeRight", 0.2f); break;
+                            }
+                        }
+                    }
                 }
 
                 if (index < path.LocalPositions.Count - 1)
@@ -211,7 +248,7 @@ namespace Engine.Components
         public HologramPlayback(HologramPath path, FinalizeHologramPlayback handler = null)
         {
             Input.BindActionPress(GameAction.PLAY_HOLOGRAM, StopPlayback);
-            this.path = path;
+            this.path = new HologramPath(path);
             index = 0;
             time = 0.0f;
             overallTime = 0.0f;
@@ -228,6 +265,27 @@ namespace Engine.Components
         public Quaternion StartGlobalRotation;
         public List<Vector3> LocalPositions;
         public List<float> LocalRotations;
-        public List<Pair<Pair<float,float?>,GameAction>> Actions;
+        public List<Pair<Pair<float,float?>,Pair<GameAction,bool>>> Actions;
+
+        public HologramPath(HologramPath other)
+        {
+            Duration = other.Duration;
+            NumberOfSteps = other.NumberOfSteps;
+            StartGlobalPosition = other.StartGlobalPosition;
+            StartGlobalRotation = other.StartGlobalRotation;
+            LocalPositions = new List<Vector3>(other.LocalPositions);
+            LocalRotations = new List<float>(other.LocalRotations);
+            Actions = new List<Pair<Pair<float, float?>, Pair<GameAction, bool>>>();
+            foreach(Pair<Pair<float, float?>, Pair<GameAction, bool>> action in other.Actions)
+            {
+                Pair<Pair<float, float?>, Pair<GameAction, bool>> newAction = new Pair<Pair<float, float?>, Pair<GameAction, bool>>(
+                    new Pair<float, float?>(action.First.First, action.First.Second), 
+                    new Pair<GameAction, bool>(action.Second.First, action.Second.Second));
+
+                Actions.Add(newAction);
+            }
+        }
+
+
     }
 }
