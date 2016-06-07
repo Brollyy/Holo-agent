@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Engine.Utilities;
 using Engine.Components;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace Engine
 {
@@ -109,6 +110,21 @@ namespace Engine
             {
                 if (value != null) activeCamera = value;
             }
+        }
+
+        public GameObject FindRoomContaining(GameObject gameObject)
+        {
+            if (gameObject.Parent == null) return null;
+
+            foreach(GraphNode<Room, BoundingBox> room in roomGraph)
+            {
+                if(room.Value.go.Bound.Intersects(gameObject.Bound))
+                {
+                    return room.Value.go;
+                }
+            }
+
+            return null;
         }
 
         public void Destroy(GameObject gameObject)
@@ -224,6 +240,33 @@ namespace Engine
             roomGraph = new Graph<Room, BoundingBox>();
             objectsToDestroy = new List<GameObject>();
             objectsToRespace = new List<GameObject>();
+        }
+
+        public void DrawDebug(GameTime gameTime, GraphicsDeviceManager graphicsDevice)
+        {
+            List<Room> roomsToRender = new List<Room>();
+
+            foreach (GraphNode<Room, BoundingBox> node in roomGraph)
+            {
+                if (node.Value.contents.Contains(activeCamera))
+                {
+                    roomsToRender.Add(node.Value);
+                    foreach (GraphNode<Room, BoundingBox> neighbour in node.Neighbours)
+                    {
+                        roomsToRender.Add(neighbour.Value);
+                    }
+                    break;
+                }
+            }
+
+            foreach (Room room in roomsToRender)
+            {
+                foreach (GameObject go in room.contents)
+                {
+                    Collider col = go.GetComponent<Collider>();
+                    if (col != null) col.DrawDebug(gameTime, graphicsDevice);
+                }
+            }
         }
     }
 }

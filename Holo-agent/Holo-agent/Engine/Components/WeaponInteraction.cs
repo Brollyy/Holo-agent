@@ -6,7 +6,7 @@ namespace Engine.Components
     {
         public override void Interact(GameObject go)
         {
-            if(go.GetComponent<PlayerController>() != null)
+            if (go.GetComponent<PlayerController>() != null)
             {
                 go.GetComponent<PlayerController>().addWeapon(Owner);
             }

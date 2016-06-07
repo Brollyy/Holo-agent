@@ -59,6 +59,7 @@
     <Compile Include="Engine\Components\SpriteInstance.cs" />
     <Compile Include="Engine\Components\Weapon.cs" />
     <Compile Include="Engine\Components\WeaponInteraction.cs" />
+    <Compile Include="Engine\GameMenu.cs" />
     <Compile Include="Engine\GameObject.cs" />
     <Compile Include="Engine\Input.cs" />
     <Compile Include="Engine\Physics.cs" />

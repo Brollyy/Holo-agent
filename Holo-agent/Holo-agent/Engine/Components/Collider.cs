@@ -1,5 +1,6 @@
 ﻿using Engine.Bounding_Volumes;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace Engine.Components
 {
@@ -10,6 +11,32 @@ namespace Engine.Components
         {
             if (bound == null || other == null) return new CollisionResult();
             return bound.IsOverlapping(other.bound);
+        }
+
+        public void DrawDebug(GameTime gameTime, GraphicsDeviceManager graphics)
+        {
+            short[] indexes = new short[24]
+            {
+                0, 1, 1, 2, 2, 3, 3, 0,
+                4, 5, 5, 6, 6, 7, 7, 4,
+                0, 4, 1, 5, 2, 6, 3, 7
+            };
+
+            Bounding_Volumes.BoundingBox box = (bound as Bounding_Volumes.BoundingBox);
+            if (box != null)
+            {
+                Vector3[] corners = box.Corners();
+
+                VertexPosition[] vertices = new VertexPosition[8];
+                for (int j = 0; j < 8; ++j)
+                {
+                    vertices[j].Position = corners[j];
+                }
+
+                graphics.GraphicsDevice.DrawUserIndexedPrimitives<VertexPosition>(PrimitiveType.LineList, vertices, 0, 8, indexes, 0, 12);
+            }
+
+            base.Draw(gameTime);
         }
 
         public Collider() : this(null)
