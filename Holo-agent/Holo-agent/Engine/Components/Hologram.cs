@@ -162,10 +162,28 @@ namespace Engine.Components
         private float time;
         private int index;
 
+        private bool isCrouching;
+        private bool isRunning;
+
         private void StopPlayback(PressedActionArgs args)
         {
             if (handler != null) handler();
             Owner.Scene.Destroy(Owner);
+        }
+
+        private void SwitchMovement(bool isCrouching, bool isRunning)
+        {
+            AnimationController contr = Owner.GetComponent<AnimationController>();
+            string mov1 = (this.isCrouching ? "crouch" : (this.isRunning ? "run" : "walk"));
+            this.isCrouching = isCrouching; this.isRunning = isRunning;
+            string mov2 = (isCrouching ? "crouch" : (isRunning ? "run" : "walk"));
+
+            if (contr.StopAnimation(mov1 + "Forward", 0.2f)) contr.PlayAnimation(mov2 + "Forward", 1, 0.2f);
+            if (contr.StopAnimation(mov1 + "Backward", 0.2f)) contr.PlayAnimation(mov2 + "Backward", 1, 0.2f);
+            if (contr.StopAnimation(mov1 + "Left", 0.2f)) contr.PlayAnimation(mov2 + "Left", 1, 0.2f);
+            if (contr.StopAnimation(mov1 + "Right", 0.2f)) contr.PlayAnimation(mov2 + "Right", 1, 0.2f);
+            if (isCrouching) contr.SetBindPose("crouchForward", 0.2f);
+            else contr.SetBindPose("death", 0.2f);
         }
 
         public override void Update(GameTime gameTime)
@@ -182,15 +200,16 @@ namespace Engine.Components
                         AnimationController contr = Owner.GetComponent<AnimationController>();
                         if (contr != null)
                         {
+                            string mov = (isCrouching ? "crouch" : (isRunning ? "run" : "walk"));
                             switch (action.Second.First)
                             {
-                                case GameAction.CROUCH: break;
+                                case GameAction.CROUCH: SwitchMovement(true, isRunning); break;
                                 case GameAction.JUMP: break;
-                                case GameAction.RUN: break;
-                                case GameAction.MOVE_FORWARD: contr.PlayAnimation("runForward", 1, 0.2f); break;
-                                case GameAction.MOVE_BACKWARD: contr.PlayAnimation("runBackward", 1, 0.2f); break;
-                                case GameAction.STRAFE_LEFT: contr.PlayAnimation("strafeLeft", 1, 0.2f); break;
-                                case GameAction.STRAFE_RIGHT: contr.PlayAnimation("strafeRight", 1, 0.2f); break;
+                                case GameAction.RUN: SwitchMovement(isCrouching, true); break;
+                                case GameAction.MOVE_FORWARD: contr.PlayAnimation(mov + "Forward", 1, 0.2f); break;
+                                case GameAction.MOVE_BACKWARD: contr.PlayAnimation(mov + "Backward", 1, 0.2f); break;
+                                case GameAction.STRAFE_LEFT: contr.PlayAnimation(mov + "Left", 1, 0.2f); break;
+                                case GameAction.STRAFE_RIGHT: contr.PlayAnimation(mov + "Right", 1, 0.2f); break;
                             }
                         }
                     }
@@ -201,15 +220,16 @@ namespace Engine.Components
                         AnimationController contr = Owner.GetComponent<AnimationController>();
                         if (contr != null)
                         {
+                            string mov = (isCrouching ? "crouch" : (isRunning ? "run" : "walk"));
                             switch (action.Second.First)
                             {
-                                case GameAction.CROUCH: break;
+                                case GameAction.CROUCH: SwitchMovement(false, isRunning); break;
                                 case GameAction.JUMP: break;
-                                case GameAction.RUN: break;
-                                case GameAction.MOVE_FORWARD: contr.StopAnimation("runForward", 0.2f); break;
-                                case GameAction.MOVE_BACKWARD: contr.StopAnimation("runBackward", 0.2f); break;
-                                case GameAction.STRAFE_LEFT: contr.StopAnimation("strafeLeft", 0.2f); break;
-                                case GameAction.STRAFE_RIGHT: contr.StopAnimation("strafeRight", 0.2f); break;
+                                case GameAction.RUN: SwitchMovement(isCrouching, false); break;
+                                case GameAction.MOVE_FORWARD: contr.StopAnimation(mov + "Forward", 0.2f); break;
+                                case GameAction.MOVE_BACKWARD: contr.StopAnimation(mov + "Backward", 0.2f); break;
+                                case GameAction.STRAFE_LEFT: contr.StopAnimation(mov + "Left", 0.2f); break;
+                                case GameAction.STRAFE_RIGHT: contr.StopAnimation(mov + "Right", 0.2f); break;
                             }
                         }
                     }
@@ -247,6 +267,7 @@ namespace Engine.Components
 
         public HologramPlayback(HologramPath path, FinalizeHologramPlayback handler = null)
         {
+            isRunning = false; isCrouching = false;
             Input.BindActionPress(GameAction.PLAY_HOLOGRAM, StopPlayback);
             this.path = new HologramPath(path);
             index = 0;

@@ -41,6 +41,17 @@ namespace Engine.Components
             else BIND_POSE = new AnimationPlayer(clip, Owner.GetComponent<MeshInstance>().Model);
         }
 
+        public void SetBindPose(string name, float blendOutTime = 0)
+        {
+            int index = clipIndex[name];
+            if(index >= 0)
+            {
+                if (BIND_POSE != null) blendingOutAnimations["bind"] = new Pair<Pair<AnimationPlayer, float>, Pair<float, float>>(
+                     new Pair<AnimationPlayer, float>(BIND_POSE, 1), new Pair<float, float>(0, blendOutTime));
+                BIND_POSE = new AnimationPlayer(clips[index].First, Owner.GetComponent<MeshInstance>().Model);
+            }
+        }
+
         public void PlayAnimation(string name, float weight = 1, float blendingTime = 0)
         {
             int animIndex = clipIndex[name];
@@ -53,19 +64,22 @@ namespace Engine.Components
             }
         }
 
-        public void StopAnimation(string name, float blendOutTime = 0)
+        public bool StopAnimation(string name, float blendOutTime = 0)
         {
             if(playingAnimations.ContainsKey(name))
             {
                 blendingOutAnimations[name] = new Pair<Pair<AnimationPlayer, float>, Pair<float, float>>(playingAnimations[name], new Pair<float, float>(0, blendOutTime));
                 playingAnimations.Remove(name);
+                return true;
             }
             if (blendingInAnimations.ContainsKey(name))
             {
                 float t = blendOutTime * (1.0f - blendingInAnimations[name].Second.First / blendingInAnimations[name].Second.Second);
                 blendingOutAnimations[name] = new Pair<Pair<AnimationPlayer, float>, Pair<float, float>>(blendingInAnimations[name].First, new Pair<float, float>(t, blendOutTime));
                 blendingInAnimations.Remove(name);
+                return true;
             }
+            return false;
         }
 
         public override void Update(GameTime gameTime)
@@ -148,7 +162,7 @@ namespace Engine.Components
 
             else if(BIND_POSE != null)
             {
-                BIND_POSE.Update(gameTime);
+                BIND_POSE.Position = BIND_POSE.Position;
             }
         }
     }

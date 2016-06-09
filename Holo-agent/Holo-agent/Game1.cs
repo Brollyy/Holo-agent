@@ -1,4 +1,4 @@
-﻿#define DRAW_DEBUG_WIREFRAME
+﻿//#define DRAW_DEBUG_WIREFRAME
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -145,9 +145,21 @@ namespace Holo_agent
 
             Model playerModel = Content.Load<Model>("Models/new/HD/BONE_2");
             Model playerRunAnim = Content.Load<Model>("Models/new/HD/BONE_RUN_2");
+            Model playerWalkAnim = Content.Load<Model>("Models/new/HD/BONE_WALK");
+            Model playerDeathAnim = Content.Load<Model>("Models/new/HD/BONE_DEATH");
+            Model playerJumpAnim = Content.Load<Model>("Models/new/HD/BONE_JUMP");
+            Model playerCrouchAnim = Content.Load<Model>("Models/new/HD/BONE_CROUCH");
             player.GetComponent<PlayerController>().PlayerMesh = new MeshInstance(playerModel);
             AnimationClip runClip = (playerRunAnim.Tag as ModelExtra).Clips[0];
+            AnimationClip walkClip = (playerWalkAnim.Tag as ModelExtra).Clips[0];
+            AnimationClip deathClip = (playerDeathAnim.Tag as ModelExtra).Clips[0];
+            AnimationClip jumpClip = (playerJumpAnim.Tag as ModelExtra).Clips[0];
+            AnimationClip crouchClip = (playerCrouchAnim.Tag as ModelExtra).Clips[0];
             player.GetComponent<PlayerController>().PlayerMesh.Model.Clips.Add(runClip);
+            player.GetComponent<PlayerController>().PlayerMesh.Model.Clips.Add(walkClip);
+            player.GetComponent<PlayerController>().PlayerMesh.Model.Clips.Add(deathClip);
+            player.GetComponent<PlayerController>().PlayerMesh.Model.Clips.Add(jumpClip);
+            player.GetComponent<PlayerController>().PlayerMesh.Model.Clips.Add(crouchClip);
             player.GetComponent<PlayerController>().PlayerMesh.Offset = new Vector3(0, -18, 0);
             enemy.AddComponent(new MeshInstance(playerModel));
             enemy.GetComponent<MeshInstance>().Model.Clips.Add(runClip);
@@ -289,6 +301,12 @@ namespace Holo_agent
                 spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.AnisotropicWrap, DepthStencilState.Default, RasterizerState.CullNone);
                 if (player.GetComponent<PlayerController>() != null)
                 {
+                    int selectedPath = player.GetComponent<PlayerController>().SelectedPath;
+                    for(int i = 0; i < 3; ++i)
+                    {
+                        string desc = (i + 1) + ": " + (player.GetComponent<PlayerController>().IsPathRecorded(i) ? "Y" : "N");
+                        spriteBatch.DrawString(font, desc, new Vector2(15 + 60 * i, 410), (i == selectedPath ? Color.Azure : Color.Black), 0, Vector2.Zero, 0.2f, SpriteEffects.None, 0);
+                    }
                     spriteBatch.Draw(crosshair, new Vector2((graphics.PreferredBackBufferWidth / 2) - (crosshair.Width / 2), (graphics.PreferredBackBufferHeight / 2) - (crosshair.Height / 2)), player.GetComponent<PlayerController>().CrosshairColor);
                     if(player.GetComponent<PlayerController>().CrosshairColor == Color.Lime)
                     {
