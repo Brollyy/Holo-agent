@@ -148,14 +148,7 @@ namespace Engine
 
             foreach(GameObject go in objectsToRespace)
             {
-                foreach(GraphNode<Room,BoundingBox> node in roomGraph)
-                {
-                    if (node.Value.contents.Contains(go))
-                    {
-                        node.Value.contents.Remove(go);
-                        break;
-                    }
-                }
+                RemoveObject(go);
 
                 foreach (GraphNode<Room, BoundingBox> node in roomGraph)
                 {
@@ -172,12 +165,12 @@ namespace Engine
                 foreach(GameObject go in node.Value.contents)
                 {
                     Collider goCol = go.GetComponent<Collider>();
-                    if(goCol != null && go.GetComponent<Rigidbody>() != null)
+                    if(goCol != null && goCol.Enabled && go.GetComponent<Rigidbody>() != null)
                     {
                         foreach(GameObject go2 in node.Value.contents)
                         {
                             Collider go2Col = go2.GetComponent<Collider>();
-                            if(!go.Equals(go2) && go2Col != null)
+                            if(go2Col != null && go2Col.Enabled && !go.Equals(go2))
                             {
                                 Bounding_Volumes.CollisionResult collision = goCol.Collide(go2Col);
                                 if(collision.CollisionDetected)
@@ -193,7 +186,7 @@ namespace Engine
                             foreach(GameObject go2 in neighbour.Value.contents)
                             {
                                 Collider go2Col = go2.GetComponent<Collider>();
-                                if (!go.Equals(go2) && go2Col != null)
+                                if (go2Col != null && go2Col.Enabled && !go.Equals(go2))
                                 {
                                     Bounding_Volumes.CollisionResult collision = goCol.Collide(go2Col);
                                     if (collision.CollisionDetected)

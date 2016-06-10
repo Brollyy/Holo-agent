@@ -23,11 +23,19 @@ namespace Engine.Components
         public Movement Movement { get { return movement; } }
 
         private float health = 100;
+        private float maxHealth = 100;
+        private float regenRate = 20;
 
-        public void DealDamage(float amount)
+        public virtual void DealDamage(float amount, Weapon causer)
         {
             health -= amount;
-            if (health <= 0) Owner.Scene.Destroy(Owner);
+            if (health <= 0) HandleDeath();
+        }
+
+        protected virtual void HandleDeath()
+        {
+            Owner.IsVisible = false;
+            Owner.Scene.Destroy(Owner);
         }
 
         public void Revert()
@@ -44,6 +52,12 @@ namespace Engine.Components
             lastPosition = Owner.LocalPosition;
             lastRotation2 = lastRotation;
             lastRotation = Owner.LocalQuaternionRotation;
+
+            if (health < maxHealth)
+            {
+                health += (float)gameTime.ElapsedGameTime.TotalSeconds * regenRate;
+                if (health > maxHealth) health = maxHealth;
+            }
         }
 
         public CharacterController() : 

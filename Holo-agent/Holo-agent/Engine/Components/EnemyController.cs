@@ -82,7 +82,7 @@ namespace Engine.Components
             if (movement == Movement.WALK) return;
             
             movement = Movement.WALK;
-            Owner.GetComponent<AnimationController>().PlayAnimation("run");
+            Owner.GetComponent<AnimationController>().PlayAnimation("walk");
         }
 
         private void StopMoving()
@@ -90,15 +90,47 @@ namespace Engine.Components
             if (movement == Movement.IDLE) return;
 
             movement = Movement.IDLE;
-            Owner.GetComponent<AnimationController>().StopAnimation("run");
+            Owner.GetComponent<AnimationController>().StopAnimation("walk");
             Rigidbody rigidbody = Owner.GetComponent<Rigidbody>();
             if (rigidbody != null)
                 rigidbody.AddForce(Vector3.Zero, 0, rigidbody.Velocity.Y, 0);
         }
 
+        public override void DealDamage(float amount, Weapon causer)
+        {
+            base.DealDamage(amount, causer);
+
+            if (causer.Owner.Parent.Name == "Player" && attributes[1] != causer.Owner.Parent)
+            {
+                attributes[1] = causer.Owner.Parent;
+                decisionTree.InterruptCurrentDecision();
+            }
+        }
+
+        protected override void HandleDeath()
+        {
+            decisionTree.InterruptCurrentDecision();
+            StopMoving();
+            AnimationController contr = Owner.GetComponent<AnimationController>();
+            if(contr != null)
+            {
+                contr.StopAllAnimations(0.2f);
+                contr.PlayAnimation("death", 1, 0f);
+                contr.SetBindPose("death", 0.2f, 1);
+            }
+            List<Component> comps = Owner.GetComponents<Component>();
+            foreach(Component comp in comps)
+            {
+                if (!(comp is AnimationController) && !(comp is MeshInstance))
+                {
+                    comp.Enabled = false;
+                }
+            }
+        }
+
         public override void Update(GameTime gameTime)
         {
-            if(movement == Movement.WALK)
+            if (movement == Movement.WALK)
             {
                 Rigidbody rigidbody = Owner.GetComponent<Rigidbody>();
                 if (rigidbody != null && rigidbody.isGrounded())
@@ -111,7 +143,7 @@ namespace Engine.Components
             if (gameTime.TotalGameTime.Subtract(lastSearch.TotalGameTime).TotalSeconds > 0.5)
             {
                 LookForTarget();
-                lastSearch = gameTime;
+                lastSearch.TotalGameTime = new TimeSpan(gameTime.TotalGameTime.Ticks);
             }
 
             base.Update(gameTime);
@@ -148,8 +180,11 @@ namespace Engine.Components
             attributes[1] = null;
             foreach(GameObject go in nearbyObjects)
             {
-                if(go.IsVisible && (go.GlobalPosition - Owner.GlobalPosition).LengthSquared() < range*range)
+                Vector3 distance = go.GlobalPosition - Owner.GlobalPosition;
+                if (go.IsVisible && distance.LengthSquared() < range*range)
                 {
+                    distance.Normalize();
+                    if ((distance - Owner.LocalToWorldMatrix.Forward).LengthSquared() > 1.0f) continue;
                     if(go.Name.Equals("Player")) // Possibly temporary, but seems good
                     {
                         if (attributes[1] == null &&
@@ -159,7 +194,7 @@ namespace Engine.Components
                         }
                     }
 
-                    if (go.GetComponent<HologramPlayback>() != null)
+                    if (go.Name.Equals("HologramPlayback"))
                     {
                         if (Ray(range, Owner.Scene.GetNearbyObjects(Owner), Vector3.Normalize(go.GlobalPosition - Owner.GlobalPosition)) == go)
                         {

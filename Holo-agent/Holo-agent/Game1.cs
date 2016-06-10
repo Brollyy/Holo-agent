@@ -85,7 +85,7 @@ namespace Holo_agent
             Camera cameraComp = new Camera(45, graphics.GraphicsDevice.Viewport.AspectRatio, 1, 1000);
             camera.AddComponent(cameraComp);
             scene.Camera = camera;
-            enemy = new GameObject("Enemy", new Vector3(30, 18, -150), Quaternion.CreateFromYawPitchRoll(MathHelper.ToRadians(180), 0, 0), Vector3.One, scene, room);
+            enemy = new GameObject("Enemy", new Vector3(30, 18, -150), Quaternion.Identity, Vector3.One, scene, room);
             enemy.AddComponent(new EnemyController());
             enemy.AddNewComponent<Rigidbody>();
             enemy.GetComponent<Rigidbody>().Initialize(80);
@@ -162,12 +162,11 @@ namespace Holo_agent
             player.GetComponent<PlayerController>().PlayerMesh.Model.Clips.Add(crouchClip);
             player.GetComponent<PlayerController>().PlayerMesh.Offset = new Vector3(0, -18, 0);
             enemy.AddComponent(new MeshInstance(playerModel));
-            enemy.GetComponent<MeshInstance>().Model.Clips.Add(runClip);
             enemy.GetComponent<MeshInstance>().Offset = new Vector3(0, -18, 0);
             enemy.AddNewComponent<AnimationController>();
-            enemy.GetComponent<AnimationController>().SetBindPose(enemy.GetComponent<MeshInstance>().Model.Clips[0]);
-            enemy.GetComponent<AnimationController>().BindAnimation("run", runClip, true);
-            enemy.GetComponent<AnimationController>().BindAnimation("idle", enemy.GetComponent<MeshInstance>().Model.Clips[0], true);
+            enemy.GetComponent<AnimationController>().SetBindPose(deathClip);
+            enemy.GetComponent<AnimationController>().BindAnimation("walk", walkClip, true);
+            enemy.GetComponent<AnimationController>().BindAnimation("death", deathClip, false);
             Model doorModel = Content.Load<Model>("Models/door_001");
             Model pistolModel = Content.Load<Model>("Models/Pistol");
             weapons[0].AddComponent(new MeshInstance(pistolModel));
@@ -301,16 +300,60 @@ namespace Holo_agent
                 spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.AnisotropicWrap, DepthStencilState.Default, RasterizerState.CullNone);
                 if (player.GetComponent<PlayerController>() != null)
                 {
+                    if (weapon != null)
+                    {
+                        spriteBatch.DrawString(font, weapon.getMagazine() + "/" + weapon.getAmmo(), new Vector2(625, 410), Color.Red, 0, Vector2.Zero, 0.5f, SpriteEffects.None, 0);
+                        /*if (weapon.info != null)
+                            spriteBatch.DrawString(font, weapon.info, new Vector2(50, 60), Color.SeaGreen);*/
+                        if (weapon.getGunfire())
+                        {
+                            timer = 1;
+                            if (timer >= 0)
+                                gunfire.GetComponent<SpriteInstance>().Draw(gameTime);
+                            weapon.setGunfire(false);
+                            shot.Play();
+                        }
+                    }
                     int selectedPath = player.GetComponent<PlayerController>().SelectedPath;
+                    int selectedPlaying = player.GetComponent<PlayerController>().PlayingPath;
+                    bool previewing = player.GetComponent<PlayerController>().HologramPreviewing;
+                    bool playing = player.GetComponent<PlayerController>().HologramPlaying;
                     for(int i = 0; i < 3; ++i)
                     {
-                        string desc = (i + 1) + ": " + (player.GetComponent<PlayerController>().IsPathRecorded(i) ? "Y" : "N");
-                        spriteBatch.DrawString(font, desc, new Vector2(15 + 60 * i, 410), (i == selectedPath ? Color.Azure : Color.Black), 0, Vector2.Zero, 0.2f, SpriteEffects.None, 0);
+                        Color color = Color.Black;
+                        bool recorded = player.GetComponent<PlayerController>().IsPathRecorded(i);
+                        float cooldown = player.GetComponent<PlayerController>().PathCooldown(i);
+                        string desc = (i + 1) + ": ";
+                        if (playing && selectedPlaying == i) desc += "Playing";
+                        else if (previewing && selectedPath == i) desc += "Preview";
+                        else if (recorded)
+                        {
+                            if (cooldown > 0.0f) desc += "Ready in " + ((float)(int)(cooldown * 10)) / 10;
+                            else desc += "Ready";
+                        }
+                        else desc += "Empty";
+                        
+                        if(selectedPath == i)
+                        {
+                            if (playing && selectedPlaying == selectedPath) color = Color.Red;
+                            else if (previewing) color = Color.LightBlue;
+                            else color = Color.White;
+                        }
+                        else
+                        {
+                            if (playing && selectedPlaying == i) color = Color.DarkRed;
+                            else color = Color.Black;
+                        }
+                        spriteBatch.DrawString(font, desc, new Vector2(15, 380 + 30*i), color, 0, Vector2.Zero, 0.2f, SpriteEffects.None, 0);
                     }
                     spriteBatch.Draw(crosshair, new Vector2((graphics.PreferredBackBufferWidth / 2) - (crosshair.Width / 2), (graphics.PreferredBackBufferHeight / 2) - (crosshair.Height / 2)), player.GetComponent<PlayerController>().CrosshairColor);
                     if(player.GetComponent<PlayerController>().CrosshairColor == Color.Lime)
                     {
-                        spriteBatch.DrawString(font, "Press E to interact", new Vector2(275, 350), Color.Purple, 0, Vector2.Zero, 0.25f, SpriteEffects.None, 0);
+                        string message = "Press F to ";
+                        Interaction inter = player.GetComponent<PlayerController>().ClosestObject.GetComponent<Interaction>();
+                        if (inter is DoorInteraction) message += "open the door.";
+                        if (inter is WeaponInteraction) message += "pick up the gun.";
+                        spriteBatch.DrawString(font, message, new Vector2(graphics.PreferredBackBufferWidth / 2 - 0.25f * font.MeasureString(message).X / 2, 350), Color.Purple, 0, Vector2.Zero, 0.25f, SpriteEffects.None, 0);
                     }
                     spriteBatch.Draw(minimapFrame, new Vector2(5, 5), null, Color.White, 0, Vector2.Zero, new Vector2(0.35f, 0.35f), SpriteEffects.None, 0);
                     spriteBatch.DrawString(font, "Minimap\nwill\nbe\nhere", new Vector2(15, 15), Color.Purple, 0, Vector2.Zero, 0.25f, SpriteEffects.None, 0);
@@ -321,20 +364,6 @@ namespace Holo_agent
                     objectiveTimer = 2;
                 }
                 spriteBatch.DrawString(font, "[Some objective]", objectivePosition, Color.Purple, 0, Vector2.Zero, 0.35f, SpriteEffects.None, 0);
-                if (weapon != null)
-                {
-                    spriteBatch.DrawString(font, weapon.getMagazine() + "/" + weapon.getAmmo(), new Vector2(625, 410), Color.Red, 0, Vector2.Zero, 0.5f, SpriteEffects.None, 0);
-                    /*if (weapon.info != null)
-                        spriteBatch.DrawString(font, weapon.info, new Vector2(50, 60), Color.SeaGreen);*/
-                    if (weapon.getGunfire())
-                    {
-                        timer = 1;
-                        if (timer >= 0)
-                            gunfire.GetComponent<SpriteInstance>().Draw(gameTime);
-                        weapon.setGunfire(false);
-                        shot.Play();
-                    }
-                }
                 /*spriteBatch.DrawString(font, frameCounter.AverageFramesPerSecond.ToString(), new Vector2(50, 45), Color.Black);
                 if (particleFireEmitter.GetComponent<ParticleSystem>().getParticlesCount() != null)
                     spriteBatch.DrawString(font, "Fire Particles: " + particleFireEmitter.GetComponent<ParticleSystem>().getParticlesCount().ToString(), new Vector2(50, 75), Color.Purple);

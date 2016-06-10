@@ -32,6 +32,8 @@ namespace Engine.Components
             set
             {
                 collision = value;
+                Collider col = Owner.GetComponent<Collider>();
+                if (col != null) col.Enabled = value;
             }
         }
         public Vector3 AsChildPosition
@@ -81,7 +83,7 @@ namespace Engine.Components
                     if (gameObject != null && distance != null && distance <= 1000.0f)
                     {
                         CharacterController contr = gameObject.GetComponent<CharacterController>();
-                        if (contr != null) contr.DealDamage(5);
+                        if (contr != null) contr.DealDamage(15, this);
                         info = gameObject.Name + " " + distance;
                     }
                     machineGunTimer = MACHINE_GUN_TIMER;
@@ -94,7 +96,7 @@ namespace Engine.Components
                 if (gameObject != null && distance <= 1000.0f)
                 {
                     CharacterController contr = gameObject.GetComponent<CharacterController>();
-                    if (contr != null) contr.DealDamage(10);
+                    if (contr != null) contr.DealDamage(40, this);
                     info = gameObject.Name + " " + distance;
                 }
                 isLocked = true;

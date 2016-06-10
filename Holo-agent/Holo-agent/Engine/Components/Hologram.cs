@@ -165,7 +165,7 @@ namespace Engine.Components
         private bool isCrouching;
         private bool isRunning;
 
-        private void StopPlayback(PressedActionArgs args)
+        public void StopPlayback(PressedActionArgs args)
         {
             if (handler != null) handler();
             Owner.Scene.Destroy(Owner);

@@ -17,6 +17,12 @@ namespace Engine.Components
         private Dictionary<string, Pair<AnimationPlayer, float>> playingAnimations = new Dictionary<string, Pair<AnimationPlayer, float>>();
         private Dictionary<string, Pair<Pair<AnimationPlayer, float>, Pair<float, float>>> blendingOutAnimations = new Dictionary<string, Pair<Pair<AnimationPlayer, float>, Pair<float, float>>>();
         private AnimationPlayer BIND_POSE = null;
+        private AnimationPlayer currentAnimation = null;
+
+        public bool IsPlayingAnimations()
+        {
+            return (blendingInAnimations.Count > 0 || playingAnimations.Count > 0 || blendingOutAnimations.Count > 0);
+        }
 
         public bool BindAnimation(string name, AnimationClip clip, bool looping = false)
         {
@@ -41,7 +47,7 @@ namespace Engine.Components
             else BIND_POSE = new AnimationPlayer(clip, Owner.GetComponent<MeshInstance>().Model);
         }
 
-        public void SetBindPose(string name, float blendOutTime = 0)
+        public void SetBindPose(string name, float blendOutTime = 0, float positionNormalized = 0)
         {
             int index = clipIndex[name];
             if(index >= 0)
@@ -49,6 +55,7 @@ namespace Engine.Components
                 if (BIND_POSE != null) blendingOutAnimations["bind"] = new Pair<Pair<AnimationPlayer, float>, Pair<float, float>>(
                      new Pair<AnimationPlayer, float>(BIND_POSE, 1), new Pair<float, float>(0, blendOutTime));
                 BIND_POSE = new AnimationPlayer(clips[index].First, Owner.GetComponent<MeshInstance>().Model);
+                BIND_POSE.Position = positionNormalized * BIND_POSE.Duration;
             }
         }
 
@@ -82,6 +89,24 @@ namespace Engine.Components
             return false;
         }
 
+        public void StopAllAnimations(float blendOutTime = 0)
+        {
+            List<string> copyBlendInKeys = new List<string>(blendingInAnimations.Keys);
+            foreach(string name in copyBlendInKeys)
+            {
+                float t = blendOutTime * (1.0f - blendingInAnimations[name].Second.First / blendingInAnimations[name].Second.Second);
+                blendingOutAnimations[name] = new Pair<Pair<AnimationPlayer, float>, Pair<float, float>>(blendingInAnimations[name].First, new Pair<float, float>(t, blendOutTime));
+                blendingInAnimations.Remove(name);
+            }
+
+            List<string> copyKeys = new List<string>(playingAnimations.Keys);
+            foreach (string name in copyKeys)
+            {
+                blendingOutAnimations[name] = new Pair<Pair<AnimationPlayer, float>, Pair<float, float>>(playingAnimations[name], new Pair<float, float>(0, blendOutTime));
+                playingAnimations.Remove(name);
+            }
+        }
+
         public override void Update(GameTime gameTime)
         {
             List<string> copyBlendInKeys = new List<string>(blendingInAnimations.Keys);
@@ -105,7 +130,8 @@ namespace Engine.Components
             {
                 Pair<AnimationPlayer, float> anim = playingAnimations[animName];
                 anim.First.Update(gameTime);
-                if (!anim.First.Looping && anim.First.Position > anim.First.Duration) playingAnimations.Remove(animName);
+                if (!anim.First.Looping && anim.First.Position >= anim.First.Duration)
+                    playingAnimations.Remove(animName);
             }
 
             List<string> copyBlendOutKeys = new List<string>(blendingOutAnimations.Keys);
@@ -117,7 +143,7 @@ namespace Engine.Components
                 if (anim.Second.First >= anim.Second.Second) blendingOutAnimations.Remove(animName);
             }
 
-            if (blendingInAnimations.Count > 0 || playingAnimations.Count > 0 || blendingOutAnimations.Count > 0)
+            if (IsPlayingAnimations())
             {
                 List<Pair<AnimationPlayer, float>> animations = new List<Pair<AnimationPlayer, float>>();
 
@@ -144,25 +170,26 @@ namespace Engine.Components
                 {
                     float t = 0.0f;
                     float sumW = 0;
-                    foreach(string animName in blendingInAnimations.Keys)
+                    foreach (string animName in blendingInAnimations.Keys)
                     {
                         Pair<Pair<AnimationPlayer, float>, Pair<float, float>> anim = blendingInAnimations[animName];
                         sumW += anim.First.Second;
                         t += anim.First.Second * anim.Second.First / anim.Second.Second;
                     }
-                    foreach(string animName in blendingOutAnimations.Keys)
+                    foreach (string animName in blendingOutAnimations.Keys)
                     {
                         Pair<Pair<AnimationPlayer, float>, Pair<float, float>> anim = blendingOutAnimations[animName];
                         sumW += anim.First.Second;
                         t += anim.First.Second * (1.0f - anim.Second.First / anim.Second.Second);
                     }
-                    AnimationPlayer.LerpAndSet(BIND_POSE, lerpedPlayer, t / sumW);
+                    currentAnimation = AnimationPlayer.LerpAndSet(BIND_POSE, lerpedPlayer, t / sumW);
                 }
+                else currentAnimation = lerpedPlayer;
             }
 
             else if(BIND_POSE != null)
             {
-                BIND_POSE.Position = BIND_POSE.Position;
+                AnimationPlayer.Set(BIND_POSE);
             }
         }
     }

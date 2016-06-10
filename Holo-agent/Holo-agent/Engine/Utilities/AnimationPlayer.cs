@@ -149,17 +149,32 @@ namespace Engine.Utilities
                 Position = 0;
         }
 
-        public static void LerpAndSet(AnimationPlayer player1, AnimationPlayer player2, float t)
+        public static void Set(AnimationPlayer player)
         {
-            foreach(BoneInfo bone1 in player1.boneInfos.Values)
+            foreach(BoneInfo bone in player.boneInfos.Values)
             {
-                BoneInfo bone2 = player2.boneInfos[bone1.ClipBone.Name];
+                Matrix m = Matrix.CreateFromQuaternion(bone.rotation) * Matrix.CreateTranslation(bone.translation);
+                bone.ModelBone.SetCompleteTransform(m);
+            }
+        }
+
+        public static AnimationPlayer LerpAndSet(AnimationPlayer player1, AnimationPlayer player2, float t)
+        {
+            AnimationPlayer player = new AnimationPlayer(player1.Clip, player1.Model);
+            foreach (string boneName in player1.boneInfos.Keys)
+            {
+                BoneInfo bone1 = player1.boneInfos[boneName];
+                BoneInfo bone2 = player2.boneInfos[boneName];
                 Vector3 translation = Vector3.Lerp(bone1.translation, bone2.translation, t);
                 Quaternion rotation = Quaternion.Slerp(bone1.rotation, bone2.rotation, t);
+
+                player.boneInfos[boneName].translation = translation;
+                player.boneInfos[boneName].rotation = rotation;
 
                 Matrix m = Matrix.CreateFromQuaternion(rotation) * Matrix.CreateTranslation(translation);
                 bone1.ModelBone.SetCompleteTransform(m);
             }
+            return player;
         }
 
         public static AnimationPlayer LerpAndSet(IEnumerable<Pair<AnimationPlayer,float>> players)
