@@ -38,7 +38,6 @@ namespace Holo_agent
         SoundEffect shot;
         Texture2D gunfireTexture;
         Texture2D floorTexture;
-        Texture2D minimapFrame;
         GameState gameState = GameState.Menu;
         GameMenu gameMenu;
         Vector2 objectivePosition = Vector2.UnitY * -500;
@@ -120,6 +119,15 @@ namespace Holo_agent
             testBox.AddNewComponent<Rigidbody>();
             testBox.GetComponent<Rigidbody>().Initialize(10);
             Physics.Initialize();
+
+            Minimap.Initialize(new Point(175,175), new Point(5,5), new List<Vector2>()
+            {
+                new Vector2(-1000,1000)
+            }, player);
+            Minimap.Objectives.Add(new Vector3(50, 100001, 90));
+            Minimap.Objectives.Add(new Vector3(70, 0, -100));
+            Minimap.Enemies.Add(enemy);
+
             base.Initialize();
         }
 
@@ -132,11 +140,11 @@ namespace Holo_agent
             // Create a new SpriteBatch, which can be used to draw textures.
             spriteBatch = new SpriteBatch(GraphicsDevice);
             gameMenu.LoadContent(Content);
+            Minimap.LoadContent(Content);
             Model columnModel = Content.Load<Model>("Models/column_001");
             floorTexture = Content.Load<Texture2D>("Textures/Ground");
             gunfireTexture = Content.Load<Texture2D>("Textures/Gunfire");
             crosshair = Content.Load<Texture2D>("Textures/Crosshair");
-            minimapFrame = Content.Load<Texture2D>("Textures/Minimap_Frame");
             font = Content.Load<SpriteFont>("Textures/Arial");
             shot = Content.Load<SoundEffect>("Sounds/Pistol");
 
@@ -355,8 +363,7 @@ namespace Holo_agent
                         if (inter is WeaponInteraction) message += "pick up the gun.";
                         spriteBatch.DrawString(font, message, new Vector2(graphics.PreferredBackBufferWidth / 2 - 0.25f * font.MeasureString(message).X / 2, 350), Color.Purple, 0, Vector2.Zero, 0.25f, SpriteEffects.None, 0);
                     }
-                    spriteBatch.Draw(minimapFrame, new Vector2(5, 5), null, Color.White, 0, Vector2.Zero, new Vector2(0.35f, 0.35f), SpriteEffects.None, 0);
-                    spriteBatch.DrawString(font, "Minimap\nwill\nbe\nhere", new Vector2(15, 15), Color.Purple, 0, Vector2.Zero, 0.25f, SpriteEffects.None, 0);
+                    Minimap.Draw(ref spriteBatch);
                 }
                 if (Keyboard.GetState().IsKeyDown(Keys.Tab))
                 {

@@ -27,6 +27,11 @@ namespace Engine.Components
                 return;
             }
             GameObject target = attributes[1] as GameObject;
+            if(target == null)
+            {
+                EndDecision(DecisionOutcome.UNSUCCESSFUL);
+                return;
+            }
             Vector3 direction = (target.GlobalPosition - contr.Owner.GlobalPosition);
             direction.Normalize();
             Matrix rotation = Matrix.CreateFromQuaternion(contr.Owner.GlobalRotation);
@@ -59,8 +64,16 @@ namespace Engine.Components
         }
     }
 
+    public enum EnemyState
+    {
+        Patrolling,
+        Alert,
+        Combat
+    }
+
     public class EnemyController : AIController
     {
+        private EnemyState state = EnemyState.Patrolling;
         private float range;
         private GameTime lastSearch = new GameTime();
 
@@ -103,6 +116,7 @@ namespace Engine.Components
             if (causer.Owner.Parent.Name == "Player" && attributes[1] != causer.Owner.Parent)
             {
                 attributes[1] = causer.Owner.Parent;
+                state = EnemyState.Combat;
                 decisionTree.InterruptCurrentDecision();
             }
         }
@@ -111,6 +125,7 @@ namespace Engine.Components
         {
             decisionTree.InterruptCurrentDecision();
             StopMoving();
+            Minimap.Enemies.Remove(Owner);
             AnimationController contr = Owner.GetComponent<AnimationController>();
             if(contr != null)
             {
@@ -140,7 +155,7 @@ namespace Engine.Components
                 }
             }
 
-            if (gameTime.TotalGameTime.Subtract(lastSearch.TotalGameTime).TotalSeconds > 0.5)
+            if (state != EnemyState.Combat && gameTime.TotalGameTime.Subtract(lastSearch.TotalGameTime).TotalSeconds > 0.5)
             {
                 LookForTarget();
                 lastSearch.TotalGameTime = new TimeSpan(gameTime.TotalGameTime.Ticks);
@@ -191,6 +206,7 @@ namespace Engine.Components
                             Ray(range, Owner.Scene.GetNearbyObjects(Owner), Vector3.Normalize(go.GlobalPosition - Owner.GlobalPosition)) == go)
                         {
                             attributes[1] = go;
+                            state = EnemyState.Alert;
                         }
                     }
 
@@ -199,6 +215,7 @@ namespace Engine.Components
                         if (Ray(range, Owner.Scene.GetNearbyObjects(Owner), Vector3.Normalize(go.GlobalPosition - Owner.GlobalPosition)) == go)
                         {
                             attributes[1] = go;
+                            state = EnemyState.Alert;
                             return;
                         }
                     }
