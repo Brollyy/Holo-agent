@@ -418,6 +418,7 @@ namespace Engine.Components
         {
             this.hologramRecording = false;
             recordedPaths[selectedPath].First = path;
+            Minimap.Hologram = path.StartGlobalPosition;
             Owner.RemoveComponent(this);
             if (player != null)
             {
@@ -444,7 +445,9 @@ namespace Engine.Components
 
                 hologramPlayback = new GameObject("HologramPlayback", Owner.LocalPosition, Owner.LocalQuaternionRotation,
                                                               Owner.LocalScale, Owner.Scene, Owner.Parent);
+                Minimap.Hologram = hologramPlayback;
                 hologramPlayback.AddComponent(new HologramPlayback(recordedPaths[selectedPath].First.Value, StopPlayback));
+                recordedPaths[selectedPath].Second = recordedPaths[selectedPath].First.Value.Duration;
                 if (PlayerMesh != null)
                 {
                     hologramPlayback.AddComponent(PlayerMesh);
@@ -475,11 +478,8 @@ namespace Engine.Components
             this.hologramPlaying = false;
             if(PlayerMesh != null) PlayerMesh.Owner.RemoveComponent(PlayerMesh);
             recordedPaths[playingPath].Second = hologramCooldown;
-            if (playingPath != selectedPath)
-            {
-                hologramPlayback.Parent = null;
-                PlaybackButton(null);
-            }
+            if (recordedPaths[selectedPath].First.HasValue) Minimap.Hologram = recordedPaths[selectedPath].First.Value.StartGlobalPosition;
+            else Minimap.Hologram = null;
         }
 
         private void SelectHologramPath(PressedActionArgs args)
@@ -493,6 +493,12 @@ namespace Engine.Components
                 case GameAction.SELECT_FIRST_HOLOGRAM: selectedPath = 0; break;
                 case GameAction.SELECT_SECOND_HOLOGRAM: selectedPath = 1; break;
                 case GameAction.SELECT_THIRD_HOLOGRAM: selectedPath = 2; break;
+            }
+
+            if(!hologramPlaying)
+            {
+                if (recordedPaths[selectedPath].First.HasValue) Minimap.Hologram = recordedPaths[selectedPath].First.Value.StartGlobalPosition;
+                else Minimap.Hologram = null;
             }
         }
 
@@ -508,6 +514,7 @@ namespace Engine.Components
             {
                 preview = new GameObject("HologramPreview", Owner.LocalPosition, Owner.LocalQuaternionRotation,
                                                               Owner.LocalScale, Owner.Scene, Owner.Parent);
+                Minimap.Hologram = preview;
                 preview.AddComponent(new HologramPlayback(recordedPaths[selectedPath].First.Value, StopPreview));
                 if (PlayerMesh != null)
                 {
@@ -537,6 +544,8 @@ namespace Engine.Components
         {
             if (hologramPreview)
             {
+                if (recordedPaths[selectedPath].First.HasValue) Minimap.Hologram = recordedPaths[selectedPath].First.Value.StartGlobalPosition;
+                else Minimap.Hologram = null;
                 hologramPreview = false;
                 Owner.Scene.Destroy(preview);
             }

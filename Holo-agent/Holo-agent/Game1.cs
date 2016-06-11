@@ -332,11 +332,11 @@ namespace Holo_agent
                         bool recorded = player.GetComponent<PlayerController>().IsPathRecorded(i);
                         float cooldown = player.GetComponent<PlayerController>().PathCooldown(i);
                         string desc = (i + 1) + ": ";
-                        if (playing && selectedPlaying == i) desc += "Playing";
+                        if (playing && selectedPlaying == i) desc += "Playing for " + ((float)(int)(cooldown * 10)) / 10 + "s";
                         else if (previewing && selectedPath == i) desc += "Preview";
                         else if (recorded)
                         {
-                            if (cooldown > 0.0f) desc += "Ready in " + ((float)(int)(cooldown * 10)) / 10;
+                            if (cooldown > 0.0f) desc += "Ready in " + ((float)(int)(cooldown * 10)) / 10 + "s";
                             else desc += "Ready";
                         }
                         else desc += "Empty";

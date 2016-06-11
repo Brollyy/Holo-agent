@@ -9,6 +9,8 @@ namespace Engine.Utilities
     public static class Minimap
     {
         private static Texture2D PlayerIcon;
+        private static Texture2D HologramIcon;
+        private static Texture2D HologramDirection;
         private static Texture2D ObjectiveIcon;
         private static Texture2D ObjectiveDirection;
         private static Texture2D EnemyIcon;
@@ -25,6 +27,8 @@ namespace Engine.Utilities
         private static Point halfScaledSize;
         private static Point scaledSize;
         private static Point playerSize;
+        private static Point hologramSize;
+        private static Point halfHologramSize;
         private static Point objectiveSize;
         private static Point halfObjectiveSize;
         private static Point enemySize;
@@ -32,11 +36,13 @@ namespace Engine.Utilities
 
         private static Vector2 playerRotationOrigin;
         private static Vector2 objectiveRotationOrigin;
+        private static Vector2 hologramRotationOrigin;
 
         private static GameObject Player;
 
         public static List<Vector3> Objectives;
         public static List<GameObject> Enemies;
+        public static object Hologram;
 
         public static void Initialize(Point size, Point offset, List<Vector2> verticalBounds, GameObject player)
         {
@@ -48,6 +54,8 @@ namespace Engine.Utilities
             halfScaledSize = new Point((int)(Scale * halfSize.X), (int)(Scale * halfSize.Y));
             scaledSize = new Point((int)(Scale * Size.X), (int)(Scale * Size.Y));
             playerSize = new Point((int)(0.1f * Size.X), (int)(0.1f * Size.Y));
+            hologramSize = new Point((int)(0.07f * Size.X), (int)(0.07f * Size.Y));
+            halfHologramSize = new Point((int)(0.5f * hologramSize.X), (int)(0.5f * hologramSize.Y));
             objectiveSize = new Point((int)(0.07f * Size.X), (int)(0.07f * Size.Y));
             halfObjectiveSize = new Point((int)(0.5f * objectiveSize.X), (int)(0.5f * objectiveSize.Y));
             enemySize = new Point((int)(0.07f * Size.X), (int)(0.07f * Size.Y));
@@ -63,11 +71,14 @@ namespace Engine.Utilities
             Objectives =  new List<Vector3>();
             Enemies = new List<GameObject>();
             Player = player;
+            Hologram = null;
         }
 
         public static void LoadContent(ContentManager Content)
         {
             PlayerIcon = Content.Load<Texture2D>("Textures/Player_Icon");
+            HologramIcon = Content.Load<Texture2D>("Textures/Hologram_Icon");
+            HologramDirection = Content.Load<Texture2D>("Textures/Hologram_Direction");
             ObjectiveIcon = Content.Load<Texture2D>("Textures/Objective");
             ObjectiveDirection = Content.Load<Texture2D>("Textures/Objective_Direction");
             EnemyIcon = Content.Load<Texture2D>("Textures/Enemy_Icon");
@@ -79,6 +90,7 @@ namespace Engine.Utilities
 
             playerRotationOrigin = new Vector2(0.5f * PlayerIcon.Width, 0.5f * PlayerIcon.Height);
             objectiveRotationOrigin = new Vector2(0.5f * ObjectiveDirection.Width, 0.5f * ObjectiveDirection.Height);
+            hologramRotationOrigin = new Vector2(0.5f * HologramDirection.Width, 0.5f * HologramDirection.Height);
         }
 
         public static void Draw(ref SpriteBatch batch)
@@ -131,6 +143,33 @@ namespace Engine.Utilities
                         Point scaledEnemyPos = new Point((int)enemyDir.X, (int)enemyDir.Y);
                         Rectangle enemyDest = new Rectangle(Offset + halfSize + scaledEnemyPos - halfEnemySize, enemySize);
                         batch.Draw(EnemyIcon, enemyDest, null, (isOnTheLevel ? Color.White : new Color(0.7f, 0.7f, 0.7f)), 0, Vector2.Zero, SpriteEffects.None, 0);
+                    }
+                }
+                if(Hologram != null)
+                {
+                    Vector3 HologramPosition = Vector3.Zero;
+                    if (Hologram is Vector3?) HologramPosition = (Hologram as Vector3?).Value;
+                    if (Hologram is GameObject) HologramPosition = (Hologram as GameObject).GlobalPosition;
+                    bool isOnTheLevel = (HologramPosition.Y >= VerticalBounds[i].X && HologramPosition.Y <= VerticalBounds[i].Y);
+                    Vector2 hologramDir = (new Vector2(HologramPosition.X, HologramPosition.Z) - new Vector2(pos.X, pos.Z)) / Scale;
+                    if (Math.Abs(hologramDir.X) <= halfSize.X - halfHologramSize.X && Math.Abs(hologramDir.Y) <= halfSize.Y - halfHologramSize.Y)
+                    {
+                        Point scaledHologramPos = new Point((int)hologramDir.X, (int)hologramDir.Y);
+                        Rectangle hologramDest = new Rectangle(Offset + halfSize + scaledHologramPos - halfHologramSize, hologramSize);
+                        batch.Draw(HologramIcon, hologramDest, null, (isOnTheLevel ? Color.White : new Color(0.7f, 0.7f, 0.7f)), 0, Vector2.Zero, SpriteEffects.None, 0);
+                    }
+                    else
+                    {
+                        float hologramRot = (float)Math.Atan2(hologramDir.X, -hologramDir.Y);
+
+                        if (hologramDir.X > halfSize.X - halfHologramSize.X) hologramDir.X = halfSize.X - halfHologramSize.X;
+                        else if (hologramDir.X < halfHologramSize.X - halfSize.X) hologramDir.X = halfHologramSize.X - halfSize.X;
+                        if (hologramDir.Y > halfSize.Y - halfHologramSize.Y) hologramDir.Y = halfSize.Y - halfHologramSize.Y;
+                        else if (hologramDir.Y < halfHologramSize.Y - halfSize.Y) hologramDir.Y = halfHologramSize.Y - halfSize.Y;
+
+                        Point scaledHologramPos = new Point((int)hologramDir.X, (int)hologramDir.Y);
+                        Rectangle hologramDest = new Rectangle(Offset + halfSize + scaledHologramPos, hologramSize);
+                        batch.Draw(HologramDirection, hologramDest, null, (isOnTheLevel ? Color.White : new Color(0.7f, 0.7f, 0.7f)), hologramRot, hologramRotationOrigin, SpriteEffects.None, 0);
                     }
                 }
                 batch.Draw(PlayerIcon, playerDest, null, Color.White, playerRot, playerRotationOrigin, SpriteEffects.None, 0);
