@@ -1,4 +1,4 @@
-﻿//#define DRAW_DEBUG_WIREFRAME
+﻿#define DRAW_DEBUG_WIREFRAME
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -157,6 +157,25 @@ namespace Holo_agent
             Model playerDeathAnim = Content.Load<Model>("Models/new/HD/BONE_DEATH");
             Model playerJumpAnim = Content.Load<Model>("Models/new/HD/BONE_JUMP");
             Model playerCrouchAnim = Content.Load<Model>("Models/new/HD/BONE_CROUCH");
+            Effect shader = Content.Load<Effect>("FX/Shader1");
+            
+            
+            foreach (ModelMesh mesh in playerModel.Meshes)
+            {
+                foreach (ModelMeshPart part in mesh.MeshParts)
+                {
+                    if(part.Effect is BasicEffect)
+                    {
+                        part.Effect = shader;
+                    }
+                    else if(part.Effect is SkinnedEffect)
+                    {
+                        SkinnedEffect seffect = part.Effect as SkinnedEffect;
+                        seffect.Alpha = 0.5f;
+                    }
+                }
+
+            }
             player.GetComponent<PlayerController>().PlayerMesh = new MeshInstance(playerModel);
             AnimationClip runClip = (playerRunAnim.Tag as ModelExtra).Clips[0];
             AnimationClip walkClip = (playerWalkAnim.Tag as ModelExtra).Clips[0];
@@ -201,9 +220,11 @@ namespace Holo_agent
             particleSmokeEmitter.GetComponent<ParticleSystem>().Init();
             particleBloodEmitter.GetComponent<ParticleSystem>().Init();*/
             Model testBallModel = Content.Load<Model>("Models/TestBall");
+            
             testBall.AddComponent(new MeshInstance(testBallModel));
             Model testBoxModel = Content.Load<Model>("Models/TestBox");
-            testBox.AddComponent(new MeshInstance(testBoxModel));   
+            testBox.AddComponent(new MeshInstance(testBoxModel));
+            
         }
 
         /// <summary>
