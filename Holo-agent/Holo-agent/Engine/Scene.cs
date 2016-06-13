@@ -242,17 +242,15 @@ namespace Engine
 
             foreach (GraphNode<Room, BoundingBox> node in roomGraph)
             {
+                objectsToRender.Add(node.Value.go);
                 if (node.Value.contents.Contains(activeCamera))
                 {
-                    objectsToRender.Add(node.Value.go);
                     foreach (GameObject go in node.Value.contents) objectsToRender.Add(go);
 
                     foreach (GraphNode<Room, BoundingBox> neighbour in node.Neighbours)
                     {
-                        objectsToRender.Add(neighbour.Value.go);
                         foreach (GameObject go in neighbour.Value.contents) objectsToRender.Add(go);
                     }
-                    break;
                 }
             }
 

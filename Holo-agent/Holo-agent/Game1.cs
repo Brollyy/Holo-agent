@@ -1,4 +1,4 @@
-﻿//#define DRAW_DEBUG_WIREFRAME
+﻿#define DRAW_DEBUG_WIREFRAME
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -66,10 +66,37 @@ namespace Holo_agent
             gunfires = new List<GameObject>();
             weaponColliders = new List<Collider>();
             scene = new Scene();
-            GameObject room = new GameObject("Room1", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(new Vector3(-10000, -10000, -10000), new Vector3(10000, 10000, 10000)));
+            GameObject roomTemp = new GameObject("RoomTemp", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(new Vector3(-10000, -10000, -10000), new Vector3(10000, 10000, 10000)));
+            GameObject room = new GameObject("Room1", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(new Vector3(105, -5, -115), new Vector3(350, 100, -55)));
+            GameObject room2 = new GameObject("Room2", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(new Vector3(-70, -5, -165), new Vector3(110, 100, -5)));
+            GameObject room3 = new GameObject("Room3", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(new Vector3(-185, -5, -10), new Vector3(10, 40, 40)));
+            GameObject room4 = new GameObject("Room4", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(new Vector3(-215, -65, -10), new Vector3(-180, 40, 40)));
+            GameObject room5 = new GameObject("Room5", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(new Vector3(-300, -65, 35), new Vector3(-180, -25, 230)));
+            GameObject room6 = new GameObject("Room6", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(new Vector3(-178, -65, 100), new Vector3(5, -25, 300)));
+            GameObject room7 = new GameObject("Room7", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(new Vector3(-3, -170, 170), new Vector3(40, -25, 215)));
+            GameObject room8 = new GameObject("Room8", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(new Vector3(-195, -170, 165), new Vector3(5, -130, 220)));
+            GameObject room9 = new GameObject("Room9", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(new Vector3(-175, -250, 218), new Vector3(-110, -130, 265)));
+            GameObject room10 = new GameObject("Room10", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(new Vector3(-255, -250, 260), new Vector3(-10, -170, 420)));
+            GameObject room11 = new GameObject("Room11", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(new Vector3(-20, -250, 255), new Vector3(160, -210, 510)));
+            GameObject room12 = new GameObject("Room12", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(new Vector3(-60, -250, 440), new Vector3(120, -170, 570)));
+            GameObject room13 = new GameObject("Room13", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(new Vector3(-160, -250, 400), new Vector3(-55, -170, 620)));
             level = new GameObject("Level", new Vector3(-100, -226, 550), Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(-1000*Vector3.One, 1000*Vector3.One));
 
-            player = new GameObject("Player", new Vector3(30, 17, -25), Quaternion.Identity, Vector3.One, scene, room);
+            scene.AddRoomConnection(room, room2, new BoundingBox());
+            scene.AddRoomConnection(room2, room3, new BoundingBox());
+            scene.AddRoomConnection(room3, room4, new BoundingBox());
+            scene.AddRoomConnection(room4, room5, new BoundingBox());
+            scene.AddRoomConnection(room5, room6, new BoundingBox());
+            scene.AddRoomConnection(room6, room7, new BoundingBox());
+            scene.AddRoomConnection(room7, room8, new BoundingBox());
+            scene.AddRoomConnection(room8, room9, new BoundingBox());
+            scene.AddRoomConnection(room9, room10, new BoundingBox());
+            scene.AddRoomConnection(room10, room11, new BoundingBox());
+            scene.AddRoomConnection(room11, room12, new BoundingBox());
+            scene.AddRoomConnection(room12, room13, new BoundingBox());
+            scene.AddRoomConnection(room13, room10, new BoundingBox());
+
+            player = new GameObject("Player", new Vector3(30, 17, -25), Quaternion.Identity, Vector3.One, scene, room2);
             player.AddNewComponent<PlayerController>();
             player.AddNewComponent<Rigidbody>();
             player.GetComponent<Rigidbody>().Initialize(80);
@@ -80,19 +107,19 @@ namespace Holo_agent
             Camera cameraComp = new Camera(45, graphics.GraphicsDevice.Viewport.AspectRatio, 1, 1000);
             camera.AddComponent(cameraComp);
             scene.Camera = camera;
-            enemy = new GameObject("Enemy", new Vector3(30, 17, -150), Quaternion.Identity, Vector3.One, scene, room);
+            enemy = new GameObject("Enemy", new Vector3(30, 17, -150), Quaternion.Identity, Vector3.One, scene, room2);
             enemy.AddComponent(new EnemyController());
             enemy.AddNewComponent<Rigidbody>();
             enemy.GetComponent<Rigidbody>().Initialize(80);
             enemy.GetComponent<Rigidbody>().GravityEnabled = false;
             Collider enemyCol = enemy.AddNewComponent<Collider>();
             enemyCol.bound = new Engine.Bounding_Volumes.BoundingBox(enemyCol, new Vector3(0, -9.5f, 0), new Vector3(2, 9.5f, 2));
-            weapons.Add(new GameObject("Pistol", new Vector3(20, 18, -40), Quaternion.Identity, Vector3.One, scene, room));
+            weapons.Add(new GameObject("Pistol", new Vector3(20, 18, -40), Quaternion.Identity, Vector3.One, scene, room2));
             weapons[0].AddComponent(new Weapon(WeaponTypes.Pistol, 12, 28, 12, 240, 1000, new Vector3(2.5f, -1.5f, -5.75f)));
             weaponColliders.Add(weapons[0].AddNewComponent<Collider>());
             weaponColliders[0].bound = new Engine.Bounding_Volumes.BoundingBox(weaponColliders[0], Vector3.Zero, new Vector3(0.5f, 0.75f, 2f));
             weapons[0].AddNewComponent<WeaponInteraction>();
-            weapons.Add(new GameObject("MachineGun", new Vector3(40, 18, -40), Quaternion.Identity, Vector3.One, scene, room));
+            weapons.Add(new GameObject("MachineGun", new Vector3(40, 18, -40), Quaternion.Identity, Vector3.One, scene, room2));
             weapons[1].AddComponent(new Weapon(WeaponTypes.MachineGun, 32, 72, 32, 640, 1000, new Vector3(3, -1.5f, -5.5f)));
             weaponColliders.Add(weapons[1].AddNewComponent<Collider>());
             weaponColliders[1].bound = new Engine.Bounding_Volumes.BoundingBox(weaponColliders[1], new Vector3(0, 0, -2f), new Vector3(0.5f, 1.5f, 2.5f));
@@ -104,14 +131,14 @@ namespace Holo_agent
             objectiveTimer = 2;
             player.GetComponent<PlayerController>().addWeapon(weapons[0]);
             particles = new List<SpriteInstance>();
-            particleFireEmitter = new GameObject("Fire_Emitter", new Vector3(45, 12, -50), Quaternion.CreateFromAxisAngle(Vector3.UnitY, MathHelper.ToRadians(90)), Vector3.One * 2, scene, room);
-            particleExplosionEmitter = new GameObject("Explosion_Emitter", new Vector3(25, 18, -60), Quaternion.CreateFromAxisAngle(Vector3.UnitY, MathHelper.ToRadians(90)), Vector3.One, scene, room);
-            particleSmokeEmitter = new GameObject("Smoke_Emitter", new Vector3(60, 6, -60), Quaternion.CreateFromAxisAngle(Vector3.UnitY, MathHelper.ToRadians(90)), Vector3.One, scene, room);
-            particleBloodEmitter = new GameObject("Blood_Emitter", new Vector3(20, 18, -40), Quaternion.CreateFromAxisAngle(Vector3.UnitY, MathHelper.ToRadians(90)), Vector3.One, scene, room);
-            testBall = new GameObject("TestBall", new Vector3(30, 55, -60), Quaternion.Identity, Vector3.One * 0.25f, scene, room);
+            particleFireEmitter = new GameObject("Fire_Emitter", new Vector3(45, 12, -50), Quaternion.CreateFromAxisAngle(Vector3.UnitY, MathHelper.ToRadians(90)), Vector3.One * 2, scene, room2);
+            particleExplosionEmitter = new GameObject("Explosion_Emitter", new Vector3(25, 18, -60), Quaternion.CreateFromAxisAngle(Vector3.UnitY, MathHelper.ToRadians(90)), Vector3.One, scene, room2);
+            particleSmokeEmitter = new GameObject("Smoke_Emitter", new Vector3(60, 6, -60), Quaternion.CreateFromAxisAngle(Vector3.UnitY, MathHelper.ToRadians(90)), Vector3.One, scene, room2);
+            particleBloodEmitter = new GameObject("Blood_Emitter", new Vector3(20, 18, -40), Quaternion.CreateFromAxisAngle(Vector3.UnitY, MathHelper.ToRadians(90)), Vector3.One, scene, room2);
+            testBall = new GameObject("TestBall", new Vector3(30, 55, -60), Quaternion.Identity, Vector3.One * 0.25f, scene, room2);
             testBall.AddNewComponent<Rigidbody>();
             testBall.GetComponent<Rigidbody>().Initialize(50);
-            testBox = new GameObject("TestBox", new Vector3(40, 55, -60), Quaternion.Identity, Vector3.One * 0.25f, scene, room);
+            testBox = new GameObject("TestBox", new Vector3(40, 55, -60), Quaternion.Identity, Vector3.One * 0.25f, scene, room2);
             testBox.AddNewComponent<Rigidbody>();
             testBox.GetComponent<Rigidbody>().Initialize(10);
             Physics.Initialize();
