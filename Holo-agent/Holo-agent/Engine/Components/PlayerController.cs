@@ -22,6 +22,7 @@ namespace Engine.Components
         private GameObject closestObject;
         private Color crosshairColor;
         private GameObject[] weapons;
+        private Vector3 movementDirection;
         public GameObject ClosestObject
         {
             get
@@ -157,15 +158,19 @@ namespace Engine.Components
             }
             if (rigidbody != null && rigidbody.isGrounded())
             {
-                Vector3 initialVelocity = Vector3.Transform(Vector3.Forward, Matrix.CreateRotationY(MathHelper.ToRadians(Owner.LocalEulerRotation.X))) * (float)(speed * args.gameTime.ElapsedGameTime.TotalSeconds);
-                rigidbody.AddForce(Vector3.Zero, initialVelocity.X, initialVelocity.Y, initialVelocity.Z);
+                movementDirection.Z = Vector3.Forward.Z;
+                Vector3 initialVelocity = Vector3.Transform(movementDirection, Matrix.CreateRotationY(MathHelper.ToRadians(Owner.LocalEulerRotation.X))) * (float)(speed * args.gameTime.ElapsedGameTime.TotalSeconds);
+                rigidbody.AddForce(Vector3.Zero, initialVelocity);
             }
         }
         private void StayForward(ReleasedActionArgs args)
         {
             Rigidbody rigidbody = Owner.GetComponent<Rigidbody>();
-            if (rigidbody != null)
-                rigidbody.AddForce(Vector3.Zero, 0, rigidbody.Velocity.Y, 0);
+            if (rigidbody != null && rigidbody.isGrounded())
+            {
+                movementDirection.Z = 0;
+                rigidbody.AddForce(Vector3.Zero, new Vector3(0, rigidbody.Velocity.Y, 0));
+            }
         }
         private void MoveBackward(PressingActionArgs args)
         {
@@ -180,15 +185,19 @@ namespace Engine.Components
             }
             if (rigidbody != null && rigidbody.isGrounded())
             {
-                Vector3 initialVelocity = Vector3.Transform(Vector3.Backward, Matrix.CreateRotationY(MathHelper.ToRadians(Owner.LocalEulerRotation.X))) * (float)(speed * args.gameTime.ElapsedGameTime.TotalSeconds);
-                rigidbody.AddForce(Vector3.Zero, initialVelocity.X, initialVelocity.Y, initialVelocity.Z);
+                movementDirection.Z = Vector3.Backward.Z;
+                Vector3 initialVelocity = Vector3.Transform(movementDirection, Matrix.CreateRotationY(MathHelper.ToRadians(Owner.LocalEulerRotation.X))) * (float)(speed * args.gameTime.ElapsedGameTime.TotalSeconds);
+                rigidbody.AddForce(Vector3.Zero, initialVelocity);
             }
         }
         private void StayBackward(ReleasedActionArgs args)
         {
             Rigidbody rigidbody = Owner.GetComponent<Rigidbody>();
-            if (rigidbody != null)
-                rigidbody.AddForce(Vector3.Zero, 0, rigidbody.Velocity.Y, 0);
+            if (rigidbody != null && rigidbody.isGrounded())
+            {
+                movementDirection.Z = 0;
+                rigidbody.AddForce(Vector3.Zero, new Vector3(0, rigidbody.Velocity.Y, 0));
+            }
         }
         private void MoveLeft(PressingActionArgs args)
         {
@@ -203,15 +212,19 @@ namespace Engine.Components
             }
             if (rigidbody != null && rigidbody.isGrounded())
             {
-                Vector3 initialVelocity = Vector3.Transform(Vector3.Left, Matrix.CreateRotationY(MathHelper.ToRadians(Owner.LocalEulerRotation.X))) * (float)(speed * args.gameTime.ElapsedGameTime.TotalSeconds);
-                rigidbody.AddForce(Vector3.Zero, initialVelocity.X, initialVelocity.Y, initialVelocity.Z);
+                movementDirection.X = Vector3.Left.X;
+                Vector3 initialVelocity = Vector3.Transform(movementDirection, Matrix.CreateRotationY(MathHelper.ToRadians(Owner.LocalEulerRotation.X))) * (float)(speed * args.gameTime.ElapsedGameTime.TotalSeconds);
+                rigidbody.AddForce(Vector3.Zero, initialVelocity);
             }
         }
         private void StayLeft(ReleasedActionArgs args)
         {
             Rigidbody rigidbody = Owner.GetComponent<Rigidbody>();
-            if (rigidbody != null)
-                rigidbody.AddForce(Vector3.Zero, 0, rigidbody.Velocity.Y, 0);
+            if (rigidbody != null && rigidbody.isGrounded())
+            {
+                movementDirection.X = 0;
+                rigidbody.AddForce(Vector3.Zero, new Vector3(0, rigidbody.Velocity.Y, 0));
+            }
         }
         private void MoveRight(PressingActionArgs args)
         {
@@ -226,24 +239,28 @@ namespace Engine.Components
             }
             if (rigidbody != null && rigidbody.isGrounded())
             {
-                Vector3 initialVelocity = Vector3.Transform(Vector3.Right, Matrix.CreateRotationY(MathHelper.ToRadians(Owner.LocalEulerRotation.X))) * (float)(speed * args.gameTime.ElapsedGameTime.TotalSeconds);
-                rigidbody.AddForce(Vector3.Zero, initialVelocity.X, initialVelocity.Y, initialVelocity.Z);
+                movementDirection.X = Vector3.Right.X;
+                Vector3 initialVelocity = Vector3.Transform(movementDirection, Matrix.CreateRotationY(MathHelper.ToRadians(Owner.LocalEulerRotation.X))) * (float)(speed * args.gameTime.ElapsedGameTime.TotalSeconds);
+                rigidbody.AddForce(Vector3.Zero, initialVelocity);
             }
         }
         private void StayRight(ReleasedActionArgs args)
         {
             Rigidbody rigidbody = Owner.GetComponent<Rigidbody>();
-            if (rigidbody != null)
-                rigidbody.AddForce(Vector3.Zero, 0, rigidbody.Velocity.Y, 0);
+            if (rigidbody != null && rigidbody.isGrounded())
+            {
+                movementDirection.X = 0;
+                rigidbody.AddForce(Vector3.Zero, new Vector3(0, rigidbody.Velocity.Y, 0));
+            }
         }
         private void Jump(PressedActionArgs args)
         {
             // TODO: Needs logic for jumping and movement.
             // Movement state will be the base for animation (possibly plus actual speed of the character).
             Rigidbody rigidbody = Owner.GetComponent<Rigidbody>();
-            if (rigidbody != null && rigidbody.isGrounded())
+            if (rigidbody != null && rigidbody.isGrounded() && rigidbody.GravityEnabled)
             {
-                rigidbody.AddForce(Vector3.Zero, 0, 3.5f, 0);
+                rigidbody.AddForce(Vector3.Zero, new Vector3(rigidbody.Velocity.X, 3.5f, rigidbody.Velocity.Z));
             }
         }
 
@@ -354,15 +371,16 @@ namespace Engine.Components
         {
             if (!hologramRecording && !hologramPlaying)
             {
-                GameObject hologramRecording = new GameObject("HologramRecorder", Owner.LocalPosition, 
+                Owner.GetComponent<Rigidbody>().GravityEnabled = false;
+                GameObject hologramRecording = new GameObject("HologramRecorder", Owner.LocalPosition,
                                                               Owner.LocalQuaternionRotation, Owner.LocalScale, Owner.Scene, Owner.Parent);
                 hologramRecording.AddComponent(new HologramRecorder(5.0f, 100, StopRecording));
                 hologramRecording.AddNewComponent<Rigidbody>();
                 hologramRecording.GetComponent<Rigidbody>().Initialize(80);
                 hologramRecording.GetComponent<Rigidbody>().GravityEnabled = false;
                 MeshInstance mesh = Owner.GetComponent<MeshInstance>();
-                if(mesh != null) hologramRecording.AddComponent(new MeshInstance(mesh));
-                if(PlayerMesh != null) Owner.AddComponent(PlayerMesh);
+                if (mesh != null) hologramRecording.AddComponent(new MeshInstance(mesh));
+                if (PlayerMesh != null) Owner.AddComponent(PlayerMesh);
                 player = Owner;
                 playerCameraPosition = Owner.Scene.Camera.GlobalPosition;
                 playerCameraRotation = Owner.Scene.Camera.GlobalRotation;
@@ -382,12 +400,13 @@ namespace Engine.Components
             if (player != null)
             {
                 player.AddComponent(this);
-                if(PlayerMesh != null) player.RemoveComponent(PlayerMesh);
+                if (PlayerMesh != null) player.RemoveComponent(PlayerMesh);
             }
             Owner.Scene.Camera.Parent = Owner;
             Owner.Scene.Camera.GlobalPosition = playerCameraPosition;
             Owner.Scene.Camera.GlobalRotation = playerCameraRotation;
             Owner.Scene.Camera.GlobalScale = playerCameraScale;
+            Owner.GetComponent<Rigidbody>().GravityEnabled = true;
         }
 
         private void PlaybackButton(PressedActionArgs args)
@@ -412,7 +431,7 @@ namespace Engine.Components
         private void StopPlayback()
         {
             this.hologramPlaying = false;
-            if(PlayerMesh != null) PlayerMesh.Owner.RemoveComponent(PlayerMesh);
+            if (PlayerMesh != null) PlayerMesh.Owner.RemoveComponent(PlayerMesh);
         }
 
         public void Revert()
@@ -424,6 +443,7 @@ namespace Engine.Components
         }
         public override void Update(GameTime gameTime)
         {
+            Rigidbody rigidbody = Owner.GetComponent<Rigidbody>();
             lastPosition2 = lastPosition;
             lastPosition = Owner.LocalPosition;
             lastRotation2 = lastRotation;
@@ -436,6 +456,11 @@ namespace Engine.Components
             else
                 crosshairColor = Color.Orange;
             changeWeapon(Input.getMouseWheelState());
+            if(rigidbody != null && rigidbody.Velocity.Y != 0 && rigidbody.isGrounded())
+            {
+                movementDirection = Vector3.Zero;
+                rigidbody.AddForce(Vector3.Zero, Vector3.Zero);
+            }
         }
         public override void Destroy()
         {
@@ -462,19 +487,21 @@ namespace Engine.Components
             Input.UnbindMouseMovement(Turn);
         }
 
-        public PlayerController(PlayerController other):
-            this(other.walkSpeed, other.walkVolume, other.runSpeed, other.runVolume, 
+        public PlayerController(PlayerController other) :
+            this(other.walkSpeed, other.walkVolume, other.runSpeed, other.runVolume,
                  other.crouchSpeed, other.crouchVolume, other.turnSpeed)
         {
             movement = other.movement;
+            movementDirection = Vector3.Zero;
         }
 
-        public PlayerController() : 
+        public PlayerController() :
             this(200f, 0.5f, 350.0f, 1.0f, 150.0f, 0.0f, 20.0f)
         {
+            movementDirection = Vector3.Zero;
         }
 
-        public PlayerController(float walkSpeed, float walkVolume, float runSpeed, float runVolume, float crouchSpeed, float crouchVolume, float turnSpeed):
+        public PlayerController(float walkSpeed, float walkVolume, float runSpeed, float runVolume, float crouchSpeed, float crouchVolume, float turnSpeed) :
             base(walkSpeed, walkVolume, runSpeed, runVolume, crouchSpeed, crouchVolume)
         {
             this.turnSpeed = turnSpeed;
@@ -488,6 +515,7 @@ namespace Engine.Components
             closestObject = null;
             crosshairColor = Color.Orange;
             weapons = new GameObject[3];
+            movementDirection = Vector3.Zero;
             // Bind actions to input.
             Input.BindActionContinuousPress(GameAction.MOVE_FORWARD, MoveForward);
             Input.BindActionRelease(GameAction.MOVE_FORWARD, StayForward);

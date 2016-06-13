@@ -11,15 +11,11 @@ namespace Engine.Components
         {
             get; set;
         } = true;
-        public Vector3 Velocity //Temporary
+        public Vector3 Velocity
         {
             get
             {
                 return velocity;
-            }
-            set
-            {
-                velocity = value;
             }
         }
         public Rigidbody() { }
@@ -43,7 +39,7 @@ namespace Engine.Components
                 {
                     if (!isFalling)
                     {
-                        AddForce(Vector3.UnitY * Physics.GravitationalAcceleration);
+                        AddForce(Vector3.UnitY * Physics.GravitationalAcceleration, initialVelocity);
                         isFalling = true;
                     }
                 }
@@ -97,7 +93,7 @@ namespace Engine.Components
         }
         private void UpdatePosition()
         {
-            Owner.GlobalPosition = initialPosition + ((initialVelocity * motionTime) + (acceleration * (motionTime * motionTime) * 0.5f)) * Physics.MeterScale;
+            Owner.LocalPosition = initialPosition + ((initialVelocity * motionTime) + (acceleration * (motionTime * motionTime) * 0.5f)) * Physics.MeterScale;
         }
         private void UpdateVelocity()
         {
@@ -120,46 +116,46 @@ namespace Engine.Components
                     return false;
             }
         }
-        public void AddForce(Vector3 acceleration, float? initialVelocityX = null, float? initialVelocityY = null, float? initialVelocityZ = null)
+        public void AddForce(Vector3 acceleration, Vector3 initialVelocity)
         {
-            if (acceleration.X != 0 || initialVelocityX != null)
+            if (acceleration.X != 0 || initialVelocity.X != this.initialVelocity.X)
             {
                 if (acceleration.X != 0)
                 {
                     initialVelocity.X = velocity.X;
                     this.acceleration.X += acceleration.X;
                 }
-                if (initialVelocityX != null)
+                if (initialVelocity.X != this.initialVelocity.X)
                 {
-                    initialVelocity.X = (float)initialVelocityX;
+                    this.initialVelocity.X = initialVelocity.X;
                 }
                 motionTime.X = 0;
                 initialPosition.X = Owner.GlobalPosition.X;
             }
-            if (acceleration.Y != 0 || initialVelocityY != null)
+            if (acceleration.Y != 0 || initialVelocity.Y != this.initialVelocity.Y)
             {
                 if (acceleration.Y != 0)
                 {
                     initialVelocity.Y = velocity.Y;
                     this.acceleration.Y += acceleration.Y;
                 }
-                if (initialVelocityY != null)
+                if (initialVelocity.Y != this.initialVelocity.Y)
                 {
-                    initialVelocity.Y = (float)initialVelocityY;
+                    this.initialVelocity.Y = initialVelocity.Y;
                 }
                 motionTime.Y = 0;
                 initialPosition.Y = Owner.GlobalPosition.Y;
             }
-            if (acceleration.Z != 0 || initialVelocityZ != null)
+            if (acceleration.Z != 0 || initialVelocity.Z != this.initialVelocity.Z)
             {
                 if (acceleration.Z != 0)
                 {
                     initialVelocity.Z = velocity.Z;
                     this.acceleration.Z += acceleration.Z;
                 }
-                if (initialVelocityZ != null)
+                if (initialVelocity.Z != this.initialVelocity.Z)
                 {
-                    initialVelocity.Z = (float)initialVelocityZ;
+                    this.initialVelocity.Z = initialVelocity.Z;
                 }
                 motionTime.Z = 0;
                 initialPosition.Z = Owner.GlobalPosition.Z;

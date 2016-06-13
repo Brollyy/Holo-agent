@@ -92,7 +92,7 @@ namespace Engine.Components
             Owner.GetComponent<AnimationController>().Blend("idle", 0.2f);
             Rigidbody rigidbody = Owner.GetComponent<Rigidbody>();
             if (rigidbody != null)
-                rigidbody.AddForce(Vector3.Zero, 0, rigidbody.Velocity.Y, 0);
+                rigidbody.AddForce(Vector3.Zero, new Vector3(0, rigidbody.Velocity.Y, 0));
         }
 
         public override void Update(GameTime gameTime)
@@ -103,7 +103,7 @@ namespace Engine.Components
                 if (rigidbody != null && rigidbody.isGrounded())
                 {
                     Vector3 initialVelocity = Vector3.Transform(Vector3.Forward, Matrix.CreateRotationY(MathHelper.ToRadians(Owner.LocalEulerRotation.X))) * (float)(walkSpeed * gameTime.ElapsedGameTime.TotalSeconds);
-                    rigidbody.AddForce(Vector3.Zero, initialVelocity.X, initialVelocity.Y, initialVelocity.Z);
+                    rigidbody.AddForce(Vector3.Zero, initialVelocity);
                 }
             }
 

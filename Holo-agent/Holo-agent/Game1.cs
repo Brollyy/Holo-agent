@@ -83,7 +83,6 @@ namespace Holo_agent
             player.AddNewComponent<PlayerController>();
             player.AddNewComponent<Rigidbody>();
             player.GetComponent<Rigidbody>().Initialize(80);
-            player.GetComponent<Rigidbody>().GravityEnabled = false;
             Collider playerCol = player.AddNewComponent<Collider>();
             playerCol.bound = new Engine.Bounding_Volumes.BoundingBox(playerCol, Vector3.Zero, 10f * Vector3.One);
             GameObject camera = new GameObject("Camera", new Vector3(0, 0, 0), Quaternion.Identity, Vector3.One, scene, player);
