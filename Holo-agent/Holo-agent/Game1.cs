@@ -66,14 +66,10 @@ namespace Holo_agent
             gunfires = new List<GameObject>();
             weaponColliders = new List<Collider>();
             scene = new Scene();
-            GameObject room = new GameObject("Room1", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(new Vector3(-85, -5, -425), new Vector3(325, 80, 80)));
-            GameObject room1 = new GameObject("Room2", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(new Vector3(-125, -5, -5), new Vector3(-75, 45, 155)));
-            GameObject room2 = new GameObject("Room3", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(new Vector3(325, -85, -425), new Vector3(725, 45, -350)));
-            level = new GameObject("Level", new Vector3(-100, 0, 100), Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(-1000*Vector3.One, 1000*Vector3.One));
-            scene.AddRoomConnection(room, room1, new BoundingBox(new Vector3(-85, -5, 60), new Vector3(-75, 45, 80)));
-            scene.AddRoomConnection(room, room2, new BoundingBox(new Vector3(320, -5, 60), new Vector3(330, 45, 80)));
+            GameObject room = new GameObject("Room1", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(new Vector3(-10000, -10000, -10000), new Vector3(10000, 10000, 10000)));
+            level = new GameObject("Level", new Vector3(-100, -226, 550), Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(-1000*Vector3.One, 1000*Vector3.One));
 
-            player = new GameObject("Player", new Vector3(30, 18, -25), Quaternion.Identity, Vector3.One, scene, room);
+            player = new GameObject("Player", new Vector3(30, 17, -25), Quaternion.Identity, Vector3.One, scene, room);
             player.AddNewComponent<PlayerController>();
             player.AddNewComponent<Rigidbody>();
             player.GetComponent<Rigidbody>().Initialize(80);
@@ -84,7 +80,7 @@ namespace Holo_agent
             Camera cameraComp = new Camera(45, graphics.GraphicsDevice.Viewport.AspectRatio, 1, 1000);
             camera.AddComponent(cameraComp);
             scene.Camera = camera;
-            enemy = new GameObject("Enemy", new Vector3(30, 18, -150), Quaternion.Identity, Vector3.One, scene, room);
+            enemy = new GameObject("Enemy", new Vector3(30, 17, -150), Quaternion.Identity, Vector3.One, scene, room);
             enemy.AddComponent(new EnemyController());
             enemy.AddNewComponent<Rigidbody>();
             enemy.GetComponent<Rigidbody>().Initialize(80);
@@ -168,9 +164,9 @@ namespace Holo_agent
             player.GetComponent<PlayerController>().PlayerMesh.Model.Clips.Add(deathClip);
             player.GetComponent<PlayerController>().PlayerMesh.Model.Clips.Add(jumpClip);
             player.GetComponent<PlayerController>().PlayerMesh.Model.Clips.Add(crouchClip);
-            player.GetComponent<PlayerController>().PlayerMesh.Offset = new Vector3(0, -18, 0);
+            player.GetComponent<PlayerController>().PlayerMesh.Offset = new Vector3(0, -17, 0);
             enemy.AddComponent(new MeshInstance(playerModel));
-            enemy.GetComponent<MeshInstance>().Offset = new Vector3(0, -18, 0);
+            enemy.GetComponent<MeshInstance>().Offset = new Vector3(0, -17, 0);
             enemy.AddNewComponent<AnimationController>();
             enemy.GetComponent<AnimationController>().SetBindPose(deathClip);
             enemy.GetComponent<AnimationController>().BindAnimation("walk", walkClip, true);
