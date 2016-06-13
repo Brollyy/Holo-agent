@@ -593,6 +593,8 @@ namespace Engine.Components
             Input.UnbindActionRelease(GameAction.FIRE, UnlockFire);
             Input.UnbindActionPress(GameAction.DROP_WEAPON, dropWeapon);
             Input.UnbindActionPress(GameAction.PREVIEW_HOLOGRAM, PreviewHologram);
+            Input.UnbindActionContinuousPress(GameAction.GO_UP, UpTemp);
+            Input.UnbindActionContinuousPress(GameAction.GO_DOWN, DownTemp);
             Input.UnbindMouseMovement(Turn);
         }
 
@@ -658,7 +660,19 @@ namespace Engine.Components
             Input.BindActionPress(GameAction.SELECT_SECOND_HOLOGRAM, SelectHologramPath);
             Input.BindActionPress(GameAction.SELECT_THIRD_HOLOGRAM, SelectHologramPath);
             Input.BindActionPress(GameAction.PREVIEW_HOLOGRAM, PreviewHologram);
+            Input.BindActionContinuousPress(GameAction.GO_UP, UpTemp);
+            Input.BindActionContinuousPress(GameAction.GO_DOWN, DownTemp);
             Input.BindMouseMovement(Turn);
+        }
+
+        private void DownTemp(PressingActionArgs args)
+        {
+            Owner.LocalPosition = Owner.LocalPosition - 100 * (float)args.gameTime.ElapsedGameTime.TotalSeconds * Vector3.UnitY;
+        }
+
+        private void UpTemp(PressingActionArgs args)
+        {
+            Owner.LocalPosition = Owner.LocalPosition + 100 * (float)args.gameTime.ElapsedGameTime.TotalSeconds * Vector3.UnitY;
         }
     }
 }

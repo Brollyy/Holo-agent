@@ -60,11 +60,6 @@ namespace Engine.Components
                         if (Owner.GlobalPosition.Y < 0) //Temporary
                             Owner.GlobalPosition = new Vector3(Owner.GlobalPosition.X, 0, Owner.GlobalPosition.Z);
                     }
-                    else
-                    {
-                        if (Owner.GlobalPosition.Y < 17) //Temporary
-                            Owner.GlobalPosition = new Vector3(Owner.GlobalPosition.X, 17, Owner.GlobalPosition.Z);
-                    }
                 }
             }
             UpdateVelocity();

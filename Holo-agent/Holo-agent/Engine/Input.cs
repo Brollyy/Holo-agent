@@ -44,6 +44,8 @@ namespace Engine
             bindings.Add(GameAction.SELECT_SECOND_HOLOGRAM, new KeyboardInputSource(Keys.D2));
             bindings.Add(GameAction.SELECT_THIRD_HOLOGRAM, new KeyboardInputSource(Keys.D3));
             bindings.Add(GameAction.PREVIEW_HOLOGRAM, new KeyboardInputSource(Keys.Z));
+            bindings.Add(GameAction.GO_UP, new KeyboardInputSource(Keys.Up));
+            bindings.Add(GameAction.GO_DOWN, new KeyboardInputSource(Keys.Down));
             pressedDelegates = new Dictionary<GameAction, List<ProcessPressedAction>>();
             releasedDelegates = new Dictionary<GameAction, List<ProcessReleasedAction>>();
             pressingDelegates = new Dictionary<GameAction, List<ProcessPressingAction>>();
@@ -277,7 +279,9 @@ namespace Engine
         SELECT_FIRST_HOLOGRAM,
         SELECT_SECOND_HOLOGRAM,
         SELECT_THIRD_HOLOGRAM,
-        PREVIEW_HOLOGRAM
+        PREVIEW_HOLOGRAM,
+        GO_UP,
+        GO_DOWN
     }
 
     internal abstract class InputSource
