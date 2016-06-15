@@ -1,4 +1,4 @@
-﻿#define DRAW_DEBUG_WIREFRAME
+﻿//#define DRAW_DEBUG_WIREFRAME
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
