@@ -466,15 +466,25 @@ namespace Engine
         }
 
         /// <summary>
-        /// Finds first component of the object with specified type. Returns null if no component was found.
+        /// Finds first active component of the object with specified type. Returns null if no active component was found.
         /// </summary>
         /// <typeparam name="T">Type of the component to get.</typeparam>
         public T GetComponent<T>() where T : Component
         {
-            return (T)components.Find(comp => comp.IsType<T>());
+            return (T)components.Find(comp => comp.IsType<T>() && comp.Enabled);
         }
 
         public List<T> GetComponents<T>() where T : Component
+        {
+            return components.FindAll(comp => comp.IsType<T>() && comp.Enabled).ConvertAll<T>(comp => (T)comp);
+        }
+
+        public T GetInactiveComponent<T>() where T : Component
+        {
+            return (T)components.Find(comp => comp.IsType<T>());
+        }
+
+        public List<T> GetInactiveComponents<T>() where T : Component
         {
             return components.FindAll(comp => comp.IsType<T>()).ConvertAll<T>(comp => (T)comp);
         }

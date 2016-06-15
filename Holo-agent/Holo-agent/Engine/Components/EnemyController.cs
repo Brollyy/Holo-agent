@@ -93,7 +93,7 @@ namespace Engine.Components
         private void MoveForward()
         {
             if (movement == Movement.WALK) return;
-            
+
             movement = Movement.WALK;
             Owner.GetComponent<AnimationController>().PlayAnimation("walk");
         }
@@ -106,7 +106,9 @@ namespace Engine.Components
             Owner.GetComponent<AnimationController>().StopAnimation("walk");
             Rigidbody rigidbody = Owner.GetComponent<Rigidbody>();
             if (rigidbody != null)
-                rigidbody.AddForce(Vector3.Zero, 0, rigidbody.Velocity.Y, 0);
+            {
+                rigidbody.AddVelocityChange(-rigidbody.Velocity);
+            }
         }
 
         public override void DealDamage(float amount, Weapon causer)
@@ -145,16 +147,14 @@ namespace Engine.Components
 
         public override void Update(GameTime gameTime)
         {
-            if (movement == Movement.WALK)
+            if(movement == Movement.WALK)
             {
                 Rigidbody rigidbody = Owner.GetComponent<Rigidbody>();
-                if (rigidbody != null && rigidbody.isGrounded())
+                if (rigidbody != null && rigidbody.IsGrounded)
                 {
-                    Vector3 initialVelocity = Vector3.Transform(Vector3.Forward, Matrix.CreateRotationY(MathHelper.ToRadians(Owner.LocalEulerRotation.X))) * (float)(walkSpeed * gameTime.ElapsedGameTime.TotalSeconds);
-                    rigidbody.AddForce(Vector3.Zero, initialVelocity.X, initialVelocity.Y, initialVelocity.Z);
+                    rigidbody.AddForce(rigidbody.Mass * walkSpeed * Owner.LocalToWorldMatrix.Forward);
                 }
             }
-
             if (state != EnemyState.Combat && gameTime.TotalGameTime.Subtract(lastSearch.TotalGameTime).TotalSeconds > 0.5)
             {
                 LookForTarget();

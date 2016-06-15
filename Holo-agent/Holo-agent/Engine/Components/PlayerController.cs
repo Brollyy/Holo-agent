@@ -184,10 +184,11 @@ namespace Engine.Components
             Owner.LocalEulerRotation = Vector3.Lerp(Owner.LocalEulerRotation, rot, 0.75f);
         }
 
-        private void MoveForward(PressingActionArgs args)
+        private void Move(PressingActionArgs args)
         {
             float speed;
             Rigidbody rigidbody = Owner.GetComponent<Rigidbody>();
+            float delta = (float)args.gameTime.ElapsedGameTime.TotalSeconds;
             switch (movement)
             {
                 case Movement.WALK: speed = walkSpeed; break;
@@ -195,77 +196,62 @@ namespace Engine.Components
                 case Movement.CROUCH: speed = crouchSpeed; break;
                 default: speed = 0.0f; break;
             }
-            if (rigidbody != null && rigidbody.isGrounded())
+
+            Vector3 direction;
+            switch(args.action)
             {
-                Vector3 initialVelocity = Vector3.Transform(Vector3.Forward, Matrix.CreateRotationY(MathHelper.ToRadians(Owner.LocalEulerRotation.X))) * (float)(speed * args.gameTime.ElapsedGameTime.TotalSeconds);
-                rigidbody.AddForce(Vector3.Zero, initialVelocity.X, initialVelocity.Y, initialVelocity.Z);
+                case GameAction.MOVE_FORWARD: direction = Owner.LocalToWorldMatrix.Forward; break;
+                case GameAction.MOVE_BACKWARD: direction = Owner.LocalToWorldMatrix.Backward; break;
+                case GameAction.STRAFE_LEFT: direction = Owner.LocalToWorldMatrix.Left; break;
+                case GameAction.STRAFE_RIGHT: direction = Owner.LocalToWorldMatrix.Right; break;
+                default: direction = Vector3.Zero; break;
+            }
+            direction.Y = 0; direction.Normalize();
+
+            if (rigidbody != null && rigidbody.IsGrounded && Vector3.Dot(rigidbody.Velocity, direction) < speed)
+            {
+                rigidbody.AddForce(rigidbody.Mass * 5*(speed - rigidbody.Velocity.Length()) * direction);
             }
         }
         private void Stay(ReleasedActionArgs args)
         {
             Rigidbody rigidbody = Owner.GetComponent<Rigidbody>();
-            if (rigidbody != null)
-                rigidbody.AddForce(Vector3.Zero, 0, rigidbody.Velocity.Y, 0);
-        }
-        private void MoveBackward(PressingActionArgs args)
-        {
-            float speed;
-            Rigidbody rigidbody = Owner.GetComponent<Rigidbody>();
-            switch (movement)
+            if (rigidbody != null && rigidbody.IsGrounded)
             {
-                case Movement.WALK: speed = walkSpeed; break;
-                case Movement.RUN: speed = runSpeed; break;
-                case Movement.CROUCH: speed = crouchSpeed; break;
-                default: speed = 0.0f; break;
-            }
-            if (rigidbody != null && rigidbody.isGrounded())
-            {
-                Vector3 initialVelocity = Vector3.Transform(Vector3.Backward, Matrix.CreateRotationY(MathHelper.ToRadians(Owner.LocalEulerRotation.X))) * (float)(speed * args.gameTime.ElapsedGameTime.TotalSeconds);
-                rigidbody.AddForce(Vector3.Zero, initialVelocity.X, initialVelocity.Y, initialVelocity.Z);
-            }
-        }
-        private void MoveLeft(PressingActionArgs args)
-        {
-            float speed;
-            Rigidbody rigidbody = Owner.GetComponent<Rigidbody>();
-            switch (movement)
-            {
-                case Movement.WALK: speed = walkSpeed; break;
-                case Movement.RUN: speed = runSpeed; break;
-                case Movement.CROUCH: speed = crouchSpeed; break;
-                default: speed = 0.0f; break;
-            }
-            if (rigidbody != null && rigidbody.isGrounded())
-            {
-                Vector3 initialVelocity = Vector3.Transform(Vector3.Left, Matrix.CreateRotationY(MathHelper.ToRadians(Owner.LocalEulerRotation.X))) * (float)(speed * args.gameTime.ElapsedGameTime.TotalSeconds);
-                rigidbody.AddForce(Vector3.Zero, initialVelocity.X, initialVelocity.Y, initialVelocity.Z);
+                Vector3 direction;
+                if (args == null)
+                {
+                    rigidbody.AddVelocityChange(-rigidbody.Velocity);
+                }
+                else
+                {
+                    switch (args.action)
+                    {
+                        case GameAction.MOVE_FORWARD: direction = Owner.LocalToWorldMatrix.Forward; break;
+                        case GameAction.MOVE_BACKWARD: direction = Owner.LocalToWorldMatrix.Backward; break;
+                        case GameAction.STRAFE_LEFT: direction = Owner.LocalToWorldMatrix.Left; break;
+                        case GameAction.STRAFE_RIGHT: direction = Owner.LocalToWorldMatrix.Right; break;
+                        default: direction = Vector3.Zero; break;
+                    }
+                    direction.Y = 0; direction.Normalize();
+
+                    float vel = Vector3.Dot(direction, rigidbody.Velocity);
+                    if (vel > 0.0f)
+                    {
+                        rigidbody.AddVelocityChange(-vel * direction);
+                    }
+                }
             }
         }
-        private void MoveRight(PressingActionArgs args)
-        {
-            float speed;
-            Rigidbody rigidbody = Owner.GetComponent<Rigidbody>();
-            switch (movement)
-            {
-                case Movement.WALK: speed = walkSpeed; break;
-                case Movement.RUN: speed = runSpeed; break;
-                case Movement.CROUCH: speed = crouchSpeed; break;
-                default: speed = 0.0f; break;
-            }
-            if (rigidbody != null && rigidbody.isGrounded())
-            {
-                Vector3 initialVelocity = Vector3.Transform(Vector3.Right, Matrix.CreateRotationY(MathHelper.ToRadians(Owner.LocalEulerRotation.X))) * (float)(speed * args.gameTime.ElapsedGameTime.TotalSeconds);
-                rigidbody.AddForce(Vector3.Zero, initialVelocity.X, initialVelocity.Y, initialVelocity.Z);
-            }
-        }
+        
         private void Jump(PressedActionArgs args)
         {
             // TODO: Needs logic for jumping and movement.
             // Movement state will be the base for animation (possibly plus actual speed of the character).
             Rigidbody rigidbody = Owner.GetComponent<Rigidbody>();
-            if (rigidbody != null && rigidbody.isGrounded())
+            if (rigidbody != null && rigidbody.IsGrounded)
             {
-                rigidbody.AddForce(Vector3.Zero, 0, 3.5f, 0);
+                rigidbody.AddImpulseForce(rigidbody.Mass*40*Vector3.Up);
             }
         }
 
@@ -390,8 +376,7 @@ namespace Engine.Components
                 GameObject hologramRecording = new GameObject("HologramRecorder", Owner.LocalPosition, 
                                                               Owner.LocalQuaternionRotation, Owner.LocalScale, Owner.Scene, Owner.Parent);
                 hologramRecording.AddComponent(new HologramRecorder(5.0f, 100, StopRecording));
-                hologramRecording.AddNewComponent<Rigidbody>();
-                hologramRecording.GetComponent<Rigidbody>().Initialize(80);
+                hologramRecording.AddComponent(new Rigidbody(80));
                 hologramRecording.GetComponent<Rigidbody>().GravityEnabled = false;
                 MeshInstance mesh = Owner.GetComponent<MeshInstance>();
                 if(mesh != null) hologramRecording.AddComponent(new MeshInstance(mesh));
@@ -572,13 +557,13 @@ namespace Engine.Components
         }
         public override void Destroy()
         {
-            Input.UnbindActionContinuousPress(GameAction.MOVE_FORWARD, MoveForward);
+            Input.UnbindActionContinuousPress(GameAction.MOVE_FORWARD, Move);
             Input.UnbindActionRelease(GameAction.MOVE_FORWARD, Stay);
-            Input.UnbindActionContinuousPress(GameAction.MOVE_BACKWARD, MoveBackward);
+            Input.UnbindActionContinuousPress(GameAction.MOVE_BACKWARD, Move);
             Input.UnbindActionRelease(GameAction.MOVE_BACKWARD, Stay);
-            Input.UnbindActionContinuousPress(GameAction.STRAFE_LEFT, MoveLeft);
+            Input.UnbindActionContinuousPress(GameAction.STRAFE_LEFT, Move);
             Input.UnbindActionRelease(GameAction.STRAFE_LEFT, Stay);
-            Input.UnbindActionContinuousPress(GameAction.STRAFE_RIGHT, MoveRight);
+            Input.UnbindActionContinuousPress(GameAction.STRAFE_RIGHT, Move);
             Input.UnbindActionRelease(GameAction.STRAFE_RIGHT, Stay);
             Input.UnbindActionPress(GameAction.JUMP, Jump);
             Input.UnbindActionPress(GameAction.INTERACT, Interact);
@@ -606,7 +591,7 @@ namespace Engine.Components
         }
 
         public PlayerController() : 
-            this(200f, 0.5f, 350.0f, 1.0f, 150.0f, 0.0f, 20.0f)
+            this(40f, 0.5f, 75f, 1.0f, 20f, 0.0f, 20.0f)
         {
         }
 
@@ -636,13 +621,13 @@ namespace Engine.Components
             crosshairColor = Color.Orange;
             weapons = new GameObject[3];
             // Bind actions to input.
-            Input.BindActionContinuousPress(GameAction.MOVE_FORWARD, MoveForward);
+            Input.BindActionContinuousPress(GameAction.MOVE_FORWARD, Move);
             Input.BindActionRelease(GameAction.MOVE_FORWARD, Stay);
-            Input.BindActionContinuousPress(GameAction.MOVE_BACKWARD, MoveBackward);
+            Input.BindActionContinuousPress(GameAction.MOVE_BACKWARD, Move);
             Input.BindActionRelease(GameAction.MOVE_BACKWARD, Stay);
-            Input.BindActionContinuousPress(GameAction.STRAFE_LEFT, MoveLeft);
+            Input.BindActionContinuousPress(GameAction.STRAFE_LEFT, Move);
             Input.BindActionRelease(GameAction.STRAFE_LEFT, Stay);
-            Input.BindActionContinuousPress(GameAction.STRAFE_RIGHT, MoveRight);
+            Input.BindActionContinuousPress(GameAction.STRAFE_RIGHT, Move);
             Input.BindActionRelease(GameAction.STRAFE_RIGHT, Stay);
             Input.BindActionPress(GameAction.JUMP, Jump);
             Input.BindActionPress(GameAction.INTERACT, Interact);

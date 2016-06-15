@@ -83,7 +83,7 @@ namespace Engine.Bounding_Volumes
                     float APAD = Vector3.Dot(AP, AD);
                     if (APAB >= 0 && APAB <= AB.LengthSquared() && APAD >= 0 && APAD <= AD.LengthSquared())
                     {
-                        return new CollisionResult(true, planes[i], intersect);
+                        return new CollisionResult(true, planes[i], null, intersect);
                     }
                     #endregion
                     // Intersection if any edge lies close enough and shares at least one point with circle.
@@ -97,13 +97,13 @@ namespace Engine.Bounding_Volumes
                         {
                             Vector3 X = faceCorners[ind[4 * i + j]] + t1 * AB;
                             if ((X - intersect).LengthSquared() <= interRadius)
-                                return new CollisionResult(true, planes[i], X);
+                                return new CollisionResult(true, planes[i], null, X);
                         }
                         // Check vertices of the edge.
                         if (AP.LengthSquared() <= interRadius)
-                            return new CollisionResult(true, planes[i], faceCorners[ind[4 * i + j]]);
+                            return new CollisionResult(true, planes[i], null, faceCorners[ind[4 * i + j]]);
                         if ((faceCorners[ind[4 * i + ((j + 1) % 4)]] - intersect).LengthSquared() <= interRadius)
-                            return new CollisionResult(true, planes[i], faceCorners[ind[4 * i + ((j + 1) % 4)]]);
+                            return new CollisionResult(true, planes[i], null, faceCorners[ind[4 * i + ((j + 1) % 4)]]);
                         #endregion
                     }
                 }
@@ -115,7 +115,7 @@ namespace Engine.Bounding_Volumes
                 Vector3 otherCenter = other.GlobalCenter();
                 Vector3 centerDiff = center - otherCenter;
                 centerDiff.Normalize();
-                return new CollisionResult(true, new Plane(centerDiff, Vector3.Dot(otherCenter, centerDiff)), otherCenter);
+                return new CollisionResult(true, new Plane(centerDiff, Vector3.Dot(otherCenter, centerDiff)), new Plane(-centerDiff, Vector3.Dot(center, centerDiff)), otherCenter);
             }
             else
             {
@@ -141,6 +141,7 @@ namespace Engine.Bounding_Volumes
                 res.CollisionDetected = true;
                 res.CollisionPoint = otherCenter + (float)other.Radius * centerDiff;
                 res.CollisionPlane = new Plane(centerDiff, Vector3.Dot(res.CollisionPoint.Value, centerDiff));
+                res.CollidedPlane = res.CollisionPlane;
                 return res;
             }
             else return new CollisionResult();

@@ -12,6 +12,18 @@ namespace Engine
         private Texture2D buttonFrame;
         private SpriteFont font;
         private Color[] buttonColor;
+
+        private string title = "Holo-agent";
+        private string newGame = "New Game";
+        private string quit = "Quit";
+        private Vector2 titleSize;
+        private Vector2 newGameSize;
+        private Vector2 frame;
+        private Vector2 quitSize;
+        private Rectangle newGameFrame;
+        private Rectangle quitFrame;
+        private Point w;
+
         public GameMenu()
         {
             isButtonSelected = new bool[2];
@@ -25,6 +37,11 @@ namespace Engine
         {
             if (gameState == GameState.Menu)
             {
+                if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
+                {
+                    game.Exit();
+                    return;
+                }
                 if (!isMenu)
                     isMenu = true;
                 DetectSelection();
@@ -43,18 +60,21 @@ namespace Engine
                     isMenu = false;
             }
         }
-        public void Draw(SpriteBatch spriteBatch)
+        public void Draw(SpriteBatch spriteBatch, GraphicsDeviceManager graphics)
         {
             if (isMenu)
             {
+                Point w = new Point(graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight);
                 spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.AnisotropicWrap, DepthStencilState.Default, RasterizerState.CullNone);
                 if (font != null && buttonFrame != null)
                 {
-                    spriteBatch.DrawString(font, "Holo-agent", new Vector2(75, 15), Color.Purple, 0, Vector2.Zero, 1, SpriteEffects.None, 0);
-                    spriteBatch.Draw(buttonFrame, new Vector2(300, 200), null, buttonColor[0], 0, Vector2.Zero, new Vector2(0.4f, 0.4f), SpriteEffects.None, 0);
-                    spriteBatch.DrawString(font, "New Game", new Vector2(303, 227.5f), Color.Purple, 0, Vector2.Zero, 0.3f, SpriteEffects.None, 0);
-                    spriteBatch.Draw(buttonFrame, new Vector2(300, 350), null, buttonColor[1], 0, Vector2.Zero, new Vector2(0.4f, 0.4f), SpriteEffects.None, 0);
-                    spriteBatch.DrawString(font, "Quit", new Vector2(360, 377.5f), Color.Purple, 0, Vector2.Zero, 0.3f, SpriteEffects.None, 0);
+                    newGameFrame = new Rectangle((int)(w.X / 2 - frame.X / 2), (int)(0.5f * w.Y - frame.Y / 2), (int)frame.X, (int)frame.Y);
+                    quitFrame = new Rectangle((int)(w.X / 2 - frame.X / 2), (int)(0.7f * w.Y - frame.Y / 2), (int)frame.X, (int)frame.Y);
+                    spriteBatch.DrawString(font, title, new Vector2(w.X/2 - titleSize.X/2, 0.1f*w.Y), Color.Purple, 0, Vector2.Zero, 0.6f, SpriteEffects.None, 0);
+                    spriteBatch.Draw(buttonFrame, newGameFrame, null, buttonColor[0], 0, Vector2.Zero, SpriteEffects.None, 0);
+                    spriteBatch.DrawString(font, newGame, new Vector2(w.X/2 - newGameSize.X/2, 0.5f*w.Y - newGameSize.Y/2), Color.Purple, 0, Vector2.Zero, 0.3f, SpriteEffects.None, 0);
+                    spriteBatch.Draw(buttonFrame, quitFrame, null, buttonColor[1], 0, Vector2.Zero, SpriteEffects.None, 0);
+                    spriteBatch.DrawString(font, quit, new Vector2(w.X/2 - quitSize.X/2, 0.7f*w.Y - quitSize.Y/2), Color.Purple, 0, Vector2.Zero, 0.3f, SpriteEffects.None, 0);
                 }
                 spriteBatch.End();
             }
@@ -63,19 +83,17 @@ namespace Engine
         {
             font = content.Load<SpriteFont>("Textures/Arial");
             buttonFrame = content.Load<Texture2D>("Textures/Button_Frame");
+            titleSize = 0.6f * font.MeasureString(title);
+            newGameSize = 0.3f * font.MeasureString(newGame);
+            frame = 1.5f * newGameSize;
+            quitSize = 0.3f * font.MeasureString(quit);
         }
         private void DetectSelection()
         {
             int x = Mouse.GetState().Position.X;
             int y = Mouse.GetState().Position.Y;
-            if ((x > 300 && x < 500) && (y > 200 && y < 300))
-                isButtonSelected[0] = true;
-            else
-                isButtonSelected[0] = false;
-            if ((x > 300 && x < 500) && (y > 350 && y < 450))
-                isButtonSelected[1] = true;
-            else
-                isButtonSelected[1] = false;
+            isButtonSelected[0] = (x > newGameFrame.Left && x < newGameFrame.Right) && (y > newGameFrame.Top && y < newGameFrame.Bottom);
+            isButtonSelected[1] = (x > quitFrame.Left && x < quitFrame.Right) && (y > quitFrame.Top && y < quitFrame.Bottom);
         }
         private void DetectClick(ref GameState gameState, Game game)
         {

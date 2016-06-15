@@ -105,6 +105,7 @@ namespace Engine.Utilities
                 {
                     if (pos.Y >= VerticalBounds[i].X && pos.Y <= VerticalBounds[i].Y) break;
                 }
+                if (i == VerticalBounds.Length) i = 0;
                 Point scaledPlayerPos = new Point((int)(Scale * pos.X), (int)(Scale * pos.Z));
                 Point center = Maps[i].Bounds.Center + scaledPlayerPos;
                 Rectangle src = new Rectangle(center - halfScaledSize, scaledSize);

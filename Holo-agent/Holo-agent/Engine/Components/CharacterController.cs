@@ -61,7 +61,7 @@ namespace Engine.Components
         }
 
         public CharacterController() : 
-            this(75.0f, 0.5f, 125.0f, 1.0f, 35.0f, 0.0f)
+            this(40.0f, 0.5f, 75.0f, 1.0f, 20.0f, 0.0f)
         {
         }
 

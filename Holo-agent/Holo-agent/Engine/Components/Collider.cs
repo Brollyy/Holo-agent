@@ -1,4 +1,5 @@
 ﻿using Engine.Bounding_Volumes;
+using Engine.Utilities;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -9,7 +10,14 @@ namespace Engine.Components
         public BoundingVolume bound;
         public CollisionResult Collide(Collider other)
         {
-            if (bound == null || other == null) return new CollisionResult();
+            if (other == null) return new CollisionResult();
+            if (bound == null) this.bound = new Bounding_Volumes.BoundingBox(this, 
+                new Pair<Vector3, Vector3>(Vector3.Transform(Owner.Bound.Min, Owner.WorldToLocalMatrix), Vector3.Transform(Owner.Bound.Max, Owner.WorldToLocalMatrix)));
+            if(other.bound == null) other.bound = new Bounding_Volumes.BoundingBox(other,
+                new Pair<Vector3, Vector3>(Vector3.Transform(other.Owner.Bound.Min, other.Owner.WorldToLocalMatrix), Vector3.Transform(other.Owner.Bound.Max, other.Owner.WorldToLocalMatrix)));
+
+            if (Owner.Name == "TestBall" && other.Owner.Name == "Floor1")
+            { }
             return bound.IsOverlapping(other.bound);
         }
 

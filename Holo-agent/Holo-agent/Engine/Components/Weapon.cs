@@ -122,7 +122,7 @@ namespace Engine.Components
         }
         public GameObject getGunfireInstance()
         {
-            int index = Owner.GetChildren().FindIndex(child => child.GetComponent<SpriteInstance>() != null);
+            int index = Owner.GetChildren().FindIndex(child => child.GetInactiveComponent<SpriteInstance>() != null);
             if (index != -1)
             {
                 return Owner.GetChild(index);
