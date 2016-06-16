@@ -19,6 +19,8 @@ namespace Holo_agent
     {
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
+        RenderTarget2D renderTarget;
+        Effect postProcessingEffect;
         Texture2D crosshair;
         SpriteFont font;
         FrameCounter frameCounter;
@@ -65,6 +67,13 @@ namespace Holo_agent
             weapons = new List<GameObject>();
             gunfires = new List<GameObject>();
             weaponColliders = new List<Collider>();
+            renderTarget = new RenderTarget2D(
+                GraphicsDevice,
+                GraphicsDevice.PresentationParameters.BackBufferWidth,
+                GraphicsDevice.PresentationParameters.BackBufferHeight,
+                false,
+                GraphicsDevice.PresentationParameters.BackBufferFormat,
+                DepthFormat.Depth24);
             scene = new Scene();
             GameObject room = new GameObject("Room1", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(new Vector3(-85, -5, -425), new Vector3(325, 80, 80)));
             GameObject room1 = new GameObject("Room2", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(new Vector3(-125, -5, -5), new Vector3(-75, 45, 155)));
@@ -139,6 +148,7 @@ namespace Holo_agent
         {
             // Create a new SpriteBatch, which can be used to draw textures.
             spriteBatch = new SpriteBatch(GraphicsDevice);
+            postProcessingEffect = Content.Load<Effect>("FX/PostProcess");
             gameMenu.LoadContent(Content);
             Minimap.LoadContent(Content);
             Model columnModel = Content.Load<Model>("Models/column_001");
@@ -408,8 +418,35 @@ namespace Holo_agent
                 if (testBox != null)
                     spriteBatch.DrawString(font, "TestBox position: " + testBox.GlobalPosition.ToString() + ", velocity: " + testBox.GetComponent<Rigidbody>().Velocity.ToString(), new Vector2(50, 150), Color.DarkGreen);*/
                 spriteBatch.End();
+                //
+                Texture2D texture = DrawSceneToTexture(renderTarget, gameTime);
+
+                GraphicsDevice.Clear(Color.Black);
+
+                spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.Default, RasterizerState.CullNone);
+                postProcessingEffect.CurrentTechnique.Passes[0].Apply();
+               
+                spriteBatch.Draw(texture, new Rectangle(0, 0, 800, 600), Color.White);
+
+                spriteBatch.End();
+                //
             }
             base.Draw(gameTime);
+        }
+        protected Texture2D DrawSceneToTexture(RenderTarget2D currentRenderTarget, GameTime gameTime)
+        {
+            // Set the render target
+            GraphicsDevice.SetRenderTarget(currentRenderTarget);
+
+            // Draw the scene
+            GraphicsDevice.Clear(Color.Blue);
+
+            scene.Draw(gameTime);
+
+            // Drop the render target
+            GraphicsDevice.SetRenderTarget(null);
+            // Return the texture in the render target
+            return currentRenderTarget;
         }
     }
 }
