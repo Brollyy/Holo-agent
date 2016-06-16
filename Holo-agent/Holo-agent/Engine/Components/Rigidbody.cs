@@ -49,6 +49,19 @@ namespace Engine.Components
             velocityThreshhold = invertMass * 0.002f;
         }
 
+        public Rigidbody(Rigidbody other)
+        {
+            this.invertMass = other.invertMass;
+            velocity = other.velocity;
+            force = other.force;
+            impulseForce = other.impulseForce;
+            dragCoefficient = other.dragCoefficient;
+            velocityThreshhold = other.velocityThreshhold;
+            IsSleeping = other.IsSleeping;
+            IsGrounded = other.IsGrounded;
+            GravityEnabled = other.GravityEnabled;
+        }
+
         public override void Update(GameTime gameTime)
         {
             float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;

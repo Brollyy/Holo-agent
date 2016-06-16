@@ -371,20 +371,23 @@ namespace Engine.Components
         }
         private void RecordingButton(PressedActionArgs args)
         {
-            if (!hologramRecording && !hologramPlaying)
+            Rigidbody rig = Owner.GetComponent<Rigidbody>();
+            if (!hologramRecording && !hologramPlaying && (rig == null || rig.IsGrounded))
             {
                 GameObject hologramRecording = new GameObject("HologramRecorder", Owner.LocalPosition, 
                                                               Owner.LocalQuaternionRotation, Owner.LocalScale, Owner.Scene, Owner.Parent);
                 hologramRecording.AddComponent(new HologramRecorder(5.0f, 100, StopRecording));
-                hologramRecording.AddComponent(new Rigidbody(80));
-                hologramRecording.GetComponent<Rigidbody>().GravityEnabled = false;
+                hologramRecording.AddComponent(new Rigidbody(Owner.GetComponent<Rigidbody>()));
+                Collider holCol = hologramRecording.AddNewComponent<Collider>();
+                Bounding_Volumes.BoundingBox bound = (Owner.GetComponent<Collider>().bound as Bounding_Volumes.BoundingBox);
+                holCol.bound = new Bounding_Volumes.BoundingBox(holCol, bound.Center, new Vector3(bound.HalfLength, bound.HalfHeight, bound.HalfWidth));
                 MeshInstance mesh = Owner.GetComponent<MeshInstance>();
                 if(mesh != null) hologramRecording.AddComponent(new MeshInstance(mesh));
                 if (PlayerMesh != null)
                 {
                     Owner.AddComponent(PlayerMesh);
                     AnimationController contr = Owner.AddNewComponent<AnimationController>();
-                    contr.SetBindPose(PlayerMesh.Model.Clips[3]);
+                    contr.SetBindPose(PlayerMesh.Model.Clips[isCrouching ? 5 : 3]);
                 }
                 Stay(null);
                 player = Owner;

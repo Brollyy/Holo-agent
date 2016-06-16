@@ -60,6 +60,7 @@ namespace Engine.Components
             Input.UnbindActionRelease(GameAction.CROUCH, StopCrouching);
             Input.UnbindActionPress(GameAction.RUN, Run);
             Input.UnbindActionRelease(GameAction.RUN, StopRunning);
+            Input.UnbindActionPress(GameAction.JUMP, Jump);
         }
 
         protected override void InitializeNewOwner(GameObject newOwner)
@@ -91,6 +92,7 @@ namespace Engine.Components
             Input.BindActionRelease(GameAction.CROUCH, StopCrouching);
             Input.BindActionPress(GameAction.RUN, Run);
             Input.BindActionRelease(GameAction.RUN, StopRunning);
+            Input.BindActionPress(GameAction.JUMP, Jump);
             if (recordingTime > 0.0f) path.Duration = recordingTime;
             else path.Duration = 5.0f;
             time = 0.0f;
@@ -143,6 +145,13 @@ namespace Engine.Components
         }
 
         private void Move(PressedActionArgs args)
+        {
+            float timer = path.LocalPositions.Count * sampleTime + time;
+            path.Actions.Add(new Pair<Pair<float, float?>, Pair<GameAction, bool>>(new Pair<float, float?>(timer, null),
+                                                                                   new Pair<GameAction, bool>(args.action, false)));
+        }
+
+        private void Jump(PressedActionArgs args)
         {
             float timer = path.LocalPositions.Count * sampleTime + time;
             path.Actions.Add(new Pair<Pair<float, float?>, Pair<GameAction, bool>>(new Pair<float, float?>(timer, null),
@@ -204,7 +213,7 @@ namespace Engine.Components
                             switch (action.Second.First)
                             {
                                 case GameAction.CROUCH: SwitchMovement(true, isRunning); break;
-                                case GameAction.JUMP: break;
+                                case GameAction.JUMP: if(!isCrouching) contr.PlayAnimation("jump", 100, 0.2f); break;
                                 case GameAction.RUN: SwitchMovement(isCrouching, true); break;
                                 case GameAction.MOVE_FORWARD: contr.PlayAnimation(mov + "Forward", 1, 0.2f); break;
                                 case GameAction.MOVE_BACKWARD: contr.PlayAnimation(mov + "Backward", 1, 0.2f); break;
@@ -239,7 +248,17 @@ namespace Engine.Components
                 {
                     time += (float)gameTime.ElapsedGameTime.TotalSeconds;
                     Owner.LocalPosition = Vector3.LerpPrecise(path.LocalPositions[index], path.LocalPositions[index + 1], time / durationOfStep);
-                    Owner.LocalEulerRotation = Vector3.UnitX*MathHelper.Lerp(path.LocalRotations[index], path.LocalRotations[index + 1], time / durationOfStep);
+                    float rot1 = path.LocalRotations[index];
+                    float rot2 = path.LocalRotations[index + 1];
+                    if(Math.Abs(rot1 - rot2) > 180)
+                    {
+                        if (rot2 < 180) rot2 += 360;
+                        else rot2 -= 360;
+                    }
+                    float newRot = MathHelper.Lerp(rot1, rot2, time / durationOfStep);
+                    if (newRot > 360) newRot -= 360;
+                    if (newRot < 0) newRot += 360;
+                    Owner.LocalEulerRotation = Vector3.UnitX * newRot;
                     if (time > durationOfStep)
                     {
                         time = 0.0f;
