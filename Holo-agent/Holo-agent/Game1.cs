@@ -314,8 +314,13 @@ namespace Holo_agent
             }
             if (gameState == GameState.GameRunning)
             {
-                scene.Draw(gameTime);
-                #if DRAW_DEBUG_WIREFRAME
+                GraphicsDevice.Clear(Color.Black);
+                Texture2D texture = DrawSceneToTexture(renderTarget, gameTime);
+
+                spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.Default, RasterizerState.CullNone, postProcessingEffect);
+                spriteBatch.Draw(texture, new Rectangle(0, 0, graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight), null, Color.White, 0, Vector2.Zero, SpriteEffects.None, 0);
+                spriteBatch.End();
+#if DRAW_DEBUG_WIREFRAME
                 RasterizerState originalState = GraphicsDevice.RasterizerState;
                 RasterizerState rasterizerState = new RasterizerState();
                 rasterizerState.FillMode = FillMode.WireFrame;
@@ -335,7 +340,7 @@ namespace Holo_agent
                 graphics.GraphicsDevice.DrawUserPrimitives<VertexPosition>(PrimitiveType.LineList, line, 0, 1);
 
                 GraphicsDevice.RasterizerState = originalState;
-                #endif
+#endif
                 spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.AnisotropicWrap, DepthStencilState.Default, RasterizerState.CullNone);
                 if (player.GetComponent<PlayerController>() != null)
                 {
@@ -419,17 +424,6 @@ namespace Holo_agent
                     spriteBatch.DrawString(font, "TestBox position: " + testBox.GlobalPosition.ToString() + ", velocity: " + testBox.GetComponent<Rigidbody>().Velocity.ToString(), new Vector2(50, 150), Color.DarkGreen);*/
                 spriteBatch.End();
                 //
-                Texture2D texture = DrawSceneToTexture(renderTarget, gameTime);
-
-                GraphicsDevice.Clear(Color.Black);
-
-                spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.Default, RasterizerState.CullNone);
-                postProcessingEffect.CurrentTechnique.Passes[0].Apply();
-               
-                spriteBatch.Draw(texture, new Rectangle(0, 0, 800, 600), Color.White);
-
-                spriteBatch.End();
-                //
             }
             base.Draw(gameTime);
         }
@@ -439,7 +433,7 @@ namespace Holo_agent
             GraphicsDevice.SetRenderTarget(currentRenderTarget);
 
             // Draw the scene
-            GraphicsDevice.Clear(Color.Blue);
+            GraphicsDevice.Clear(Color.CornflowerBlue);
 
             scene.Draw(gameTime);
 
