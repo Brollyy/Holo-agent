@@ -26,17 +26,27 @@ namespace Engine.Components
                 EndDecision(DecisionOutcome.UNSUCCESSFUL);
                 return;
             }
-            GameObject target = attributes[1] as GameObject;
-            if(target == null)
+            
+            if(attributes[1] == null)
             {
                 EndDecision(DecisionOutcome.UNSUCCESSFUL);
                 return;
             }
-            Vector3 direction = (target.GlobalPosition - contr.Owner.GlobalPosition);
+
+            Vector3 target = Vector3.Zero;
+            if (attributes[1] is Vector3?)
+            {
+                target = (attributes[1] as Vector3?).Value;
+            }
+            else if(attributes[1] is GameObject)
+            {
+                target = (attributes[1] as GameObject).GlobalPosition;
+            }
+            Vector3 direction = (target - contr.Owner.GlobalPosition);
             direction.Normalize();
             Matrix rotation = Matrix.CreateFromQuaternion(contr.Owner.GlobalRotation);
             float x = Vector3.Dot(direction, rotation.Right);
-            if(Math.Abs(x) < 0.1f) EndDecision(DecisionOutcome.SUCCESSFUL);
+            if(Math.Abs(x) < 0.05f) EndDecision(DecisionOutcome.SUCCESSFUL);
             Handler(0.05f * ((direction + rotation.Forward).LengthSquared() < 0.00001f ? 1 : x), 0, gameTime);
         }
     }
@@ -77,6 +87,8 @@ namespace Engine.Components
         private float range;
         private GameTime lastSearch = new GameTime();
         private GameObject weapon;
+        private List<Vector3> patrolPoints = new List<Vector3>();
+        private int patrolIndex = 0;
 
         public bool CanAttack
         {
@@ -104,9 +116,12 @@ namespace Engine.Components
         private void MoveForward(GameTime gameTime)
         {
             if (movement == Movement.WALK) return;
-
-            movement = Movement.WALK;
-            Owner.GetComponent<AnimationController>().PlayAnimation("walk");
+            Rigidbody rigidbody = Owner.GetComponent<Rigidbody>();
+            if (rigidbody != null && rigidbody.IsGrounded)
+            {
+                movement = Movement.WALK;
+                Owner.GetComponent<AnimationController>().PlayAnimation("walk");
+            }
         }
 
         private void StopMoving(GameTime gameTime)
@@ -118,7 +133,9 @@ namespace Engine.Components
             Rigidbody rigidbody = Owner.GetComponent<Rigidbody>();
             if (rigidbody != null)
             {
-                rigidbody.AddVelocityChange(-rigidbody.Velocity);
+                Vector3 velocity = rigidbody.Velocity;
+                velocity.Y = 0;
+                rigidbody.AddVelocityChange(-velocity);
             }
         }
 
@@ -135,6 +152,23 @@ namespace Engine.Components
         private void Attack(GameTime gameTime)
         {
 
+        }
+
+        private void PickNextPatrolTarget(GameTime gameTime)
+        {
+            if(patrolPoints.Count > 0)
+            {
+                patrolIndex++;
+                if(patrolIndex == patrolPoints.Count)
+                {
+                    patrolIndex = 0;
+                }
+                attributes[1] = (Vector3?)(patrolPoints[patrolIndex]);
+            }
+            else
+            {
+                attributes[1] = null;
+            }
         }
 
         public override void DealDamage(float amount, Weapon causer)
@@ -194,7 +228,7 @@ namespace Engine.Components
         private void LookForTarget()
         {
             List<GameObject> nearbyObjects = Owner.Scene.GetNearbyObjects(Owner);
-            attributes[1] = null;
+            GameObject found = null;
             foreach (GameObject go in nearbyObjects)
             {
                 Vector3 distance = go.GlobalPosition - Owner.GlobalPosition;
@@ -205,9 +239,9 @@ namespace Engine.Components
                     if(go.Name.Equals("Player")) // Possibly temporary, but seems good
                     {
                         Ray(range, Owner.Scene.GetNearbyObjects(Owner), Vector3.Normalize(go.GlobalPosition - Owner.GlobalPosition));
-                        if (attributes[1] == null && ClosestObject == go)
+                        if (found == null && ClosestObject == go)
                         {
-                            attributes[1] = go;
+                            found = go;
                             state = EnemyState.Alert;
                         }
                     }
@@ -217,13 +251,15 @@ namespace Engine.Components
                         Ray(range, Owner.Scene.GetNearbyObjects(Owner), Vector3.Normalize(go.GlobalPosition - Owner.GlobalPosition));
                         if (ClosestObject == go)
                         {
-                            attributes[1] = go;
+                            found = go;
                             state = EnemyState.Alert;
-                            return;
+                            break;
                         }
                     }
                 }
             }
+
+            if (found != null) attributes[1] = found;
         }
 
         protected override void InitializeNewOwner(GameObject newOwner)
@@ -242,7 +278,7 @@ namespace Engine.Components
             base.InitializeNewOwner(newOwner);
         }
 
-        public EnemyController(GameObject weapon, float range = 150, float shootingRange = 200, float meleeRange = 20) : base()
+        public EnemyController(GameObject weapon, List<Vector3> patrolPoints = null, float range = 150, float shootingRange = 200, float meleeRange = 20) : base()
         {
             movement = Movement.IDLE;
             this.range = range;
@@ -252,34 +288,54 @@ namespace Engine.Components
             attributes.Add(null);   // Target
             attributes.Add(weapon);   // Weapon
 
-            // Decision tree
-            DecisionTreeNode targetNode = decisionTree.AddNode(decisionTree.root, (x => x[1] != null), null);
+            if (patrolPoints != null && patrolPoints.Count > 0)
             {
-                decisionTree.AddNode(targetNode,
-                    (x => (Matrix.CreateFromQuaternion((x[0] as EnemyController).Owner.GlobalRotation).Forward -
-                          Vector3.Normalize((x[1] as GameObject).GlobalPosition - (x[0] as EnemyController).Owner.GlobalPosition)).LengthSquared() > 0.05f),
-                    new TurnToTarget(Turn));
-                DecisionTreeNode shootingNode = decisionTree.AddNode(targetNode, (x => x[2] != null && (x[2] as GameObject).GetComponent<Weapon>() != null), null);
+                this.patrolPoints = patrolPoints;
+                attributes[1] = (Vector3?)(patrolPoints[0]);
+            }
+
+            // Decision tree
+            DecisionTreeNode startNode = decisionTree.AddNode(decisionTree.root, (x => x[1] != null), null);
+            {
+                DecisionTreeNode targetNode = decisionTree.AddNode(startNode, (x => x[1] is GameObject), null);
                 {
-                    DecisionTreeNode shootingRangeNode = decisionTree.AddNode(shootingNode,
-                        (x => ((x[0] as EnemyController).Owner.GlobalPosition - (x[1] as GameObject).GlobalPosition).Length() < shootingRange),
-                        null);
+                    decisionTree.AddNode(targetNode,
+                        (x => (Matrix.CreateFromQuaternion((x[0] as EnemyController).Owner.GlobalRotation).Forward -
+                              Vector3.Normalize((x[1] as GameObject).GlobalPosition - (x[0] as EnemyController).Owner.GlobalPosition)).LengthSquared() > 0.05f),
+                        new TurnToTarget(Turn));
+                    DecisionTreeNode shootingNode = decisionTree.AddNode(targetNode, (x => x[2] != null && (x[2] as GameObject).GetComponent<Weapon>() != null), null);
                     {
-                        decisionTree.AddNode(shootingRangeNode,
-                            (x => !(x[2] as GameObject).GetComponent<Weapon>().IsLocked), new PerformAction(Shoot));
-                        decisionTree.AddNode(shootingRangeNode,
-                            (x => ((x[0] as EnemyController).Owner.GlobalPosition - (x[1] as GameObject).GlobalPosition).Length() < range),
-                            new PerformAction(StopMoving));
+                        DecisionTreeNode shootingRangeNode = decisionTree.AddNode(shootingNode,
+                            (x => ((x[0] as EnemyController).Owner.GlobalPosition - (x[1] as GameObject).GlobalPosition).Length() < shootingRange),
+                            null);
+                        {
+                            decisionTree.AddNode(shootingRangeNode,
+                                (x => !(x[2] as GameObject).GetComponent<Weapon>().IsLocked), new PerformAction(Shoot));
+                            decisionTree.AddNode(shootingRangeNode,
+                                (x => ((x[0] as EnemyController).Owner.GlobalPosition - (x[1] as GameObject).GlobalPosition).Length() < range),
+                                new PerformAction(StopMoving));
+                        }
+                        decisionTree.AddNode(shootingNode, (x => true), new PerformAction(MoveForward));
                     }
-                    decisionTree.AddNode(shootingNode, (x => true), new PerformAction(MoveForward));
+                    DecisionTreeNode meleeNode = decisionTree.AddNode(targetNode,
+                        (x => ((x[0] as EnemyController).Owner.GlobalPosition - (x[1] as GameObject).GlobalPosition).Length() < meleeRange), null);
+                    {
+                        decisionTree.AddNode(meleeNode, (x => (x[0] as EnemyController).CanAttack), new PerformAction(Attack));
+                        decisionTree.AddNode(meleeNode, (x => true), new PerformAction(StopMoving));
+                    }
+                    decisionTree.AddNode(targetNode, (x => true), new PerformAction(MoveForward));
                 }
-                DecisionTreeNode meleeNode = decisionTree.AddNode(targetNode,
-                    (x => ((x[0] as EnemyController).Owner.GlobalPosition - (x[1] as GameObject).GlobalPosition).Length() < meleeRange), null);
+                DecisionTreeNode patrolNode = decisionTree.AddNode(startNode, (x => true), null);
                 {
-                    decisionTree.AddNode(meleeNode, (x => (x[0] as EnemyController).CanAttack), new PerformAction(Attack));
-                    decisionTree.AddNode(meleeNode, (x => true), new PerformAction(StopMoving));
+                    decisionTree.AddNode(patrolNode, 
+                        (x => ((x[0] as EnemyController).Owner.GlobalPosition - (x[1] as Vector3?).Value).Length() < meleeRange), 
+                        new PerformAction(PickNextPatrolTarget));
+                    decisionTree.AddNode(patrolNode,
+                        (x => (Matrix.CreateFromQuaternion((x[0] as EnemyController).Owner.GlobalRotation).Forward -
+                              Vector3.Normalize((x[1] as Vector3?).Value - (x[0] as EnemyController).Owner.GlobalPosition)).LengthSquared() > 0.05f), 
+                        new TurnToTarget(Turn));
+                    decisionTree.AddNode(patrolNode, (x => true), new PerformAction(MoveForward));
                 }
-                decisionTree.AddNode(targetNode, (x => true), new PerformAction(MoveForward));
             }
             decisionTree.AddNode(decisionTree.root, (x => true), new PerformAction(StopMoving));
         }

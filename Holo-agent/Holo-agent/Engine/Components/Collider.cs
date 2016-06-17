@@ -16,8 +16,6 @@ namespace Engine.Components
             if(other.bound == null) other.bound = new Bounding_Volumes.BoundingBox(other,
                 new Pair<Vector3, Vector3>(Vector3.Transform(other.Owner.Bound.Min, other.Owner.WorldToLocalMatrix), Vector3.Transform(other.Owner.Bound.Max, other.Owner.WorldToLocalMatrix)));
 
-            if (Owner.Name == "TestBall" && other.Owner.Name == "Floor1")
-            { }
             return bound.IsOverlapping(other.bound);
         }
 

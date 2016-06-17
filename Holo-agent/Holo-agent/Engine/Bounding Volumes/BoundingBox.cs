@@ -180,6 +180,7 @@ namespace Engine.Bounding_Volumes
         {
             Vector3[] cornersFirst = Corners();
             Vector3[] cornersSecond = other.Corners();
+
             // First check for trivial case.
             #region AXES_CAST_CHECK
             Vector3 min1 = cornersFirst[0], 
@@ -303,7 +304,23 @@ namespace Engine.Bounding_Volumes
                             Vector3 A = cornersFirst[ind[4 * i + k]];
                             Vector3 AB = cornersFirst[ind[4 * i + (k + 1) % 4]] - A;
                             Vector3 u = Vector3.Cross(N, AB);
-                            if(Math.Abs(Vector3.Dot(u, linePoint - A)) < 0.0001f)
+                            if(u.LengthSquared() < 0.0001f)
+                            {
+                                // Lines are parallel.
+                                if (Vector3.Cross(linePoint - A, N).LengthSquared() < 0.0001f)
+                                {
+                                    // Lines are essentially the same, so we'll take the intersection as the whole edge of the face.
+                                    inter1[k, 0] = Vector3.Dot(A - linePoint, N);
+                                    inter1[k, 1] = Vector3.Dot(AB + A - linePoint, N);
+                                }
+                                else
+                                {
+                                    // Lines do not intersect.
+                                    inter1[k, 0] = float.NaN;
+                                    inter1[k, 1] = float.NaN;
+                                }
+                            }
+                            else
                             {
                                 // Lines cross at one point.
                                 Vector3 v = Vector3.Cross(N, u);
@@ -321,37 +338,19 @@ namespace Engine.Bounding_Volumes
                                     inter1[k, 1] = float.NaN;
                                 }
                             }
-                            else
-                            {
-                                // Lines are parallel.
-                                if (Vector3.Cross(linePoint - A, N).LengthSquared() < 0.0001f) 
-                                {
-                                    // Lines are essentially the same, so we'll take the intersection as the whole edge of the face.
-                                    inter1[k, 0] = Vector3.Dot(A - linePoint, N);
-                                    inter1[k, 1] = Vector3.Dot(AB + A - linePoint, N);
-                                }
-                                else
-                                {
-                                    // Lines do not intersect.
-                                    inter1[k, 0] = float.NaN;
-                                    inter1[k, 1] = float.NaN;
-                                }
-                            }
 
                             //Edges of second face.
                             A = cornersSecond[ind[4 * j + k]];
                             AB = cornersSecond[ind[4 * j + (k + 1) % 4]] - A;
                             u = Vector3.Cross(N, AB);
-                            if (Math.Abs(Vector3.Dot(u, linePoint - A)) < 0.0001f)
+                            if (u.LengthSquared() < 0.0001f)
                             {
-                                // Lines cross at one point.
-                                Vector3 v = Vector3.Cross(N, u);
-                                float t2 = Vector3.Dot(v, linePoint - A) / Vector3.Dot(v, AB);
-                                if (t2 > -0.0001f && t2 < 1.0001f)
+                                // Lines are parallel.
+                                if (Vector3.Cross(linePoint - A, N).LengthSquared() < 0.0001f)
                                 {
-                                    v = Vector3.Cross(AB, u);
-                                    inter2[k, 0] = Vector3.Dot(v, A - linePoint) / Vector3.Dot(v, N);
-                                    inter2[k, 1] = float.NaN;
+                                    // Lines are essentially the same, so we'll take the intersection as the whole edge of the face.
+                                    inter2[k, 0] = Vector3.Dot(A - linePoint, N);
+                                    inter2[k, 1] = Vector3.Dot(AB + A - linePoint, N);
                                 }
                                 else
                                 {
@@ -362,12 +361,14 @@ namespace Engine.Bounding_Volumes
                             }
                             else
                             {
-                                // Lines are parallel.
-                                if (Vector3.Cross(linePoint - A, N).LengthSquared() < 0.0001f)
+                                // Lines cross at one point.
+                                Vector3 v = Vector3.Cross(N, u);
+                                float t2 = Vector3.Dot(v, linePoint - A) / Vector3.Dot(v, AB);
+                                if (t2 > -0.0001f && t2 < 1.0001f)
                                 {
-                                    // Lines are essentially the same, so we'll take the intersection as the whole edge of the face.
-                                    inter2[k, 0] = Vector3.Dot(A - linePoint, N);
-                                    inter2[k, 1] = Vector3.Dot(AB + A - linePoint, N);
+                                    v = Vector3.Cross(AB, u);
+                                    inter2[k, 0] = Vector3.Dot(v, A - linePoint) / Vector3.Dot(v, N);
+                                    inter2[k, 1] = float.NaN;
                                 }
                                 else
                                 {

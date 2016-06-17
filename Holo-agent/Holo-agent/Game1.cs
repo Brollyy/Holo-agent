@@ -125,7 +125,11 @@ namespace Holo_agent
             gunfires.Add(new GameObject("Pistol_Gunfire", new Vector3(0, 0.6f, -4), Quaternion.Identity, Vector3.One * 0.5f, scene, weapons[0]));
             gunfires.Add(new GameObject("MachineGun_Gunfire", new Vector3(0, 0.15f, -8.5f), Quaternion.Identity, Vector3.One, scene, weapons[1]));
             enemy = new GameObject("Enemy", new Vector3(30, 20, -150), Quaternion.Identity, Vector3.One, scene, room2);
-            enemy.AddComponent(new EnemyController(weapons[1]));
+            enemy.AddComponent(new EnemyController(weapons[1], new List<Vector3>()
+            {
+                new Vector3(-20, 20, -150), new Vector3(-20, 20, -50),
+                new Vector3(80, 20, -50), new Vector3(80, 20, -150)
+            }));
             enemy.AddComponent(new Rigidbody(80));
             Collider enemyCol = enemy.AddNewComponent<Collider>();
             enemyCol.bound = new Engine.Bounding_Volumes.BoundingBox(enemyCol, new Vector3(0, -8f, 0), new Vector3(2, 9f, 2));
