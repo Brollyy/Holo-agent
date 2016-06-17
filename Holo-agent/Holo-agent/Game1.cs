@@ -19,6 +19,9 @@ namespace Holo_agent
     {
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
+        RenderTarget2D renderTarget;
+        Effect postProcessingEffect;
+        Effect color_time;
         Texture2D crosshair;
         SpriteFont font;
         FrameCounter frameCounter;
@@ -70,6 +73,13 @@ namespace Holo_agent
             weapons = new List<GameObject>();
             gunfires = new List<GameObject>();
             weaponColliders = new List<Collider>();
+            renderTarget = new RenderTarget2D(
+                GraphicsDevice,
+                GraphicsDevice.PresentationParameters.BackBufferWidth,
+                GraphicsDevice.PresentationParameters.BackBufferHeight,
+                false,
+                GraphicsDevice.PresentationParameters.BackBufferFormat,
+                DepthFormat.Depth24);
             scene = new Scene();
             GameObject roomTemp = new GameObject("RoomTemp", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(new Vector3(-10000, -10000, -10000), new Vector3(10000, 10000, 10000)));
             GameObject room = new GameObject("Room1", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(new Vector3(105, -5, -115), new Vector3(350, 100, -55)));
@@ -172,6 +182,8 @@ namespace Holo_agent
         {
             // Create a new SpriteBatch, which can be used to draw textures.
             spriteBatch = new SpriteBatch(GraphicsDevice);
+            postProcessingEffect = Content.Load<Effect>("FX/PostProcess");
+            color_time = Content.Load<Effect>("FX/Changing_color");
             gameMenu.LoadContent(Content);
             Minimap.LoadContent(Content);
             Model columnModel = Content.Load<Model>("Models/column_001");
@@ -193,6 +205,25 @@ namespace Holo_agent
             Model playerDeathAnim = Content.Load<Model>("Models/new/HD/BONE_DEATH");
             Model playerJumpAnim = Content.Load<Model>("Models/new/HD/BONE_JUMP");
             Model playerCrouchAnim = Content.Load<Model>("Models/new/HD/BONE_CROUCH");
+            Effect shader = Content.Load<Effect>("FX/Shader1");
+            
+            
+            foreach (ModelMesh mesh in playerModel.Meshes)
+            {
+                foreach (ModelMeshPart part in mesh.MeshParts)
+                {
+                    if(part.Effect is BasicEffect)
+                    {
+                        part.Effect = shader;
+                    }
+                    else if(part.Effect is SkinnedEffect)
+                    {
+                        SkinnedEffect seffect = part.Effect as SkinnedEffect;
+                        seffect.Alpha = 0.5f;
+                    }
+                }
+
+            }
             player.GetComponent<PlayerController>().PlayerMesh = new MeshInstance(playerModel);
             AnimationClip runClip = (playerRunAnim.Tag as ModelExtra).Clips[0];
             AnimationClip walkClip = (playerWalkAnim.Tag as ModelExtra).Clips[0];
@@ -237,9 +268,11 @@ namespace Holo_agent
             particleSmokeEmitter.GetComponent<ParticleSystem>().Init();
             particleBloodEmitter.GetComponent<ParticleSystem>().Init();*/
             Model testBallModel = Content.Load<Model>("Models/TestBall");
+            
             testBall.AddComponent(new MeshInstance(testBallModel));
             Model testBoxModel = Content.Load<Model>("Models/TestBox");
-            testBox.AddComponent(new MeshInstance(testBoxModel));   
+            testBox.AddComponent(new MeshInstance(testBoxModel));
+            
         }
 
         /// <summary>
@@ -311,6 +344,7 @@ namespace Holo_agent
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Draw(GameTime gameTime)
         {
+            float special_timer = 0.0f;
             GraphicsDevice.Clear(Color.CornflowerBlue);
             if (gameState == GameState.Menu)
             {
@@ -318,8 +352,16 @@ namespace Holo_agent
             }
             if (gameState == GameState.GameRunning)
             {
-                scene.Draw(gameTime);
-                #if DRAW_DEBUG_WIREFRAME
+                
+                GraphicsDevice.Clear(Color.Black);
+                Texture2D texture = DrawSceneToTexture(renderTarget, gameTime);
+                color_time.Parameters["Timer"].SetValue(special_timer);
+                special_timer += 0.01f;
+                
+                spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.Default, RasterizerState.CullNone, color_time);
+                spriteBatch.Draw(texture, new Rectangle(0, 0, graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight), null, Color.White, 0, Vector2.Zero, SpriteEffects.None, 0);
+                spriteBatch.End();
+#if DRAW_DEBUG_WIREFRAME
                 RasterizerState originalState = GraphicsDevice.RasterizerState;
                 RasterizerState rasterizerState = new RasterizerState();
                 rasterizerState.FillMode = FillMode.WireFrame;
@@ -339,7 +381,7 @@ namespace Holo_agent
                 graphics.GraphicsDevice.DrawUserPrimitives<VertexPosition>(PrimitiveType.LineList, line, 0, 1);
 
                 GraphicsDevice.RasterizerState = originalState;
-                #endif
+#endif
                 spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.AnisotropicWrap, DepthStencilState.Default, RasterizerState.CullNone);
                 Point w = new Point(graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight);
                 if(enemy.GetComponent<EnemyController>() != null)
@@ -430,8 +472,25 @@ namespace Holo_agent
                 if (testBox != null)
                     spriteBatch.DrawString(font, "TestBox position: " + testBox.GlobalPosition.ToString() + ", velocity: " + testBox.GetComponent<Rigidbody>().Velocity.ToString(), new Vector2(50, 150), Color.DarkGreen);*/
                 spriteBatch.End();
+                //
             }
+            special_timer += 0.1f;
             base.Draw(gameTime);
+        }
+        protected Texture2D DrawSceneToTexture(RenderTarget2D currentRenderTarget, GameTime gameTime)
+        {
+            // Set the render target
+            GraphicsDevice.SetRenderTarget(currentRenderTarget);
+
+            // Draw the scene
+            GraphicsDevice.Clear(Color.CornflowerBlue);
+
+            scene.Draw(gameTime);
+
+            // Drop the render target
+            GraphicsDevice.SetRenderTarget(null);
+            // Return the texture in the render target
+            return currentRenderTarget;
         }
     }
 }
