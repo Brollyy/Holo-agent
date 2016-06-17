@@ -303,7 +303,9 @@ namespace Engine.Components
                         (x => (Matrix.CreateFromQuaternion((x[0] as EnemyController).Owner.GlobalRotation).Forward -
                               Vector3.Normalize((x[1] as GameObject).GlobalPosition - (x[0] as EnemyController).Owner.GlobalPosition)).LengthSquared() > 0.05f),
                         new TurnToTarget(Turn));
-                    DecisionTreeNode shootingNode = decisionTree.AddNode(targetNode, (x => x[2] != null && (x[2] as GameObject).GetComponent<Weapon>() != null), null);
+                    DecisionTreeNode shootingNode = decisionTree.AddNode(targetNode, 
+                        (x => x[2] != null && (x[2] as GameObject).GetComponent<Weapon>() != null && (x[2] as GameObject).GetComponent<Weapon>().getAmmo() > 0), 
+                        null);
                     {
                         DecisionTreeNode shootingRangeNode = decisionTree.AddNode(shootingNode,
                             (x => ((x[0] as EnemyController).Owner.GlobalPosition - (x[1] as GameObject).GlobalPosition).Length() < shootingRange),

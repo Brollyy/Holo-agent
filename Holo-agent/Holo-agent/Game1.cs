@@ -38,6 +38,7 @@ namespace Holo_agent
         List<Collider> weaponColliders;
         Weapon weapon;
         float /*emitterTimer,*/ objectiveTimer;
+        float special_timer = 0.0f;
         SoundEffect shot;
         Texture2D gunfireTexture;
         Texture2D floorTexture;
@@ -184,6 +185,7 @@ namespace Holo_agent
             spriteBatch = new SpriteBatch(GraphicsDevice);
             postProcessingEffect = Content.Load<Effect>("FX/PostProcess");
             color_time = Content.Load<Effect>("FX/Changing_color");
+            color_time.Parameters["Timer"].SetValue(0.0f);
             gameMenu.LoadContent(Content);
             Minimap.LoadContent(Content);
             Model columnModel = Content.Load<Model>("Models/column_001");
@@ -344,7 +346,6 @@ namespace Holo_agent
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Draw(GameTime gameTime)
         {
-            float special_timer = 0.0f;
             GraphicsDevice.Clear(Color.CornflowerBlue);
             if (gameState == GameState.Menu)
             {
@@ -355,8 +356,12 @@ namespace Holo_agent
                 
                 GraphicsDevice.Clear(Color.Black);
                 Texture2D texture = DrawSceneToTexture(renderTarget, gameTime);
-                color_time.Parameters["Timer"].SetValue(special_timer);
-                special_timer += 0.01f;
+
+                if (special_timer < 30.0f)
+                {
+                    special_timer += (float)gameTime.ElapsedGameTime.TotalSeconds;
+                    color_time.Parameters["Timer"].SetValue(special_timer / 30.0f);
+                }
                 
                 spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.Default, RasterizerState.CullNone, color_time);
                 spriteBatch.Draw(texture, new Rectangle(0, 0, graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight), null, Color.White, 0, Vector2.Zero, SpriteEffects.None, 0);
@@ -474,7 +479,6 @@ namespace Holo_agent
                 spriteBatch.End();
                 //
             }
-            special_timer += 0.1f;
             base.Draw(gameTime);
         }
         protected Texture2D DrawSceneToTexture(RenderTarget2D currentRenderTarget, GameTime gameTime)
