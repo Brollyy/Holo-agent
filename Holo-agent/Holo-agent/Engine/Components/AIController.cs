@@ -18,6 +18,8 @@ namespace Engine.Components
         /// </summary>
         public override void Update(GameTime gameTime)
         {
+            base.Update(gameTime);
+
             if(decisionTree != null) decisionTree.Update(gameTime, ref attributes);
         }
 

@@ -160,14 +160,13 @@ namespace Engine.Utilities
                     if (effect is BasicEffect)
                     {
                         BasicEffect beffect = effect as BasicEffect;
-                        beffect.World = /*boneTransforms[modelMesh.ParentBone.Index] */ owner.LocalToWorldMatrix;
+                        beffect.World = boneTransforms[modelMesh.ParentBone.Index] * owner.LocalToWorldMatrix;
                         beffect.View = camera.ViewMatrix;
                         beffect.Projection = camera.ProjectionMatrix;
                         beffect.EnableDefaultLighting();
                         beffect.PreferPerPixelLighting = true;
                     }
-
-                    if (effect is SkinnedEffect)
+                    else if (effect is SkinnedEffect)
                     {
                         SkinnedEffect seffect = effect as SkinnedEffect;
                         seffect.World = Matrix.CreateTranslation(offset) * boneTransforms[modelMesh.ParentBone.Index] * owner.LocalToWorldMatrix;
@@ -176,6 +175,12 @@ namespace Engine.Utilities
                         seffect.EnableDefaultLighting();
                         seffect.PreferPerPixelLighting = true;
                         if(skeleton != null) seffect.SetBoneTransforms(skeleton);
+                    }
+                    else
+                    {
+                        effect.Parameters["World"].SetValue(boneTransforms[modelMesh.ParentBone.Index] * owner.LocalToWorldMatrix);
+                        effect.Parameters["View"].SetValue(camera.ViewMatrix);
+                        effect.Parameters["Projection"].SetValue(camera.ProjectionMatrix);
                     }
                 }
 

@@ -148,14 +148,7 @@ namespace Engine
 
             foreach(GameObject go in objectsToRespace)
             {
-                foreach(GraphNode<Room,BoundingBox> node in roomGraph)
-                {
-                    if (node.Value.contents.Contains(go))
-                    {
-                        node.Value.contents.Remove(go);
-                        break;
-                    }
-                }
+                RemoveObject(go);
 
                 foreach (GraphNode<Room, BoundingBox> node in roomGraph)
                 {
@@ -167,24 +160,34 @@ namespace Engine
             }
             objectsToRespace.Clear();
 
-            /*foreach(GraphNode<Room, BoundingBox> node in roomGraph)
+            foreach(GraphNode<Room, BoundingBox> node in roomGraph)
             {
                 foreach(GameObject go in node.Value.contents)
                 {
                     Collider goCol = go.GetComponent<Collider>();
-                    if(goCol != null && go.GetComponent<Rigidbody>() != null)
+                    Rigidbody rig = go.GetComponent<Rigidbody>();
+                    if (goCol != null && rig != null)
                     {
+                        bool grounded = false;
                         foreach(GameObject go2 in node.Value.contents)
                         {
                             Collider go2Col = go2.GetComponent<Collider>();
-                            if(!go.Equals(go2) && go2Col != null)
+                            if(go2Col != null && !go.Equals(go2))
                             {
-                                int collision = goCol.Collide(go2Col);
-                                if(collision > 0)
+                                Bounding_Volumes.CollisionResult collision = goCol.Collide(go2Col);
+                                if(collision.CollisionDetected)
                                 {
-                                    // Temporary
-                                    Rigidbody rig = go.GetComponent<Rigidbody>();
-                                    rig.Velocity = -rig.Velocity;
+                                    float lostVel = Vector3.Dot(collision.CollisionPlane.Value.Normal, rig.Velocity);
+                                    if (lostVel < 0.0f)
+                                    {
+                                        Vector3 lostVelocity = -collision.CollisionPlane.Value.Normal * lostVel;
+                                        rig.AddVelocityChange(lostVelocity);
+                                    }
+                                    if (Vector3.Dot(collision.CollisionPlane.Value.Normal, Vector3.Up) > 0.9f)
+                                    {
+                                        rig.IsGrounded = true;
+                                        grounded = true;
+                                    }
                                 }
                             }
                         }
@@ -194,43 +197,54 @@ namespace Engine
                             foreach(GameObject go2 in neighbour.Value.contents)
                             {
                                 Collider go2Col = go2.GetComponent<Collider>();
-                                if (!go.Equals(go2) && go2Col != null)
+                                if (go2Col != null && !go.Equals(go2))
                                 {
-                                    int collision = goCol.Collide(go2Col);
-                                    if (collision > 0)
+                                    Bounding_Volumes.CollisionResult collision = goCol.Collide(go2Col);
+                                    if (collision.CollisionDetected)
                                     {
-                                        // Temporary
-                                        Rigidbody rig = go.GetComponent<Rigidbody>();
-                                        rig.Velocity = -rig.Velocity;
+                                        float lostVel = Vector3.Dot(collision.CollisionPlane.Value.Normal, rig.Velocity);
+                                        if (lostVel < 0.0f)
+                                        {
+                                            Vector3 lostVelocity = -collision.CollisionPlane.Value.Normal * lostVel;
+                                            rig.AddVelocityChange(lostVelocity);
+                                        }
+                                        if (Vector3.Dot(collision.CollisionPlane.Value.Normal, Vector3.Up) > 0.9f)
+                                        {
+                                            rig.IsGrounded = true;
+                                            grounded = true;
+                                        }
                                     }
                                 }
                             }
                         }
+
+                        if (!grounded) rig.IsGrounded = false;
                     }
                 }
-            }*/
+            }
         }
 
         public void Draw(GameTime gameTime)
         {
-            List<Room> roomsToRender = new List<Room>();
+            HashSet<GameObject> objectsToRender = new HashSet<GameObject>();
 
             foreach(GraphNode<Room,BoundingBox> node in roomGraph)
             {
                 if(node.Value.contents.Contains(activeCamera))
                 {
-                    roomsToRender.Add(node.Value);
+                    foreach(GameObject go in node.Value.contents) objectsToRender.Add(go);
+
                     foreach(GraphNode<Room,BoundingBox> neighbour in node.Neighbours)
                     {
-                        roomsToRender.Add(neighbour.Value);
+                        foreach (GameObject go in neighbour.Value.contents) objectsToRender.Add(go);
                     }
                     break;
                 }
             }
 
-            foreach (Room room in roomsToRender)
+            foreach (GameObject go in objectsToRender)
             {
-                room.go.Draw(gameTime);
+                go.Draw(gameTime);
             }
         }
 
@@ -246,26 +260,25 @@ namespace Engine
         {
             List<Room> roomsToRender = new List<Room>();
 
+            HashSet<GameObject> objectsToRender = new HashSet<GameObject>();
+
             foreach (GraphNode<Room, BoundingBox> node in roomGraph)
             {
+                objectsToRender.Add(node.Value.go);
                 if (node.Value.contents.Contains(activeCamera))
                 {
-                    roomsToRender.Add(node.Value);
+                    foreach (GameObject go in node.Value.contents) objectsToRender.Add(go);
+
                     foreach (GraphNode<Room, BoundingBox> neighbour in node.Neighbours)
                     {
-                        roomsToRender.Add(neighbour.Value);
+                        foreach (GameObject go in neighbour.Value.contents) objectsToRender.Add(go);
                     }
-                    break;
                 }
             }
 
-            foreach (Room room in roomsToRender)
+            foreach (GameObject go in objectsToRender)
             {
-                foreach (GameObject go in room.contents)
-                {
-                    Collider col = go.GetComponent<Collider>();
-                    if (col != null) col.DrawDebug(gameTime, graphicsDevice);
-                }
+                go.DrawDebug(gameTime, graphicsDevice);
             }
         }
     }

@@ -59,7 +59,7 @@ namespace Engine.Utilities
             }
             else
             {
-                throw new NotImplementedException();
+                return null;
             }
         }
 

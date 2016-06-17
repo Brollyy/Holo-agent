@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Engine.Utilities;
+using Microsoft.Xna.Framework;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -16,18 +18,84 @@ namespace Engine.Components
         protected float crouchVolume;
         protected Movement movement;
 
+        protected float? closestObjectDistance;
+        protected GameObject closestObject;
+
         public Movement Movement { get { return movement; } }
 
-        private float health = 100;
+        protected float health = 100;
+        protected float maxHealth = 100;
+        protected float regenRate = 20;
+        protected float regenCooldown = 3;
+        protected float regenTimer = 3;
 
-        public void DealDamage(float amount)
+        public GameObject ClosestObject
+        {
+            get
+            {
+                return closestObject;
+            }
+        }
+        public float? ClosestObjectDistance
+        {
+            get
+            {
+                return closestObjectDistance;
+            }
+        }
+
+        public virtual void DealDamage(float amount, Weapon causer)
         {
             health -= amount;
-            if (health <= 0) Owner.Scene.Destroy(Owner);
+            regenTimer = 0;
+            if (health <= 0) HandleDeath();
+        }
+
+        protected virtual void Ray(float maxDistance, List<GameObject> objects, Vector3 direction)
+        {
+            closestObjectDistance = null;
+            closestObject = null;
+            Raycast ray = new Raycast(Owner.GlobalPosition, direction, maxDistance);
+            foreach (GameObject go in objects)
+            {
+                if (go == Owner) continue;
+                Collider col = go.GetComponent<Collider>();
+                if (go.IsVisible && go.Name != "Level")
+                {
+                    float? distance = (col != null ? ray.Intersect(col.bound) : ray.Intersect(go.Bound));
+                    if (distance != null)
+                    {
+                        if (closestObjectDistance == null || distance < closestObjectDistance)
+                        {
+                            closestObjectDistance = distance;
+                            closestObject = go;
+                        }
+                    }
+                }
+            }
+        }
+
+        protected virtual void HandleDeath()
+        {
+            Owner.IsVisible = false;
+            Owner.Scene.Destroy(Owner);
+        }
+
+        public override void Update(GameTime gameTime)
+        {
+            if(regenTimer < regenCooldown)
+            {
+                regenTimer += (float)gameTime.ElapsedGameTime.TotalSeconds;
+            }
+            else if (health < maxHealth)
+            {
+                health += (float)gameTime.ElapsedGameTime.TotalSeconds * regenRate;
+                if (health > maxHealth) health = maxHealth;
+            }
         }
 
         public CharacterController() : 
-            this(75.0f, 0.5f, 125.0f, 1.0f, 35.0f, 0.0f)
+            this(80.0f, 0.5f, 75.0f, 1.0f, 20.0f, 0.0f)
         {
         }
 
