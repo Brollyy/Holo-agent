@@ -1,9 +1,11 @@
 ﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Audio;
 
 namespace Engine.Components
 {
     public class Weapon : Component
     {
+        private SoundEffect gunshotSound;
         private WeaponTypes weaponType;
         private int magazine, ammo, magazineCapacity, ammoCapacity;
         private bool isArmed, isLocked, gunfire, collision;
@@ -11,6 +13,7 @@ namespace Engine.Components
         private readonly Vector3 asChildPosition;
         public string info;
         float machineGunTimer = 100;
+        float timer = 0;
         const float MACHINE_GUN_TIMER = 100;
         public bool IsArmed
         {
@@ -22,6 +25,10 @@ namespace Engine.Components
             {
                 isArmed = value;
             }
+        }
+        public bool IsLocked
+        {
+            get { return isLocked; }
         }
         public bool Collision
         {
@@ -43,6 +50,11 @@ namespace Engine.Components
                 return asChildPosition;
             }
         }
+        public SoundEffect GunshotSound
+        {
+            get { return gunshotSound; }
+            set { gunshotSound = value; }
+        }
         public Weapon(WeaponTypes weaponType, int magazine, int ammo, int magazineCapacity, int ammoCapacity, float range, Vector3 asChildPosition)
         {
             this.weaponType = weaponType;
@@ -58,6 +70,7 @@ namespace Engine.Components
                 this.ammoCapacity = ammoCapacity;
             this.range = range;
             this.asChildPosition = asChildPosition;
+            this.gunshotSound = null;
             isArmed = false;
             isLocked = false;
             gunfire = false;
@@ -67,10 +80,10 @@ namespace Engine.Components
         {
             GameObject gameObject = null;
             float? distance = null;
-            if (Owner.Parent.GetComponent<PlayerController>() != null)
+            if (Owner.Parent.GetComponent<CharacterController>() != null)
             {
-                gameObject = Owner.Parent.GetComponent<PlayerController>().ClosestObject;
-                distance = Owner.Parent.GetComponent<PlayerController>().ClosestObjectDistance;
+                gameObject = Owner.Parent.GetComponent<CharacterController>().ClosestObject;
+                distance = Owner.Parent.GetComponent<CharacterController>().ClosestObjectDistance;
             }
             if (weaponType == WeaponTypes.MachineGun && magazine > 0)
             {
@@ -79,11 +92,12 @@ namespace Engine.Components
                 if (machineGunTimer < 0)
                 {
                     magazine--;
+                    if (gunshotSound != null) gunshotSound.Play();
                     gunfire = true;
                     if (gameObject != null && distance != null && distance <= 1000.0f)
                     {
                         CharacterController contr = gameObject.GetComponent<CharacterController>();
-                        if (contr != null) contr.DealDamage(15, this);
+                        if (contr != null) contr.DealDamage(10, this);
                         info = gameObject.Name + " " + distance;
                     }
                     machineGunTimer = MACHINE_GUN_TIMER;
@@ -92,11 +106,12 @@ namespace Engine.Components
             if (weaponType == WeaponTypes.Pistol && isLocked == false && magazine > 0)
             {
                 magazine--;
+                if (gunshotSound != null) gunshotSound.Play();
                 gunfire = true;
                 if (gameObject != null && distance <= 1000.0f)
                 {
                     CharacterController contr = gameObject.GetComponent<CharacterController>();
-                    if (contr != null) contr.DealDamage(40, this);
+                    if (contr != null) contr.DealDamage(20, this);
                     info = gameObject.Name + " " + distance;
                 }
                 isLocked = true;
@@ -122,6 +137,7 @@ namespace Engine.Components
         }
         public GameObject getGunfireInstance()
         {
+            if (timer <= 0) return null;
             int index = Owner.GetChildren().FindIndex(child => child.GetInactiveComponent<SpriteInstance>() != null);
             if (index != -1)
             {
@@ -155,6 +171,22 @@ namespace Engine.Components
         public void unlockWeapon()
         {
             isLocked = false;
+        }
+
+        public override void Update(GameTime gameTime)
+        {
+            base.Update(gameTime);
+
+            if(timer > 0)
+            {
+                timer -= (float)gameTime.ElapsedGameTime.TotalSeconds;
+            }
+
+            if (gunfire)
+            {
+                timer = 0.01f;
+                setGunfire(false);
+            }
         }
     }
     public enum WeaponTypes

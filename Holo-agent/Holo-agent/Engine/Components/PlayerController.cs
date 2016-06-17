@@ -23,8 +23,6 @@ namespace Engine.Components
         private Quaternion playerCameraRotation;
         private Vector3 playerCameraScale;
         private Quaternion playerRotation;
-        private float? closestObjectDistance;
-        private GameObject closestObject;
         private Color crosshairColor;
         private GameObject[] weapons;
         private bool isCrouching;
@@ -62,20 +60,6 @@ namespace Engine.Components
             return recordedPaths[index].Second;
         }
 
-        public GameObject ClosestObject
-        {
-            get
-            {
-                return closestObject;
-            }
-        }
-        public float? ClosestObjectDistance
-        {
-            get
-            {
-                return closestObjectDistance;
-            }
-        }
         public Color CrosshairColor
         {
             get
@@ -88,6 +72,12 @@ namespace Engine.Components
             get;
             set;
         }
+
+        protected override void HandleDeath()
+        {
+            
+        }
+
         public void addWeapon(GameObject weapon)
         {
             int index = Array.FindIndex(weapons, i => i == null);
@@ -297,32 +287,13 @@ namespace Engine.Components
             if (movement == Movement.RUN) movement = Movement.WALK;
         }
 
-        private void Ray(ref GameObject closestGameObject, ref float? closest, float maxDistance, List<GameObject> objects)
+        private bool canInteract()
         {
-            Raycast ray = new Raycast(Owner.GlobalPosition, Owner.LocalToWorldMatrix.Forward, maxDistance);
-            foreach (GameObject go in objects)
+            if (closestObjectDistance <= 100.0f && closestObject.GetComponent<Interaction>() != null)
             {
-                if (go == Owner) continue;
-                Collider col = go.GetComponent<Collider>();
-                if (col != null)
-                {
-                    float? distance = ray.Intersect(col.bound);
-                    if (distance != null)
-                    {
-                        if (closest == null || distance < closest)
-                        {
-                            closest = distance;
-                            closestGameObject = go;
-                        }
-                    }
-                }
+                Weapon weapon = closestObject.GetComponent<Weapon>();
+                return (weapon == null || weapon.Collision);
             }
-        }
-
-        private bool canInteract(ref GameObject closestGo, ref float? closest)
-        {
-            if (closest <= 100.0f && closestGo.GetComponent<Interaction>() != null)
-                return true;
             else
                 return false;
         }
@@ -331,7 +302,7 @@ namespace Engine.Components
             if (closestObject != null)
             {
                 Interaction interact = closestObject.GetComponent<Interaction>();
-                if (canInteract(ref closestObject, ref closestObjectDistance))
+                if (canInteract())
                     interact.Interact(Owner);
                 System.Console.WriteLine(closestObject.Name + " " + closestObjectDistance);
             }
@@ -549,15 +520,17 @@ namespace Engine.Components
                 if (recordedPaths[i].Second < 0.0f) recordedPaths[i].Second = 0.0f;
             }
 
-            closestObjectDistance = null;
-            closestObject = null;
-            Ray(ref closestObject, ref closestObjectDistance, 1000.0f, Owner.Scene.GetNearbyObjects(Owner));
-            if (canInteract(ref closestObject, ref closestObjectDistance))
+            Ray(1000.0f, Owner.Scene.GetNearbyObjects(Owner), Owner.LocalToWorldMatrix.Forward);
+
+            if (canInteract())
                 crosshairColor = Color.Lime;
+            else if (closestObject != null && closestObject.GetComponent<EnemyController>() != null)
+                crosshairColor = Color.Red;
             else
                 crosshairColor = Color.Orange;
             changeWeapon(Input.getMouseWheelState());
         }
+
         public override void Destroy()
         {
             Input.UnbindActionContinuousPress(GameAction.MOVE_FORWARD, Move);
@@ -617,8 +590,6 @@ namespace Engine.Components
             hologramRecording = false;
             hologramPlaying = false;
             player = null;
-            lastPosition = lastPosition2 = Vector3.Zero;
-            lastRotation = lastRotation2 = Quaternion.Identity;
             closestObjectDistance = null;
             closestObject = null;
             crosshairColor = Color.Orange;

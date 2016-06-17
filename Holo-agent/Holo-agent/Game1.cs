@@ -34,7 +34,7 @@ namespace Holo_agent
         List<GameObject> gunfires;
         List<Collider> weaponColliders;
         Weapon weapon;
-        float timer/*, emitterTimer*/, objectiveTimer;
+        float /*emitterTimer,*/ objectiveTimer;
         SoundEffect shot;
         Texture2D gunfireTexture;
         Texture2D floorTexture;
@@ -108,28 +108,27 @@ namespace Holo_agent
             player.AddComponent(new Rigidbody(80, 1.5f));
             Collider playerCol = player.AddNewComponent<Collider>();
             playerCol.bound = new Engine.Bounding_Volumes.BoundingBox(playerCol, new Vector3(0, -8f, 0), new Vector3(2, 9f, 2));
-            GameObject camera = new GameObject("Camera", new Vector3(0, 0, 0), Quaternion.Identity, Vector3.One, scene, player);
+            GameObject camera = new GameObject("Camera", new Vector3(0, 0, 0), Quaternion.Identity, Vector3.One, scene, player, null, false);
             Camera cameraComp = new Camera(45, graphics.GraphicsDevice.Viewport.AspectRatio, 1, 1000);
             camera.AddComponent(cameraComp);
             scene.Camera = camera;
-            enemy = new GameObject("Enemy", new Vector3(30, 20, -150), Quaternion.Identity, Vector3.One, scene, room2);
-            enemy.AddComponent(new EnemyController());
-            enemy.AddComponent(new Rigidbody(80));
-            Collider enemyCol = enemy.AddNewComponent<Collider>();
-            enemyCol.bound = new Engine.Bounding_Volumes.BoundingBox(enemyCol, new Vector3(0, -8f, 0), new Vector3(2, 9f, 2));
             weapons.Add(new GameObject("Pistol", new Vector3(20, 18, -40), Quaternion.Identity, Vector3.One, scene, room2));
-            weapons[0].AddComponent(new Weapon(WeaponTypes.Pistol, 12, 28, 12, 240, 1000, new Vector3(2.5f, -1.5f, -5.75f)));
             weaponColliders.Add(weapons[0].AddNewComponent<Collider>());
             weaponColliders[0].bound = new Engine.Bounding_Volumes.BoundingBox(weaponColliders[0], Vector3.Zero, new Vector3(0.5f, 0.75f, 2f));
             weapons[0].AddNewComponent<WeaponInteraction>();
             weapons.Add(new GameObject("MachineGun", new Vector3(40, 18, -40), Quaternion.Identity, Vector3.One, scene, room2));
-            weapons[1].AddComponent(new Weapon(WeaponTypes.MachineGun, 32, 72, 32, 640, 1000, new Vector3(3, -1.5f, -5.5f)));
             weaponColliders.Add(weapons[1].AddNewComponent<Collider>());
             weaponColliders[1].bound = new Engine.Bounding_Volumes.BoundingBox(weaponColliders[1], new Vector3(0, 0, -2f), new Vector3(0.5f, 1.5f, 2.5f));
             weapons[1].AddNewComponent<WeaponInteraction>();
+            weapons[0].AddComponent(new Weapon(WeaponTypes.Pistol, 12, 28, 12, 240, 1000, new Vector3(2.5f, -1.5f, -5.75f)));
+            weapons[1].AddComponent(new Weapon(WeaponTypes.MachineGun, 32, 72, 32, 640, 1000, new Vector3(3, -1.5f, -5.5f)));
             gunfires.Add(new GameObject("Pistol_Gunfire", new Vector3(0, 0.6f, -4), Quaternion.Identity, Vector3.One * 0.5f, scene, weapons[0]));
             gunfires.Add(new GameObject("MachineGun_Gunfire", new Vector3(0, 0.15f, -8.5f), Quaternion.Identity, Vector3.One, scene, weapons[1]));
-            timer = 1;
+            enemy = new GameObject("Enemy", new Vector3(30, 20, -150), Quaternion.Identity, Vector3.One, scene, room2);
+            enemy.AddComponent(new EnemyController(weapons[1]));
+            enemy.AddComponent(new Rigidbody(80));
+            Collider enemyCol = enemy.AddNewComponent<Collider>();
+            enemyCol.bound = new Engine.Bounding_Volumes.BoundingBox(enemyCol, new Vector3(0, -8f, 0), new Vector3(2, 9f, 2));
             //emitterTimer = 0;
             objectiveTimer = 2;
             player.GetComponent<PlayerController>().addWeapon(weapons[0]);
@@ -177,6 +176,9 @@ namespace Holo_agent
             crosshair = Content.Load<Texture2D>("Textures/Crosshair");
             font = Content.Load<SpriteFont>("Textures/Arial");
             shot = Content.Load<SoundEffect>("Sounds/Pistol");
+
+            weapons[0].GetComponent<Weapon>().GunshotSound = shot;
+            weapons[1].GetComponent<Weapon>().GunshotSound = shot;
 
             Model levelModel = Content.Load<Model>("Models/Level");
             level.AddComponent(new MeshInstance(levelModel));
@@ -273,8 +275,7 @@ namespace Holo_agent
                 frameCounter.Update(gameTime);
                 Input.Update(gameTime, graphics);
                 scene.Update(gameTime);
- 
-                timer -= (float)gameTime.ElapsedGameTime.TotalSeconds;
+
                 if (objectiveTimer > 0)
                     objectiveTimer -= (float)gameTime.ElapsedGameTime.TotalSeconds;
                 else
@@ -337,6 +338,15 @@ namespace Holo_agent
                 #endif
                 spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.AnisotropicWrap, DepthStencilState.Default, RasterizerState.CullNone);
                 Point w = new Point(graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight);
+                if(enemy.GetComponent<EnemyController>() != null)
+                {
+                    Weapon enemyWeapon = enemy.GetComponent<EnemyController>().Weapon.GetComponent<Weapon>();
+                    if(enemyWeapon != null)
+                    {
+                        GameObject gunfireInstance = enemyWeapon.getGunfireInstance();
+                        if (gunfireInstance != null) gunfireInstance.GetInactiveComponent<SpriteInstance>().Draw(gameTime);
+                    }
+                }
                 if (player.GetComponent<PlayerController>() != null)
                 {
                     if (weapon != null)
@@ -346,14 +356,8 @@ namespace Holo_agent
                         spriteBatch.DrawString(font, weaponInfo, new Vector2(w.X - 1.05f*weaponInfoSize.X, w.Y - 1.05f*weaponInfoSize.Y), Color.Red, 0, Vector2.Zero, 0.5f, SpriteEffects.None, 0);
                         /*if (weapon.info != null)
                             spriteBatch.DrawString(font, weapon.info, new Vector2(50, 60), Color.SeaGreen);*/
-                        if (weapon.getGunfire())
-                        {
-                            timer = 1;
-                            if (timer >= 0)
-                                gunfire.GetInactiveComponent<SpriteInstance>().Draw(gameTime);
-                            weapon.setGunfire(false);
-                            shot.Play();
-                        }
+                        GameObject gunfireInstance = weapon.getGunfireInstance();
+                        if(gunfireInstance != null) gunfireInstance.GetInactiveComponent<SpriteInstance>().Draw(gameTime);
                     }
                     int selectedPath = player.GetComponent<PlayerController>().SelectedPath;
                     int selectedPlaying = player.GetComponent<PlayerController>().PlayingPath;
