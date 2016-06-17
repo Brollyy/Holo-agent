@@ -9,12 +9,14 @@ namespace Engine.Bounding_Volumes
         public bool CollisionDetected;
         public Plane? CollisionPlane;
         public Vector3? CollisionPoint;
+        public Plane? CollidedPlane;
 
-        public CollisionResult(bool detect = false, Plane? plane = null, Vector3? point = null)
+        public CollisionResult(bool detect = false, Plane? plane = null, Plane? plane2 = null, Vector3? point = null)
         {
             CollisionDetected = detect;
             CollisionPlane = plane;
             CollisionPoint = point;
+            CollidedPlane = plane2;
         }
     }
 

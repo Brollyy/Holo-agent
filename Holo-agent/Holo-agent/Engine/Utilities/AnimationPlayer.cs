@@ -30,7 +30,7 @@ namespace Engine.Utilities
         /// We maintain a BoneInfo class for each bone. This class does
         /// most of the work in playing the animation.
         /// </summary>
-        private BoneInfo[] boneInfos;
+        private Dictionary<string, BoneInfo> boneInfos;
 
         /// <summary>
         /// The number of bones
@@ -64,7 +64,7 @@ namespace Engine.Utilities
                     value = Duration;
 
                 position = value;
-                foreach (BoneInfo bone in boneInfos)
+                foreach (BoneInfo bone in boneInfos.Values)
                 {
                     bone.SetPosition(position);
                 }
@@ -111,15 +111,15 @@ namespace Engine.Utilities
 
             // Create the bone information classes
             boneCnt = clip.Bones.Count;
-            boneInfos = new BoneInfo[boneCnt];
+            boneInfos = new Dictionary<string, BoneInfo>();
 
-            for(int b=0;  b<boneInfos.Length;  b++)
+            for(int b=0;  b<boneCnt;  b++)
             {
                 // Create it
-                boneInfos[b] = new BoneInfo(clip.Bones[b]);
+                boneInfos[clip.Bones[b].Name] = new BoneInfo(clip.Bones[b]);
 
                 // Assign it to a model bone
-                boneInfos[b].SetModel(model);
+                boneInfos[clip.Bones[b].Name].SetModel(model);
             }
 
             Rewind();
@@ -149,17 +149,65 @@ namespace Engine.Utilities
                 Position = 0;
         }
 
-        public static void LerpAndSet(AnimationPlayer player1, AnimationPlayer player2, float t)
+        public static void Set(AnimationPlayer player)
         {
-            foreach(BoneInfo bone1 in player1.boneInfos)
+            foreach(BoneInfo bone in player.boneInfos.Values)
             {
-                BoneInfo bone2 = Array.Find(player2.boneInfos, x => x.ModelBone.Name.Equals(bone1.ModelBone.Name));
+                Matrix m = Matrix.CreateFromQuaternion(bone.rotation) * Matrix.CreateTranslation(bone.translation);
+                bone.ModelBone.SetCompleteTransform(m);
+            }
+        }
+
+        public static AnimationPlayer LerpAndSet(AnimationPlayer player1, AnimationPlayer player2, float t)
+        {
+            AnimationPlayer player = new AnimationPlayer(player1.Clip, player1.Model);
+            foreach (string boneName in player1.boneInfos.Keys)
+            {
+                BoneInfo bone1 = player1.boneInfos[boneName];
+                BoneInfo bone2 = player2.boneInfos[boneName];
                 Vector3 translation = Vector3.Lerp(bone1.translation, bone2.translation, t);
                 Quaternion rotation = Quaternion.Slerp(bone1.rotation, bone2.rotation, t);
+
+                player.boneInfos[boneName].translation = translation;
+                player.boneInfos[boneName].rotation = rotation;
 
                 Matrix m = Matrix.CreateFromQuaternion(rotation) * Matrix.CreateTranslation(translation);
                 bone1.ModelBone.SetCompleteTransform(m);
             }
+            return player;
+        }
+
+        public static AnimationPlayer LerpAndSet(IEnumerable<Pair<AnimationPlayer,float>> players)
+        {
+            if (players.Count() == 0) return null;
+            Pair<AnimationPlayer, float> player1 = players.First();
+            AnimationPlayer player = new AnimationPlayer(player1.First.Clip, player1.First.Model);
+            foreach (string boneName in player1.First.boneInfos.Keys)
+            {
+                BoneInfo bone1 = player1.First.boneInfos[boneName];
+                Vector3 translation = bone1.translation;
+                Quaternion rotation = bone1.rotation;
+                float sumT = player1.Second;
+                float t = player1.Second;
+
+                IEnumerator<Pair<AnimationPlayer, float>> i = players.GetEnumerator();
+                while(i.MoveNext())
+                {
+                    sumT += i.Current.Second;
+                    BoneInfo bone2 = i.Current.First.boneInfos[bone1.ClipBone.Name];
+                    translation = Vector3.Lerp(bone2.translation, translation, t / sumT);
+                    rotation = Quaternion.Slerp(bone2.rotation, rotation, t / sumT);
+                    t = sumT;
+                }
+
+                player.boneInfos[boneName].translation = translation;
+                player.boneInfos[boneName].rotation = rotation;
+
+                Matrix m = Matrix.CreateFromQuaternion(rotation) * Matrix.CreateTranslation(translation);
+                bone1.ModelBone.SetCompleteTransform(m);
+            }
+
+            return player;
         }
 
         #endregion

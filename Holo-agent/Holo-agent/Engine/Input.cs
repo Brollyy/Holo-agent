@@ -33,13 +33,19 @@ namespace Engine
             bindings.Add(GameAction.RUN, new KeyboardInputSource(Keys.LeftShift));
             bindings.Add(GameAction.JUMP, new KeyboardInputSource(Keys.Space));
             bindings.Add(GameAction.CROUCH, new KeyboardInputSource(Keys.C));
-            bindings.Add(GameAction.INTERACT, new KeyboardInputSource(Keys.E));
+            bindings.Add(GameAction.INTERACT, new KeyboardInputSource(Keys.F));
             bindings.Add(GameAction.FIRE, new MouseInputSource(MouseButtons.Left));
             bindings.Add(GameAction.ZOOM, new MouseInputSource(MouseButtons.Right));
             bindings.Add(GameAction.RELOAD, new KeyboardInputSource(Keys.R));
             bindings.Add(GameAction.RECORD_HOLOGRAM, new KeyboardInputSource(Keys.Q));
-            bindings.Add(GameAction.PLAY_HOLOGRAM, new KeyboardInputSource(Keys.F));
+            bindings.Add(GameAction.PLAY_HOLOGRAM, new KeyboardInputSource(Keys.E));
             bindings.Add(GameAction.DROP_WEAPON, new KeyboardInputSource(Keys.G));
+            bindings.Add(GameAction.SELECT_FIRST_HOLOGRAM, new KeyboardInputSource(Keys.D1));
+            bindings.Add(GameAction.SELECT_SECOND_HOLOGRAM, new KeyboardInputSource(Keys.D2));
+            bindings.Add(GameAction.SELECT_THIRD_HOLOGRAM, new KeyboardInputSource(Keys.D3));
+            bindings.Add(GameAction.PREVIEW_HOLOGRAM, new KeyboardInputSource(Keys.Z));
+            bindings.Add(GameAction.GO_UP, new KeyboardInputSource(Keys.Up));
+            bindings.Add(GameAction.GO_DOWN, new KeyboardInputSource(Keys.Down));
             pressedDelegates = new Dictionary<GameAction, List<ProcessPressedAction>>();
             releasedDelegates = new Dictionary<GameAction, List<ProcessReleasedAction>>();
             pressingDelegates = new Dictionary<GameAction, List<ProcessPressingAction>>();
@@ -269,7 +275,13 @@ namespace Engine
         RELOAD,
         RECORD_HOLOGRAM,
         PLAY_HOLOGRAM,
-        DROP_WEAPON
+        DROP_WEAPON,
+        SELECT_FIRST_HOLOGRAM,
+        SELECT_SECOND_HOLOGRAM,
+        SELECT_THIRD_HOLOGRAM,
+        PREVIEW_HOLOGRAM,
+        GO_UP,
+        GO_DOWN
     }
 
     internal abstract class InputSource

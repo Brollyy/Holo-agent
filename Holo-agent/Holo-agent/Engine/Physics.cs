@@ -1,10 +1,12 @@
-﻿namespace Engine
+﻿using Microsoft.Xna.Framework;
+
+namespace Engine
 {
     public static class Physics
     {
-        private static float gravitationalAcceleration;
+        private static Vector3 gravitationalAcceleration;
         private static float meterScale;
-        public static float GravitationalAcceleration
+        public static Vector3 GravitationalAcceleration
         {
             get
             {
@@ -20,7 +22,7 @@
         }
         public static void Initialize()
         {
-            gravitationalAcceleration = -9.81f;
+            gravitationalAcceleration = new Vector3(0,-98.1f,0);
             meterScale = 10;
         }
     }

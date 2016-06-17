@@ -26,22 +26,37 @@ namespace Engine.Components
                 EndDecision(DecisionOutcome.UNSUCCESSFUL);
                 return;
             }
-            GameObject target = attributes[1] as GameObject;
-            Vector3 direction = (target.GlobalPosition - contr.Owner.GlobalPosition);
+            
+            if(attributes[1] == null)
+            {
+                EndDecision(DecisionOutcome.UNSUCCESSFUL);
+                return;
+            }
+
+            Vector3 target = Vector3.Zero;
+            if (attributes[1] is Vector3?)
+            {
+                target = (attributes[1] as Vector3?).Value;
+            }
+            else if(attributes[1] is GameObject)
+            {
+                target = (attributes[1] as GameObject).GlobalPosition;
+            }
+            Vector3 direction = (target - contr.Owner.GlobalPosition);
             direction.Normalize();
             Matrix rotation = Matrix.CreateFromQuaternion(contr.Owner.GlobalRotation);
             float x = Vector3.Dot(direction, rotation.Right);
-            if(Math.Abs(x) < 0.1f) EndDecision(DecisionOutcome.SUCCESSFUL);
-            Handler(0.05f * x, 0, gameTime);
+            if(Math.Abs(x) < 0.05f) EndDecision(DecisionOutcome.SUCCESSFUL);
+            Handler(0.05f * ((direction + rotation.Forward).LengthSquared() < 0.00001f ? 1 : x), 0, gameTime);
         }
     }
 
-    delegate void MovementHandler();
-    class PerformMovement : Decision
+    delegate void ActionHandler(GameTime gameTime);
+    class PerformAction : Decision
     {
-        private MovementHandler Handler;
+        private ActionHandler Handler;
 
-        public PerformMovement(MovementHandler handler)
+        public PerformAction(ActionHandler handler)
         {
             Handler = handler;
         }
@@ -54,14 +69,36 @@ namespace Engine.Components
                 EndDecision(DecisionOutcome.UNSUCCESSFUL);
                 return;
             }
-            Handler();
+            Handler(gameTime);
             EndDecision(DecisionOutcome.SUCCESSFUL);
         }
     }
 
+    public enum EnemyState
+    {
+        Patrolling,
+        Alert,
+        Combat
+    }
+
     public class EnemyController : AIController
     {
+        private EnemyState state = EnemyState.Patrolling;
         private float range;
+        private GameTime lastSearch = new GameTime();
+        private GameObject weapon;
+        private List<Vector3> patrolPoints = new List<Vector3>();
+        private int patrolIndex = 0;
+
+        public bool CanAttack
+        {
+            get { return false; }
+        }
+
+        public GameObject Weapon
+        {
+            get { return weapon; }
+        }
 
         private void Turn(float xMove, float yMove, GameTime gameTime)
         {
@@ -76,23 +113,97 @@ namespace Engine.Components
             Owner.LocalEulerRotation = Vector3.Lerp(Owner.LocalEulerRotation, rot, 0.75f);
         }
 
-        private void MoveForward()
+        private void MoveForward(GameTime gameTime)
         {
             if (movement == Movement.WALK) return;
-            
-            movement = Movement.WALK;
-            Owner.GetComponent<AnimationController>().Blend("run", 0.2f);
+            Rigidbody rigidbody = Owner.GetComponent<Rigidbody>();
+            if (rigidbody != null && rigidbody.IsGrounded)
+            {
+                movement = Movement.WALK;
+                Owner.GetComponent<AnimationController>().PlayAnimation("walk");
+            }
         }
 
-        private void StopMoving()
+        private void StopMoving(GameTime gameTime)
         {
             if (movement == Movement.IDLE) return;
 
             movement = Movement.IDLE;
-            Owner.GetComponent<AnimationController>().Blend("idle", 0.2f);
+            Owner.GetComponent<AnimationController>().StopAnimation("walk");
             Rigidbody rigidbody = Owner.GetComponent<Rigidbody>();
             if (rigidbody != null)
-                rigidbody.AddForce(Vector3.Zero, new Vector3(0, rigidbody.Velocity.Y, 0));
+            {
+                Vector3 velocity = rigidbody.Velocity;
+                velocity.Y = 0;
+                rigidbody.AddVelocityChange(-velocity);
+            }
+        }
+
+        private void Shoot(GameTime gameTime)
+        {
+            if (weapon != null)
+            {
+                Weapon weap = weapon.GetComponent<Weapon>();
+                Ray(1000.0f, Owner.Scene.GetNearbyObjects(Owner), Owner.LocalToWorldMatrix.Forward);
+                weap.shoot(gameTime);
+            }
+        }
+        
+        private void Attack(GameTime gameTime)
+        {
+
+        }
+
+        private void PickNextPatrolTarget(GameTime gameTime)
+        {
+            if(patrolPoints.Count > 0)
+            {
+                patrolIndex++;
+                if(patrolIndex == patrolPoints.Count)
+                {
+                    patrolIndex = 0;
+                }
+                attributes[1] = (Vector3?)(patrolPoints[patrolIndex]);
+            }
+            else
+            {
+                attributes[1] = null;
+            }
+        }
+
+        public override void DealDamage(float amount, Weapon causer)
+        {
+            base.DealDamage(amount, causer);
+
+            if (causer.Owner.Parent.Name == "Player" && attributes[1] != causer.Owner.Parent)
+            {
+                attributes[1] = causer.Owner.Parent;
+                state = EnemyState.Combat;
+                decisionTree.InterruptCurrentDecision();
+            }
+        }
+
+        protected override void HandleDeath()
+        {
+            decisionTree.InterruptCurrentDecision();
+            StopMoving(null);
+            Minimap.Enemies.Remove(Owner);
+            if (weapon != null) weapon.Destroy();
+            AnimationController contr = Owner.GetComponent<AnimationController>();
+            if(contr != null)
+            {
+                contr.StopAllAnimations(0.2f);
+                contr.PlayAnimation("death", 1, 0f);
+                contr.SetBindPose("death", 0.2f, 1);
+            }
+            List<Component> comps = Owner.GetComponents<Component>();
+            foreach(Component comp in comps)
+            {
+                if (!(comp is AnimationController) && !(comp is MeshInstance))
+                {
+                    comp.Enabled = false;
+                }
+            }
         }
 
         public override void Update(GameTime gameTime)
@@ -100,93 +211,133 @@ namespace Engine.Components
             if(movement == Movement.WALK)
             {
                 Rigidbody rigidbody = Owner.GetComponent<Rigidbody>();
-                if (rigidbody != null && rigidbody.isGrounded())
+                if (rigidbody != null && rigidbody.IsGrounded)
                 {
-                    Vector3 initialVelocity = Vector3.Transform(Vector3.Forward, Matrix.CreateRotationY(MathHelper.ToRadians(Owner.LocalEulerRotation.X))) * (float)(walkSpeed * gameTime.ElapsedGameTime.TotalSeconds);
-                    rigidbody.AddForce(Vector3.Zero, initialVelocity);
+                    rigidbody.AddForce(rigidbody.Mass * walkSpeed * Owner.LocalToWorldMatrix.Forward);
                 }
             }
-
-            
-            LookForTarget();
+            if (state != EnemyState.Combat && gameTime.TotalGameTime.Subtract(lastSearch.TotalGameTime).TotalSeconds > 0.5)
+            {
+                LookForTarget();
+                lastSearch.TotalGameTime = new TimeSpan(gameTime.TotalGameTime.Ticks);
+            }
 
             base.Update(gameTime);
-        }
-
-        private GameObject Ray(float maxDistance, List<GameObject> objects, Vector3 direction)
-        {
-            float? closest = null;
-            GameObject closestGameObject = null;
-            Raycast ray = new Raycast(Owner.GlobalPosition, direction, maxDistance);
-            foreach (GameObject go in objects)
-            {
-                if (go == Owner) continue;
-                Collider col = go.GetComponent<Collider>();
-                if (go.IsVisible)
-                {
-                    float? distance = (col != null ? ray.Intersect(col.bound) : ray.Intersect(go.Bound));
-                    if (distance != null)
-                    {
-                        if (closest == null || distance < closest)
-                        {
-                            closest = distance;
-                            closestGameObject = go;
-                        }
-                    }
-                }
-            }
-            return closestGameObject;
         }
 
         private void LookForTarget()
         {
             List<GameObject> nearbyObjects = Owner.Scene.GetNearbyObjects(Owner);
-            attributes[1] = null;
-            foreach(GameObject go in nearbyObjects)
+            GameObject found = null;
+            foreach (GameObject go in nearbyObjects)
             {
-                if(go.IsVisible && (go.GlobalPosition - Owner.GlobalPosition).LengthSquared() < range*range)
+                Vector3 distance = go.GlobalPosition - Owner.GlobalPosition;
+                if (go.IsVisible && distance.LengthSquared() < range*range)
                 {
+                    distance.Normalize();
+                    if ((distance - Owner.LocalToWorldMatrix.Forward).LengthSquared() > 1.0f) continue;
                     if(go.Name.Equals("Player")) // Possibly temporary, but seems good
                     {
-                        if (attributes[1] == null &&
-                            Ray(range, Owner.Scene.GetNearbyObjects(Owner), Vector3.Normalize(go.GlobalPosition - Owner.GlobalPosition)) == go)
+                        Ray(range, Owner.Scene.GetNearbyObjects(Owner), Vector3.Normalize(go.GlobalPosition - Owner.GlobalPosition));
+                        if (found == null && ClosestObject == go)
                         {
-                            attributes[1] = go;
+                            found = go;
+                            state = EnemyState.Alert;
                         }
                     }
 
-                    if (go.GetComponent<HologramPlayback>() != null)
+                    if (go.Name.Equals("HologramPlayback"))
                     {
-                        if (Ray(range, Owner.Scene.GetNearbyObjects(Owner), Vector3.Normalize(go.GlobalPosition - Owner.GlobalPosition)) == go)
+                        Ray(range, Owner.Scene.GetNearbyObjects(Owner), Vector3.Normalize(go.GlobalPosition - Owner.GlobalPosition));
+                        if (ClosestObject == go)
                         {
-                            attributes[1] = go;
-                            return;
+                            found = go;
+                            state = EnemyState.Alert;
+                            break;
                         }
                     }
                 }
             }
+
+            if (found != null) attributes[1] = found;
         }
 
-        public EnemyController(float range = 200) : base()
+        protected override void InitializeNewOwner(GameObject newOwner)
+        {
+            weapon.GetComponent<Weapon>().Collision = false;
+            weapon.GetComponent<Weapon>().IsArmed = true;
+            weapon.IsVisible = true;
+            if (weapon.Parent != newOwner)
+            {
+                weapon.Parent = newOwner;
+                weapon.LocalScale = Vector3.One;
+                weapon.LocalQuaternionRotation = Quaternion.Identity;
+                weapon.LocalPosition = weapon.GetComponent<Weapon>().AsChildPosition;
+            }
+
+            base.InitializeNewOwner(newOwner);
+        }
+
+        public EnemyController(GameObject weapon, List<Vector3> patrolPoints = null, float range = 150, float shootingRange = 200, float meleeRange = 20) : base()
         {
             movement = Movement.IDLE;
             this.range = range;
+            this.weapon = weapon;
 
             attributes.Add(this);   // EnemyController
-            attributes.Add(null); // Target
+            attributes.Add(null);   // Target
+            attributes.Add(weapon);   // Weapon
+
+            if (patrolPoints != null && patrolPoints.Count > 0)
+            {
+                this.patrolPoints = patrolPoints;
+                attributes[1] = (Vector3?)(patrolPoints[0]);
+            }
 
             // Decision tree
-            DecisionTreeNode targetNode = decisionTree.AddNode(decisionTree.root, (x => x[1] != null), null);
-            decisionTree.AddNode(decisionTree.root, (x => true), new PerformMovement(StopMoving));
-            decisionTree.AddNode(targetNode, 
-                (x => (Matrix.CreateFromQuaternion((x[0] as EnemyController).Owner.GlobalRotation).Forward -
-                      Vector3.Normalize((x[1] as GameObject).GlobalPosition - (x[0] as EnemyController).Owner.GlobalPosition)).LengthSquared() > 0.1f),
-                new TurnToTarget(Turn));
-            DecisionTreeNode moveNode = decisionTree.AddNode(targetNode, (x => true), null);
-            decisionTree.AddNode(moveNode, 
-                (x => ((x[0] as EnemyController).Owner.GlobalPosition - (x[1] as GameObject).GlobalPosition).Length() > 10.0f), 
-                new PerformMovement(MoveForward));
-            decisionTree.AddNode(moveNode, (x => true), new PerformMovement(StopMoving));
+            DecisionTreeNode startNode = decisionTree.AddNode(decisionTree.root, (x => x[1] != null), null);
+            {
+                DecisionTreeNode targetNode = decisionTree.AddNode(startNode, (x => x[1] is GameObject), null);
+                {
+                    decisionTree.AddNode(targetNode,
+                        (x => (Matrix.CreateFromQuaternion((x[0] as EnemyController).Owner.GlobalRotation).Forward -
+                              Vector3.Normalize((x[1] as GameObject).GlobalPosition - (x[0] as EnemyController).Owner.GlobalPosition)).LengthSquared() > 0.05f),
+                        new TurnToTarget(Turn));
+                    DecisionTreeNode shootingNode = decisionTree.AddNode(targetNode, (x => x[2] != null && (x[2] as GameObject).GetComponent<Weapon>() != null), null);
+                    {
+                        DecisionTreeNode shootingRangeNode = decisionTree.AddNode(shootingNode,
+                            (x => ((x[0] as EnemyController).Owner.GlobalPosition - (x[1] as GameObject).GlobalPosition).Length() < shootingRange),
+                            null);
+                        {
+                            decisionTree.AddNode(shootingRangeNode,
+                                (x => !(x[2] as GameObject).GetComponent<Weapon>().IsLocked), new PerformAction(Shoot));
+                            decisionTree.AddNode(shootingRangeNode,
+                                (x => ((x[0] as EnemyController).Owner.GlobalPosition - (x[1] as GameObject).GlobalPosition).Length() < range),
+                                new PerformAction(StopMoving));
+                        }
+                        decisionTree.AddNode(shootingNode, (x => true), new PerformAction(MoveForward));
+                    }
+                    DecisionTreeNode meleeNode = decisionTree.AddNode(targetNode,
+                        (x => ((x[0] as EnemyController).Owner.GlobalPosition - (x[1] as GameObject).GlobalPosition).Length() < meleeRange), null);
+                    {
+                        decisionTree.AddNode(meleeNode, (x => (x[0] as EnemyController).CanAttack), new PerformAction(Attack));
+                        decisionTree.AddNode(meleeNode, (x => true), new PerformAction(StopMoving));
+                    }
+                    decisionTree.AddNode(targetNode, (x => true), new PerformAction(MoveForward));
+                }
+                DecisionTreeNode patrolNode = decisionTree.AddNode(startNode, (x => true), null);
+                {
+                    decisionTree.AddNode(patrolNode, 
+                        (x => ((x[0] as EnemyController).Owner.GlobalPosition - (x[1] as Vector3?).Value).Length() < meleeRange), 
+                        new PerformAction(PickNextPatrolTarget));
+                    decisionTree.AddNode(patrolNode,
+                        (x => (Matrix.CreateFromQuaternion((x[0] as EnemyController).Owner.GlobalRotation).Forward -
+                              Vector3.Normalize((x[1] as Vector3?).Value - (x[0] as EnemyController).Owner.GlobalPosition)).LengthSquared() > 0.05f), 
+                        new TurnToTarget(Turn));
+                    decisionTree.AddNode(patrolNode, (x => true), new PerformAction(MoveForward));
+                }
+            }
+            decisionTree.AddNode(decisionTree.root, (x => true), new PerformAction(StopMoving));
         }
     }
 }
