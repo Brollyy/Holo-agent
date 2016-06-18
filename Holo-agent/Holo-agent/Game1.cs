@@ -32,6 +32,15 @@ namespace Holo_agent
         GameObject enemy;
         GameObject enemy2;
         GameObject gunfire;
+        GameObject bench;
+        GameObject bench1;
+        GameObject bench2;
+        GameObject bench3;
+        GameObject bench4;
+        GameObject column;
+        GameObject column1;
+        GameObject column2;
+        GameObject bench7;
         List<GameObject> propsRoom5;
         List<SpriteInstance> particles;
         GameObject particleFireEmitter, particleExplosionEmitter, particleSmokeEmitter, particleBloodEmitter;
@@ -183,6 +192,15 @@ namespace Holo_agent
             propsRoom5.Add(new GameObject("Desk5_3", new Vector3(-33, -57, 260) + deskOffset, Quaternion.Identity, Vector3.One, scene, room5));
             propsRoom5.Add(new GameObject("Couch5_1", new Vector3(-152, -60, 116) + couchOffset, Quaternion.Identity, Vector3.One, scene, room5));
             propsRoom5.Add(new GameObject("Couch5_2", new Vector3(-130, -60, 141) + Vector3.Transform(couchOffset, Matrix.CreateFromAxisAngle(Vector3.Up, -(float)Math.PI / 2)), Quaternion.CreateFromYawPitchRoll(-(float)Math.PI / 2.0f, 0, 0), Vector3.One, scene, room5));
+
+            bench = new GameObject("Bench", new Vector3(115, 0, -170), Quaternion.CreateFromAxisAngle(Vector3.UnitY, MathHelper.ToRadians(180)), Vector3.One, scene, room, new BoundingBox(new Vector3(150, 0, -200), new Vector3(190, 35, -220)));
+            bench1 = new GameObject("Bench1", new Vector3(105, 0, -255), Quaternion.CreateFromAxisAngle(Vector3.UnitY, MathHelper.ToRadians(270)), Vector3.One, scene, room, new BoundingBox(new Vector3(150, 0, -200), new Vector3(190, 35, -220)));
+            bench2 = new GameObject("Bench2", new Vector3(10, 0, -255), Quaternion.CreateFromAxisAngle(Vector3.UnitY, MathHelper.ToRadians(270)), Vector3.One, scene, room, new BoundingBox(new Vector3(150, 0, -200), new Vector3(190, 35, -220)));
+            bench3 = new GameObject("Bench3", new Vector3(105, 0, -156), Quaternion.CreateFromAxisAngle(Vector3.UnitY, MathHelper.ToRadians(90)), Vector3.One, scene, room, new BoundingBox(new Vector3(150, 0, -200), new Vector3(190, 35, -220)));
+            bench4 = new GameObject("Bench4", new Vector3(-20, 0, -156), Quaternion.CreateFromAxisAngle(Vector3.UnitY, MathHelper.ToRadians(90)), Vector3.One, scene, room, new BoundingBox(new Vector3(150, 0, -200), new Vector3(190, 35, -220)));
+            column2 = new GameObject("column2", new Vector3(35, 0, -210), Quaternion.Identity, Vector3.One, scene, room, new BoundingBox(new Vector3(150, 0, -200), new Vector3(190, 35, -220)));
+            bench7 = new GameObject("Bench7", new Vector3(-64, 0, -210), Quaternion.Identity, Vector3.One, scene, room, new BoundingBox(new Vector3(150, 0, -200), new Vector3(190, 35, -220)));
+
 
             int minimapOffset = (int)(graphics.PreferredBackBufferWidth * 0.0075f);
             int minimapSize = (int)(graphics.PreferredBackBufferWidth * 0.15f);
@@ -359,6 +377,14 @@ namespace Holo_agent
             propsRoom5[5].AddComponent(new MeshInstance(deskModel));
             propsRoom5[6].AddComponent(new MeshInstance(couchModel));
             propsRoom5[7].AddComponent(new MeshInstance(couchModel));
+
+            bench.AddComponent(new MeshInstance(couchModel));
+            bench1.AddComponent(new MeshInstance(couchModel));
+            bench2.AddComponent(new MeshInstance(couchModel));
+            bench3.AddComponent(new MeshInstance(couchModel));
+            bench4.AddComponent(new MeshInstance(couchModel));
+            column2.AddComponent(new MeshInstance(columnModel));
+            bench7.AddComponent(new MeshInstance(couchModel));
         }
 
         /// <summary>
