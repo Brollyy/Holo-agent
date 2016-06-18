@@ -297,7 +297,7 @@ namespace Engine.Components
             // Decision tree
             DecisionTreeNode startNode = decisionTree.AddNode(decisionTree.root, (x => x[1] != null), null);
             {
-                DecisionTreeNode targetNode = decisionTree.AddNode(startNode, (x => x[1] is GameObject), null);
+                DecisionTreeNode targetNode = decisionTree.AddNode(startNode, (x => x[1] is GameObject && (x[1] as GameObject).IsVisible), null);
                 {
                     decisionTree.AddNode(targetNode,
                         (x => (Matrix.CreateFromQuaternion((x[0] as EnemyController).Owner.GlobalRotation).Forward -
@@ -327,7 +327,7 @@ namespace Engine.Components
                     }
                     decisionTree.AddNode(targetNode, (x => true), new PerformAction(MoveForward));
                 }
-                DecisionTreeNode patrolNode = decisionTree.AddNode(startNode, (x => true), null);
+                DecisionTreeNode patrolNode = decisionTree.AddNode(startNode, (x => x[1] is Vector3?), null);
                 {
                     decisionTree.AddNode(patrolNode, 
                         (x => ((x[0] as EnemyController).Owner.GlobalPosition - (x[1] as Vector3?).Value).Length() < meleeRange), 

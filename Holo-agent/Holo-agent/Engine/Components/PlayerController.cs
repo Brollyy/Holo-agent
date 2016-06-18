@@ -443,6 +443,7 @@ namespace Engine.Components
 
         private void StopPlayback()
         {
+            hologramPlayback.IsVisible = false;
             this.hologramPlaying = false;
             if(HologramMesh != null) HologramMesh.Owner.RemoveComponent(PlayerMesh);
             recordedPaths[playingPath].Second = hologramCooldown;

@@ -9,6 +9,7 @@ using Engine.Utilities;
 using Microsoft.Xna.Framework.Audio;
 using Animation;
 using System.Collections.Generic;
+using System;
 
 namespace Holo_agent
 {
@@ -46,6 +47,8 @@ namespace Holo_agent
         GameMenu gameMenu;
         Vector2 objectivePosition = Vector2.UnitY * -500;
         string objectiveString = "[Some objective]";
+        private double? startTime;
+
         public Game1()
         {
             graphics = new GraphicsDeviceManager(this);
@@ -391,7 +394,7 @@ namespace Holo_agent
             }
             if (gameState == GameState.GameRunning)
             {
-                
+                if (startTime == null) startTime = gameTime.TotalGameTime.TotalSeconds;
                 GraphicsDevice.Clear(Color.Black);
                 Texture2D texture = DrawSceneToTexture(renderTarget, gameTime);
 
@@ -415,6 +418,7 @@ namespace Holo_agent
 
                 spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.AnisotropicWrap, DepthStencilState.Default, RasterizerState.CullNone);
                 Point w = new Point(graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight);
+                DrawTutorialTips(spriteBatch, font, w, Color.Orange, gameTime);
                 if(enemy.GetComponent<EnemyController>() != null)
                 {
                     Weapon enemyWeapon = enemy.GetComponent<EnemyController>().Weapon.GetComponent<Weapon>();
@@ -476,7 +480,7 @@ namespace Holo_agent
                         Interaction inter = player.GetComponent<PlayerController>().ClosestObject.GetComponent<Interaction>();
                         if (inter is DoorInteraction) message += "open the door.";
                         if (inter is WeaponInteraction) message += "pick up the gun.";
-                        spriteBatch.DrawString(font, message, new Vector2(w.X / 2 - 0.25f * font.MeasureString(message).X / 2, 0.6f*w.Y), Color.Purple, 0, Vector2.Zero, 0.25f, SpriteEffects.None, 0);
+                        spriteBatch.DrawString(font, message, new Vector2(w.X / 2 - 0.25f * font.MeasureString(message).X / 2, 0.6f*w.Y), Color.Orange, 0, Vector2.Zero, 0.25f, SpriteEffects.None, 0);
                     }
                     Minimap.Draw(ref spriteBatch);
                 }
@@ -486,7 +490,7 @@ namespace Holo_agent
                     objectivePosition = new Vector2(w.X / 2 - objectiveSize.X / 2, 0.2f*w.Y - objectiveSize.Y / 2);
                     objectiveTimer = 2;
                 }
-                spriteBatch.DrawString(font, objectiveString, objectivePosition, Color.Purple, 0, Vector2.Zero, 0.25f, SpriteEffects.None, 0);
+                spriteBatch.DrawString(font, objectiveString, objectivePosition, Color.Orange, 0, Vector2.Zero, 0.25f, SpriteEffects.None, 0);
                 /*spriteBatch.DrawString(font, frameCounter.AverageFramesPerSecond.ToString(), new Vector2(50, 45), Color.Black);
                 if (particleFireEmitter.GetComponent<ParticleSystem>().getParticlesCount() != null)
                     spriteBatch.DrawString(font, "Fire Particles: " + particleFireEmitter.GetComponent<ParticleSystem>().getParticlesCount().ToString(), new Vector2(50, 75), Color.Purple);
@@ -507,6 +511,89 @@ namespace Holo_agent
             }
             base.Draw(gameTime);
         }
+
+        private void DrawTutorialTips(SpriteBatch spriteBatch, SpriteFont font, Point w, Color color, GameTime gameTime)
+        {
+            double time = gameTime.TotalGameTime.TotalSeconds;
+            double start = startTime.Value;
+            if (time - start > 1 && time - start < 6)
+            {
+                string message = "Hold W, S, A and D to move";
+                Vector2 size = font.MeasureString(message);
+                spriteBatch.DrawString(font, message, new Vector2(w.X / 2 - 0.2f * size.X / 2, 0.85f * w.Y), color, 0, Vector2.Zero, 0.2f, SpriteEffects.None, 0);
+            }
+
+            if (time - start > 6.5 && time - start < 11.5)
+            {
+                string message = "Hold Shift to run and C to crouch";
+                Vector2 size = font.MeasureString(message);
+                spriteBatch.DrawString(font, message, new Vector2(w.X / 2 - 0.2f * size.X / 2, 0.85f * w.Y), color, 0, Vector2.Zero, 0.2f, SpriteEffects.None, 0);
+            }
+
+            if (time - start > 12 && time - start < 17)
+            {
+                string message = "Press Left Mouse Button to shoot";
+                Vector2 size = font.MeasureString(message);
+                spriteBatch.DrawString(font, message, new Vector2(w.X / 2 - 0.2f * size.X / 2, 0.85f * w.Y), color, 0, Vector2.Zero, 0.2f, SpriteEffects.None, 0);
+            }
+
+            if (time - start > 17.5 && time - start < 21.5)
+            {
+                string message = "Press R to reload your weapon";
+                Vector2 size = font.MeasureString(message);
+                spriteBatch.DrawString(font, message, new Vector2(w.X / 2 - 0.2f * size.X / 2, 0.85f * w.Y), color, 0, Vector2.Zero, 0.2f, SpriteEffects.None, 0);
+            }
+
+            if (time - start > 22 && time - start < 27)
+            {
+                string message = "Press 1, 2, 3 to select the hologram slot";
+                Vector2 size = font.MeasureString(message);
+                spriteBatch.DrawString(font, message, new Vector2(w.X / 2 - 0.2f * size.X / 2, 0.85f * w.Y), color, 0, Vector2.Zero, 0.2f, SpriteEffects.None, 0);
+            }
+
+            if (time - start > 27.5 && time - start < 30.5)
+            {
+                string message = "Press Q to record hologram into selected slot";
+                Vector2 size = font.MeasureString(message);
+                spriteBatch.DrawString(font, message, new Vector2(w.X / 2 - 0.2f * size.X / 2, 0.85f * w.Y), color, 0, Vector2.Zero, 0.2f, SpriteEffects.None, 0);
+            }
+
+            if (time - start > 31 && time - start < 34)
+            {
+                string message = "Press Q again to stop recording earlier";
+                Vector2 size = font.MeasureString(message);
+                spriteBatch.DrawString(font, message, new Vector2(w.X / 2 - 0.2f * size.X / 2, 0.85f * w.Y), color, 0, Vector2.Zero, 0.2f, SpriteEffects.None, 0);
+            }
+
+            if (time - start > 34.5 && time - start < 42.5)
+            {
+                string message = "Press Z to preview the path hologram will take";
+                Vector2 size = font.MeasureString(message);
+                spriteBatch.DrawString(font, message, new Vector2(w.X / 2 - 0.2f * size.X / 2, 0.85f * w.Y), color, 0, Vector2.Zero, 0.2f, SpriteEffects.None, 0);
+            }
+
+            if (time - start > 43 && time - start < 46)
+            {
+                string message = "Press E to start the hologram";
+                Vector2 size = font.MeasureString(message);
+                spriteBatch.DrawString(font, message, new Vector2(w.X / 2 - 0.2f * size.X / 2, 0.85f * w.Y), color, 0, Vector2.Zero, 0.2f, SpriteEffects.None, 0);
+            }
+
+            if (time - start > 46.5 && time - start < 51.5)
+            {
+                string message = "Press E again to stop the hologram";
+                Vector2 size = font.MeasureString(message);
+                spriteBatch.DrawString(font, message, new Vector2(w.X / 2 - 0.2f * size.X / 2, 0.85f * w.Y), color, 0, Vector2.Zero, 0.2f, SpriteEffects.None, 0);
+            }
+
+            if (time - start > 52 && time - start < 59)
+            {
+                string message = "Hold Tab to see your objective";
+                Vector2 size = font.MeasureString(message);
+                spriteBatch.DrawString(font, message, new Vector2(w.X / 2 - 0.2f * size.X / 2, 0.85f * w.Y), color, 0, Vector2.Zero, 0.2f, SpriteEffects.None, 0);
+            }
+        }
+
         protected Texture2D DrawSceneToTexture(RenderTarget2D currentRenderTarget, GameTime gameTime)
         {
             // Set the render target
