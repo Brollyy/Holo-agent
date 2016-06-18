@@ -187,6 +187,7 @@ namespace Holo_agent
             postProcessingEffect = Content.Load<Effect>("FX/PostProcess");
             color_time = Content.Load<Effect>("FX/Changing_color");
             color_time.Parameters["Timer"].SetValue(0.0f);
+            color_time.Parameters["Color"].SetValue(Color.White.ToVector4());
             gameMenu.LoadContent(Content);
             Minimap.LoadContent(Content);
             Model columnModel = Content.Load<Model>("Models/column_001");
