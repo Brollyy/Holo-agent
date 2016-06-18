@@ -198,7 +198,7 @@ namespace Holo_agent
             bench2 = new GameObject("Bench2", new Vector3(10, 0, -255), Quaternion.CreateFromAxisAngle(Vector3.UnitY, MathHelper.ToRadians(270)), Vector3.One, scene, room, new BoundingBox(new Vector3(150, 0, -200), new Vector3(190, 35, -220)));
             bench3 = new GameObject("Bench3", new Vector3(105, 0, -156), Quaternion.CreateFromAxisAngle(Vector3.UnitY, MathHelper.ToRadians(90)), Vector3.One, scene, room, new BoundingBox(new Vector3(150, 0, -200), new Vector3(190, 35, -220)));
             bench4 = new GameObject("Bench4", new Vector3(-20, 0, -156), Quaternion.CreateFromAxisAngle(Vector3.UnitY, MathHelper.ToRadians(90)), Vector3.One, scene, room, new BoundingBox(new Vector3(150, 0, -200), new Vector3(190, 35, -220)));
-            column2 = new GameObject("column2", new Vector3(35, 0, -210), Quaternion.Identity, Vector3.One, scene, room, new BoundingBox(new Vector3(150, 0, -200), new Vector3(190, 35, -220)));
+            column2 = new GameObject("column2", new Vector3(25, 88, -220), Quaternion.Identity, Vector3.One, scene, room);
             bench7 = new GameObject("Bench7", new Vector3(-64, 0, -210), Quaternion.Identity, Vector3.One, scene, room, new BoundingBox(new Vector3(150, 0, -200), new Vector3(190, 35, -220)));
 
 
@@ -230,7 +230,7 @@ namespace Holo_agent
             color_time.Parameters["Color"].SetValue(Color.White.ToVector4());
             gameMenu.LoadContent(Content);
             Minimap.LoadContent(Content);
-            Model columnModel = Content.Load<Model>("Models/column_001");
+            Model columnModel = Content.Load<Model>("Models/kolumna");
             floorTexture = Content.Load<Texture2D>("Textures/Ground");
             gunfireTexture = Content.Load<Texture2D>("Textures/Gunfire");
             crosshair = Content.Load<Texture2D>("Textures/Crosshair");
