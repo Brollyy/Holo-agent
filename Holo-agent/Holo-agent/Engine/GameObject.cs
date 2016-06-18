@@ -528,13 +528,13 @@ namespace Engine
             {
                 Vector3[] corners = Bound.GetCorners();
 
-                VertexPosition[] vertices = new VertexPosition[8];
+                VertexPositionColor[] vertices = new VertexPositionColor[8];
                 for (int j = 0; j < 8; ++j)
                 {
-                    vertices[j].Position = corners[j];
+                    vertices[j] = new VertexPositionColor(corners[j], Color.Red);
                 }
 
-                graphics.GraphicsDevice.DrawUserIndexedPrimitives<VertexPosition>(PrimitiveType.LineList, vertices, 0, 8, indexes, 0, 12);
+                graphics.GraphicsDevice.DrawUserIndexedPrimitives(PrimitiveType.LineList, vertices, 0, 8, indexes, 0, 12);
             }
 
             Collider col = GetComponent<Collider>();

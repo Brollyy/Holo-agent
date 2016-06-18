@@ -1,4 +1,4 @@
-﻿#define DRAW_DEBUG_WIREFRAME
+﻿//#define DRAW_DEBUG_WIREFRAME
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -83,10 +83,10 @@ namespace Holo_agent
                 DepthFormat.Depth24);
             scene = new Scene();
             GameObject roomTemp = new GameObject("RoomTemp", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(new Vector3(-10000, -10000, -10000), new Vector3(10000, 10000, 10000)));
-            GameObject room = new GameObject("Room1", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(new Vector3(105, -5, -115), new Vector3(350, 100, -55)));
-            GameObject room2 = new GameObject("Room2", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(new Vector3(-70, -5, -165), new Vector3(110, 100, -5)));
-            GameObject room3 = new GameObject("Room3", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(new Vector3(-185, -5, -10), new Vector3(10, 40, 40)));
-            GameObject room4 = new GameObject("Room4", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(new Vector3(-215, -65, -10), new Vector3(-180, 40, 40)));
+            GameObject room = new GameObject("Room1", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(new Vector3(175, -5, -230), new Vector3(400, 100, 100)));
+            GameObject room2 = new GameObject("Room2", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(new Vector3(-170, -5, -315), new Vector3(190, 100, -5)));
+            GameObject room3 = new GameObject("Room3", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(new Vector3(-185, -5, -65), new Vector3(10, 40, 40)));
+            GameObject room4 = new GameObject("Room4", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(new Vector3(-265, -65, -10), new Vector3(-180, 40, 40)));
             GameObject room5 = new GameObject("Room5", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(new Vector3(-300, -65, 35), new Vector3(-180, -25, 230)));
             GameObject room6 = new GameObject("Room6", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(new Vector3(-178, -65, 100), new Vector3(5, -25, 300)));
             GameObject room7 = new GameObject("Room7", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(new Vector3(-3, -170, 170), new Vector3(40, -25, 215)));
@@ -112,11 +112,12 @@ namespace Holo_agent
             scene.AddRoomConnection(room12, room13, new BoundingBox());
             scene.AddRoomConnection(room13, room10, new BoundingBox());
 
-            (new GameObject("Floor1", new Vector3(20, -5f, -85), Quaternion.Identity, Vector3.One, scene, room2, new BoundingBox(new Vector3(-50, -5f, -80), new Vector3(50, 5f, 80)))).AddNewComponent<Collider>();
+            (new GameObject("Floor1", new Vector3(10, -5f, -160), Quaternion.Identity, Vector3.One, scene, room2, new BoundingBox(new Vector3(-180, -5f, -155), new Vector3(180, 4f, 155)))).AddNewComponent<Collider>();
 
             player = new GameObject("Player", new Vector3(30, 20, -25), Quaternion.Identity, Vector3.One, scene, room2);
             player.AddNewComponent<PlayerController>();
             player.AddComponent(new Rigidbody(80, 1.5f));
+            player.GetComponent<Rigidbody>().GravityEnabled = false;
             Collider playerCol = player.AddNewComponent<Collider>();
             playerCol.bound = new Engine.Bounding_Volumes.BoundingBox(playerCol, new Vector3(0, -8f, 0), new Vector3(2, 9f, 2));
             GameObject camera = new GameObject("Camera", new Vector3(0, 0, 0), Quaternion.Identity, Vector3.One, scene, player, null, false);
@@ -202,21 +203,22 @@ namespace Holo_agent
             level.AddComponent(new MeshInstance(levelModel));
 
             Model playerModel = Content.Load<Model>("Models/new/HD/BONE_2");
+            Model playerPreviewModel = Content.Load<Model>("Models/new/HD/BONE_2_PREVIEW");
+            Model playerHologramModel = Content.Load<Model>("Models/new/HD/BONE_2_HOLOGRAM");
             Model playerRunAnim = Content.Load<Model>("Models/new/HD/BONE_RUN_2");
             Model playerWalkAnim = Content.Load<Model>("Models/new/HD/BONE_WALK");
             Model playerDeathAnim = Content.Load<Model>("Models/new/HD/BONE_DEATH");
             Model playerJumpAnim = Content.Load<Model>("Models/new/HD/BONE_JUMP");
             Model playerCrouchAnim = Content.Load<Model>("Models/new/HD/BONE_CROUCH");
-            Effect shader = Content.Load<Effect>("FX/Shader1");
             
             
-            foreach (ModelMesh mesh in playerModel.Meshes)
+            foreach (ModelMesh mesh in playerHologramModel.Meshes)
             {
                 foreach (ModelMeshPart part in mesh.MeshParts)
                 {
                     if(part.Effect is BasicEffect)
                     {
-                        part.Effect = shader;
+                        (part.Effect as BasicEffect).Alpha = 0.5f;
                     }
                     else if(part.Effect is SkinnedEffect)
                     {
@@ -224,9 +226,27 @@ namespace Holo_agent
                         seffect.Alpha = 0.5f;
                     }
                 }
-
             }
+
+            foreach (ModelMesh mesh in playerPreviewModel.Meshes)
+            {
+                foreach (ModelMeshPart part in mesh.MeshParts)
+                {
+                    if (part.Effect is BasicEffect)
+                    {
+                        (part.Effect as BasicEffect).Alpha = 0.1f;
+                    }
+                    else if (part.Effect is SkinnedEffect)
+                    {
+                        SkinnedEffect seffect = part.Effect as SkinnedEffect;
+                        seffect.Alpha = 0.1f;
+                    }
+                }
+            }
+
             player.GetComponent<PlayerController>().PlayerMesh = new MeshInstance(playerModel);
+            player.GetComponent<PlayerController>().HologramMesh = new MeshInstance(playerHologramModel);
+            player.GetComponent<PlayerController>().PreviewMesh = new MeshInstance(playerPreviewModel);
             AnimationClip runClip = (playerRunAnim.Tag as ModelExtra).Clips[0];
             AnimationClip walkClip = (playerWalkAnim.Tag as ModelExtra).Clips[0];
             AnimationClip deathClip = (playerDeathAnim.Tag as ModelExtra).Clips[0];
@@ -238,6 +258,18 @@ namespace Holo_agent
             player.GetComponent<PlayerController>().PlayerMesh.Model.Clips.Add(jumpClip);
             player.GetComponent<PlayerController>().PlayerMesh.Model.Clips.Add(crouchClip);
             player.GetComponent<PlayerController>().PlayerMesh.Offset = new Vector3(0, -17, 0);
+            player.GetComponent<PlayerController>().HologramMesh.Model.Clips.Add(runClip);
+            player.GetComponent<PlayerController>().HologramMesh.Model.Clips.Add(walkClip);
+            player.GetComponent<PlayerController>().HologramMesh.Model.Clips.Add(deathClip);
+            player.GetComponent<PlayerController>().HologramMesh.Model.Clips.Add(jumpClip);
+            player.GetComponent<PlayerController>().HologramMesh.Model.Clips.Add(crouchClip);
+            player.GetComponent<PlayerController>().HologramMesh.Offset = new Vector3(0, -17, 0);
+            player.GetComponent<PlayerController>().PreviewMesh.Model.Clips.Add(runClip);
+            player.GetComponent<PlayerController>().PreviewMesh.Model.Clips.Add(walkClip);
+            player.GetComponent<PlayerController>().PreviewMesh.Model.Clips.Add(deathClip);
+            player.GetComponent<PlayerController>().PreviewMesh.Model.Clips.Add(jumpClip);
+            player.GetComponent<PlayerController>().PreviewMesh.Model.Clips.Add(crouchClip);
+            player.GetComponent<PlayerController>().PreviewMesh.Offset = new Vector3(0, -17, 0);
             enemy.AddComponent(new MeshInstance(playerModel));
             enemy.GetComponent<MeshInstance>().Offset = new Vector3(0, -17, 0);
             enemy.AddNewComponent<AnimationController>();
@@ -357,36 +389,24 @@ namespace Holo_agent
                 GraphicsDevice.Clear(Color.Black);
                 Texture2D texture = DrawSceneToTexture(renderTarget, gameTime);
 
-                if (special_timer < 30.0f)
+                if (player.GetComponent<PlayerController>() == null)
                 {
-                    special_timer += (float)gameTime.ElapsedGameTime.TotalSeconds;
-                    color_time.Parameters["Timer"].SetValue(special_timer / 30.0f);
+                    if (special_timer < 5.0f)
+                    {
+                        special_timer += (float)gameTime.ElapsedGameTime.TotalSeconds;
+                        color_time.Parameters["Timer"].SetValue(special_timer / 5.0f);
+                    }
                 }
-                
+                else if (special_timer > 0.0f)
+                {
+                    special_timer = 0.0f;
+                    color_time.Parameters["Timer"].SetValue(0.0f);
+                }
+
                 spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.Default, RasterizerState.CullNone, color_time);
                 spriteBatch.Draw(texture, new Rectangle(0, 0, graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight), null, Color.White, 0, Vector2.Zero, SpriteEffects.None, 0);
                 spriteBatch.End();
-#if DRAW_DEBUG_WIREFRAME
-                RasterizerState originalState = GraphicsDevice.RasterizerState;
-                RasterizerState rasterizerState = new RasterizerState();
-                rasterizerState.FillMode = FillMode.WireFrame;
-                GraphicsDevice.RasterizerState = rasterizerState;
-                BasicEffect effect = new BasicEffect(graphics.GraphicsDevice);
-                effect.World = Matrix.Identity;
-                effect.View = scene.Camera.GetComponent<Camera>().ViewMatrix;
-                effect.Projection = scene.Camera.GetComponent<Camera>().ProjectionMatrix;
-                effect.CurrentTechnique.Passes[0].Apply();
 
-                scene.DrawDebug(gameTime, graphics);
-
-                //Ray
-                VertexPosition[] line = new VertexPosition[2];
-                line[0].Position = player.GlobalPosition - new Vector3(0, 1, 0);
-                line[1].Position = line[0].Position + player.LocalToWorldMatrix.Forward * 100.0f;
-                graphics.GraphicsDevice.DrawUserPrimitives<VertexPosition>(PrimitiveType.LineList, line, 0, 1);
-
-                GraphicsDevice.RasterizerState = originalState;
-#endif
                 spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.AnisotropicWrap, DepthStencilState.Default, RasterizerState.CullNone);
                 Point w = new Point(graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight);
                 if(enemy.GetComponent<EnemyController>() != null)
@@ -490,6 +510,29 @@ namespace Holo_agent
             GraphicsDevice.Clear(Color.CornflowerBlue);
 
             scene.Draw(gameTime);
+
+#if DRAW_DEBUG_WIREFRAME
+            RasterizerState originalState = GraphicsDevice.RasterizerState;
+            RasterizerState rasterizerState = new RasterizerState();
+            rasterizerState.FillMode = FillMode.WireFrame;
+            GraphicsDevice.RasterizerState = rasterizerState;
+            BasicEffect effect = new BasicEffect(graphics.GraphicsDevice);
+            effect.TextureEnabled = false;
+            effect.World = Matrix.Identity;
+            effect.View = scene.Camera.GetComponent<Camera>().ViewMatrix;
+            effect.Projection = scene.Camera.GetComponent<Camera>().ProjectionMatrix;
+            effect.CurrentTechnique.Passes[0].Apply();
+
+            scene.DrawDebug(gameTime, graphics);
+
+            //Ray
+            VertexPosition[] line = new VertexPosition[2];
+            line[0].Position = player.GlobalPosition - new Vector3(0, 1, 0);
+            line[1].Position = line[0].Position + player.LocalToWorldMatrix.Forward * 100.0f;
+            graphics.GraphicsDevice.DrawUserPrimitives<VertexPosition>(PrimitiveType.LineList, line, 0, 1);
+
+            GraphicsDevice.RasterizerState = originalState;
+#endif
 
             // Drop the render target
             GraphicsDevice.SetRenderTarget(null);

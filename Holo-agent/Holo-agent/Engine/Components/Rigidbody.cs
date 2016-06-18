@@ -67,7 +67,7 @@ namespace Engine.Components
             float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
             if (!IsSleeping)
             {
-                if (IsGrounded) velocity *= (1 - groundDrag);
+                if (IsGrounded || !GravityEnabled) velocity *= (1 - groundDrag);
                 velocity += ((force + 
                              impulseForce / deltaTime -
                              (velocity.LengthSquared() > 0.00001f ? velocity.LengthSquared() * dragCoefficient * Vector3.Normalize(velocity) : Vector3.Zero)) * invertMass +
