@@ -117,7 +117,7 @@ namespace Engine.Components
         {
             if (movement == Movement.RUN) return;
             Rigidbody rigidbody = Owner.GetComponent<Rigidbody>();
-            if (rigidbody != null && rigidbody.IsGrounded)
+            if (rigidbody != null && (rigidbody.IsGrounded || !rigidbody.GravityEnabled))
             {
                 movement = Movement.RUN;
                 Owner.GetComponent<AnimationController>().PlayAnimation("run");
@@ -217,7 +217,7 @@ namespace Engine.Components
             if(movement == Movement.RUN)
             {
                 Rigidbody rigidbody = Owner.GetComponent<Rigidbody>();
-                if (rigidbody != null && rigidbody.IsGrounded)
+                if (rigidbody != null && (rigidbody.IsGrounded || !rigidbody.GravityEnabled))
                 {
                     rigidbody.AddForce(rigidbody.Mass * runSpeed * Owner.LocalToWorldMatrix.Forward);
                 }
@@ -238,10 +238,10 @@ namespace Engine.Components
             foreach (GameObject go in nearbyObjects)
             {
                 Vector3 distance = go.GlobalPosition - Owner.GlobalPosition;
-                if (go.IsVisible && distance.LengthSquared() < range*range)
+                if (go.IsVisible && distance.LengthSquared() < 2.25f*range*range)
                 {
                     distance.Normalize();
-                    if ((distance - Owner.LocalToWorldMatrix.Forward).LengthSquared() > 1.0f) continue;
+                    if (distance.LengthSquared() > 0.25f * range * range && (distance - Owner.LocalToWorldMatrix.Forward).LengthSquared() > 1.0f) continue;
                     if(go.Name.Equals("Player")) // Possibly temporary, but seems good
                     {
                         Ray(range, Owner.Scene.GetNearbyObjects(Owner), Vector3.Normalize(go.GlobalPosition - Owner.GlobalPosition));
