@@ -753,9 +753,9 @@
 /processorParam:PremultiplyVertexColors=True
 /processorParam:ResizeTexturesToPowerOfTwo=False
 /processorParam:RotationX=0
-/processorParam:RotationY=0
+/processorParam:RotationY=180
 /processorParam:RotationZ=0
-/processorParam:Scale=1
+/processorParam:Scale=0.005
 /processorParam:SwapWindingOrder=False
 /processorParam:TextureFormat=DxtCompressed
 /build:Models/cop/cop_idle.FBX
@@ -772,9 +772,9 @@
 /processorParam:PremultiplyVertexColors=True
 /processorParam:ResizeTexturesToPowerOfTwo=False
 /processorParam:RotationX=0
-/processorParam:RotationY=0
+/processorParam:RotationY=180
 /processorParam:RotationZ=0
-/processorParam:Scale=1
+/processorParam:Scale=0.005
 /processorParam:SwapWindingOrder=False
 /processorParam:TextureFormat=DxtCompressed
 /build:Models/cop/cop_run.FBX
@@ -791,9 +791,9 @@
 /processorParam:PremultiplyVertexColors=True
 /processorParam:ResizeTexturesToPowerOfTwo=False
 /processorParam:RotationX=0
-/processorParam:RotationY=0
+/processorParam:RotationY=180
 /processorParam:RotationZ=0
-/processorParam:Scale=1
+/processorParam:Scale=0.005
 /processorParam:SwapWindingOrder=False
 /processorParam:TextureFormat=DxtCompressed
 /build:Models/cop/cop_t_pose.FBX

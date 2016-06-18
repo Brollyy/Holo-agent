@@ -326,7 +326,7 @@ namespace Engine.Components
             if (hologramRecording) return;
             Weapon weapon = getWeapon();
             if (weapon == null) return;
-            weapon.shoot(args.gameTime);
+            weapon.shoot();
         }
 
         private void UnlockFire(ReleasedActionArgs args)

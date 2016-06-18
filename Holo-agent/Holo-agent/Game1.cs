@@ -270,12 +270,17 @@ namespace Holo_agent
             player.GetComponent<PlayerController>().PreviewMesh.Model.Clips.Add(jumpClip);
             player.GetComponent<PlayerController>().PreviewMesh.Model.Clips.Add(crouchClip);
             player.GetComponent<PlayerController>().PreviewMesh.Offset = new Vector3(0, -17, 0);
-            enemy.AddComponent(new MeshInstance(playerModel));
+
+            Model enemyModel = Content.Load<Model>("Models/cop/cop_t_pose");
+            Model enemyRunAnim = Content.Load<Model>("Models/cop/cop_run");
+            AnimationClip enemyRunClip = (enemyRunAnim.Tag as ModelExtra).Clips[0];
+
+            enemy.AddComponent(new MeshInstance(enemyModel));
             enemy.GetComponent<MeshInstance>().Offset = new Vector3(0, -17, 0);
             enemy.AddNewComponent<AnimationController>();
-            enemy.GetComponent<AnimationController>().SetBindPose(deathClip);
-            enemy.GetComponent<AnimationController>().BindAnimation("walk", walkClip, true);
-            enemy.GetComponent<AnimationController>().BindAnimation("death", deathClip, false);
+            enemy.GetComponent<AnimationController>().SetBindPose(enemyRunClip);
+            enemy.GetComponent<AnimationController>().BindAnimation("walk", enemyRunClip, true);
+            enemy.GetComponent<AnimationController>().BindAnimation("death", null, false);
             Model doorModel = Content.Load<Model>("Models/door_001");
             Model pistolModel = Content.Load<Model>("Models/Pistol");
             weapons[0].AddComponent(new MeshInstance(pistolModel));

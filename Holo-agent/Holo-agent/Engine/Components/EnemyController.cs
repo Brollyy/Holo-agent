@@ -145,7 +145,7 @@ namespace Engine.Components
             {
                 Weapon weap = weapon.GetComponent<Weapon>();
                 Ray(1000.0f, Owner.Scene.GetNearbyObjects(Owner), Owner.LocalToWorldMatrix.Forward);
-                weap.shoot(gameTime);
+                weap.shoot();
             }
         }
         
