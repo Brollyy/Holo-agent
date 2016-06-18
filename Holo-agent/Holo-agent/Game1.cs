@@ -1,4 +1,4 @@
-﻿//#define DRAW_DEBUG_WIREFRAME
+﻿#define DRAW_DEBUG_WIREFRAME
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -115,7 +115,7 @@ namespace Holo_agent
             scene.AddRoomConnection(room12, room13, new BoundingBox());
             scene.AddRoomConnection(room13, room10, new BoundingBox());
 
-            (new GameObject("Floor1", new Vector3(10, -5f, -160), Quaternion.Identity, Vector3.One, scene, room2, new BoundingBox(new Vector3(-180, -5f, -155), new Vector3(180, 4f, 155)))).AddNewComponent<Collider>();
+            (new GameObject("Floor1", new Vector3(10, -5f, -160), Quaternion.Identity, Vector3.One, scene, room2, new BoundingBox(new Vector3(-180, -5f, -155), new Vector3(180, 6f, 155)))).AddNewComponent<Collider>();
 
             player = new GameObject("Player", new Vector3(30, 20, -25), Quaternion.Identity, Vector3.One, scene, room2);
             player.AddNewComponent<PlayerController>();
@@ -127,7 +127,7 @@ namespace Holo_agent
             Camera cameraComp = new Camera(45, graphics.GraphicsDevice.Viewport.AspectRatio, 1, 1000);
             camera.AddComponent(cameraComp);
             scene.Camera = camera;
-            weapons.Add(new GameObject("Pistol", new Vector3(20, 18, -40), Quaternion.Identity, Vector3.One, scene, room2));
+            weapons.Add(new GameObject("Pistol", new Vector3(20, 18, -40), Quaternion.Identity, 0.5f*Vector3.One, scene, room2));
             weaponColliders.Add(weapons[0].AddNewComponent<Collider>());
             weaponColliders[0].bound = new Engine.Bounding_Volumes.BoundingBox(weaponColliders[0], Vector3.Zero, new Vector3(0.5f, 0.75f, 2f));
             weapons[0].AddNewComponent<WeaponInteraction>();
@@ -136,7 +136,7 @@ namespace Holo_agent
             weaponColliders[1].bound = new Engine.Bounding_Volumes.BoundingBox(weaponColliders[1], new Vector3(0, 0, -2f), new Vector3(0.5f, 1.5f, 2.5f));
             weapons[1].AddNewComponent<WeaponInteraction>();
             weapons[0].AddComponent(new Weapon(WeaponTypes.Pistol, 12, 28, 12, 240, 1000, new Vector3(2.5f, -1.5f, -5.75f)));
-            weapons[1].AddComponent(new Weapon(WeaponTypes.MachineGun, 32, 72, 32, 640, 1000, new Vector3(3, -1.5f, -5.5f)));
+            weapons[1].AddComponent(new Weapon(WeaponTypes.MachineGun, 32, 72, 32, 640, 1000, new Vector3(2f, -1.5f, -5.5f)));
             gunfires.Add(new GameObject("Pistol_Gunfire", new Vector3(0, 0.6f, -4), Quaternion.Identity, Vector3.One * 0.5f, scene, weapons[0]));
             gunfires.Add(new GameObject("MachineGun_Gunfire", new Vector3(0, 0.15f, -8.5f), Quaternion.Identity, Vector3.One, scene, weapons[1]));
             enemy = new GameObject("Enemy", new Vector3(30, 20, -150), Quaternion.Identity, Vector3.One, scene, room2);
@@ -277,14 +277,21 @@ namespace Holo_agent
 
             Model enemyModel = Content.Load<Model>("Models/cop/cop_t_pose");
             Model enemyRunAnim = Content.Load<Model>("Models/cop/cop_run");
+            Model enemyDeathAnim = Content.Load<Model>("Models/cop/cop_death");
+            Model enemyShootAnim = Content.Load<Model>("Models/cop/cop_shoot");
+            Model enemyHitAnim = Content.Load<Model>("Models/cop/cop_hit");
             AnimationClip enemyRunClip = (enemyRunAnim.Tag as ModelExtra).Clips[0];
+            AnimationClip enemyDeathClip = (enemyDeathAnim.Tag as ModelExtra).Clips[0];
+            AnimationClip enemyShootClip = (enemyShootAnim.Tag as ModelExtra).Clips[0];
+            AnimationClip enemyHitClip = (enemyHitAnim.Tag as ModelExtra).Clips[0];
 
             enemy.AddComponent(new MeshInstance(enemyModel));
             enemy.GetComponent<MeshInstance>().Offset = new Vector3(0, -17, 0);
             enemy.AddNewComponent<AnimationController>();
-            enemy.GetComponent<AnimationController>().SetBindPose(enemyRunClip);
-            enemy.GetComponent<AnimationController>().BindAnimation("walk", enemyRunClip, true);
-            enemy.GetComponent<AnimationController>().BindAnimation("death", null, false);
+            enemy.GetComponent<AnimationController>().SetBindPose(enemyShootClip);
+            enemy.GetComponent<AnimationController>().BindAnimation("run", enemyRunClip, true);
+            enemy.GetComponent<AnimationController>().BindAnimation("death", enemyDeathClip, false);
+            enemy.GetComponent<AnimationController>().BindAnimation("hit", enemyHitClip, false);
             Model doorModel = Content.Load<Model>("Models/door_001");
             Model pistolModel = Content.Load<Model>("Models/Pistol");
             weapons[0].AddComponent(new MeshInstance(pistolModel));

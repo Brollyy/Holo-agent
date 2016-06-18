@@ -115,12 +115,12 @@ namespace Engine.Components
 
         private void MoveForward(GameTime gameTime)
         {
-            if (movement == Movement.WALK) return;
+            if (movement == Movement.RUN) return;
             Rigidbody rigidbody = Owner.GetComponent<Rigidbody>();
             if (rigidbody != null && rigidbody.IsGrounded)
             {
-                movement = Movement.WALK;
-                Owner.GetComponent<AnimationController>().PlayAnimation("walk");
+                movement = Movement.RUN;
+                Owner.GetComponent<AnimationController>().PlayAnimation("run");
             }
         }
 
@@ -129,7 +129,7 @@ namespace Engine.Components
             if (movement == Movement.IDLE) return;
 
             movement = Movement.IDLE;
-            Owner.GetComponent<AnimationController>().StopAnimation("walk");
+            Owner.GetComponent<AnimationController>().StopAnimation("run");
             Rigidbody rigidbody = Owner.GetComponent<Rigidbody>();
             if (rigidbody != null)
             {
@@ -175,6 +175,12 @@ namespace Engine.Components
         {
             base.DealDamage(amount, causer);
 
+            if(amount > 0)
+            {
+                AnimationController contr = Owner.GetComponent<AnimationController>();
+                if (contr != null) contr.PlayAnimation("hit", 5, 0.2f);
+            }
+
             if (causer.Owner.Parent.Name == "Player" && attributes[1] != causer.Owner.Parent)
             {
                 attributes[1] = causer.Owner.Parent;
@@ -208,12 +214,12 @@ namespace Engine.Components
 
         public override void Update(GameTime gameTime)
         {
-            if(movement == Movement.WALK)
+            if(movement == Movement.RUN)
             {
                 Rigidbody rigidbody = Owner.GetComponent<Rigidbody>();
                 if (rigidbody != null && rigidbody.IsGrounded)
                 {
-                    rigidbody.AddForce(rigidbody.Mass * walkSpeed * Owner.LocalToWorldMatrix.Forward);
+                    rigidbody.AddForce(rigidbody.Mass * runSpeed * Owner.LocalToWorldMatrix.Forward);
                 }
             }
             if (state != EnemyState.Combat && gameTime.TotalGameTime.Subtract(lastSearch.TotalGameTime).TotalSeconds > 0.5)
