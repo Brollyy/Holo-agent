@@ -8,6 +8,7 @@ using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Content;
 using Animation;
 using Engine.Components;
+using System.Runtime.Serialization;
 
 namespace Engine.Utilities
 {

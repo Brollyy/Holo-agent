@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Engine.Components;
 using System;
+using System.Runtime.Serialization;
 
 namespace Engine.Bounding_Volumes
 {
@@ -20,14 +21,17 @@ namespace Engine.Bounding_Volumes
         }
     }
 
+    [DataContract]
     public abstract class BoundingVolume
     {
+        [IgnoreDataMember]
         public Collider Collider
         {
             get;
             set;
         }
 
+        [DataMember]
         public Vector3 Center
         {
             get;

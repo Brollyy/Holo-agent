@@ -2,43 +2,52 @@
 using Microsoft.Xna.Framework;
 using Engine.Components;
 using Engine.Utilities;
+using System.Runtime.Serialization;
 
 namespace Engine.Bounding_Volumes
 {
+    [DataContract]
     public class BoundingBox : BoundingVolume
     {
+        [DataMember]
         private Vector3 halfLengths;
 
+        [IgnoreDataMember]
         public float HalfWidth
         {
             get { return halfLengths.Z; }
             set { if (value > 0.0) halfLengths.Z = value; }
         }
 
+        [IgnoreDataMember]
         public float Width
         {
             get { return halfLengths.Z + halfLengths.Z; }
             set { if (value > 0.0) halfLengths.Z = value / 2.0f; }
         }
 
+        [IgnoreDataMember]
         public float HalfLength
         {
             get { return halfLengths.X; }
             set { if (value > 0.0) halfLengths.X = value; }
         }
 
+        [IgnoreDataMember]
         public float Length
         {
             get { return halfLengths.X + halfLengths.X; }
             set { if (value > 0.0) halfLengths.X = value / 2.0f; }
         }
 
+        [IgnoreDataMember]
         public float HalfHeight
         {
             get { return halfLengths.Y; }
             set { if (value > 0.0) halfLengths.Y = value; }
         }
 
+        [IgnoreDataMember]
         public float Height
         {
             get { return halfLengths.Y + halfLengths.Y; }

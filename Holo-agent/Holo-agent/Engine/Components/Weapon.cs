@@ -1,20 +1,38 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Audio;
+using System.Runtime.Serialization;
 
 namespace Engine.Components
 {
+    [DataContract]
     public class Weapon : Component
     {
+        [DataMember]
         private SoundEffect gunshotSound;
+        [DataMember]
         private WeaponTypes weaponType;
-        private int magazine, ammo, magazineCapacity, ammoCapacity;
-        private bool isArmed, isLocked, gunfire, collision;
+        [DataMember]
+        private int magazine;
+        [DataMember]
+        private int ammo;
+        [DataMember]
+        private int magazineCapacity;
+        [DataMember]
+        private int ammoCapacity;
+        [DataMember]
+        private bool isArmed;
+        private bool isLocked, gunfire;
+        [DataMember]
+        private bool collision;
+        [DataMember]
         private float range;
+        [DataMember]
         private readonly Vector3 asChildPosition;
         public string info;
         float machineGunTimer = 100;
         float timer = 0;
         const float MACHINE_GUN_TIMER = 100;
+
         public bool IsArmed
         {
             get

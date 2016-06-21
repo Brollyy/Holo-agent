@@ -1,17 +1,27 @@
 ﻿using Microsoft.Xna.Framework;
+using System.Runtime.Serialization;
 
 namespace Engine.Components
 {
+    [DataContract]
     class DoorInteraction : Interaction 
     {
         private static Quaternion DEFAULT_OPENED = Quaternion.CreateFromYawPitchRoll(MathHelper.ToRadians(90), 0, 0);
         private static Quaternion DEFAULT_CLOSED = Quaternion.Identity;
+        [DataMember]
         private bool open = false;
         private bool interacting = false;
+        [DataMember]
         private Quaternion openRotation;
+        [DataMember]
         private Quaternion closedRotation;
         private float t = 0.0f;
+        [DataMember]
         private float time = 1.0f;
+
+        [IgnoreDataMember]
+        public bool IsOpen { get { return open; } }
+
 
         public DoorInteraction() : this(null, null, 1)
         {

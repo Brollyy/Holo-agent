@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using Engine.Utilities;
+using System.Runtime.Serialization;
 
 namespace Engine.Components
 {
@@ -81,13 +82,20 @@ namespace Engine.Components
         Combat
     }
 
+    [DataContract]
     public class EnemyController : AIController
     {
+        [DataMember]
         private EnemyState state = EnemyState.Patrolling;
+        [DataMember]
         private float range;
+        [DataMember]
         private GameTime lastSearch = new GameTime();
+        [DataMember]
         private GameObject weapon;
+        [DataMember]
         private List<Vector3> patrolPoints = new List<Vector3>();
+        [DataMember]
         private int patrolIndex = 0;
 
         public bool CanAttack

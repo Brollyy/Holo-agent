@@ -2,9 +2,11 @@
 using Microsoft.Xna.Framework.Graphics;
 using System.Collections.Generic;
 using Engine.Utilities;
+using System.Runtime.Serialization;
 
 namespace Engine.Components
 {
+    [DataContract]
     public class MeshInstance : Component
     {
         /// <summary>
@@ -12,6 +14,7 @@ namespace Engine.Components
         /// </summary>
         private AnimatedModel model;
 
+        [IgnoreDataMember]
         public AnimatedModel Model
         {
             get
@@ -20,6 +23,7 @@ namespace Engine.Components
             }
         }
 
+        [DataMember]
         public Vector3 Offset
         {
             get;

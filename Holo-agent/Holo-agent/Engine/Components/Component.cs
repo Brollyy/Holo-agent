@@ -1,7 +1,9 @@
 ﻿using Microsoft.Xna.Framework;
+using System.Runtime.Serialization;
 
 namespace Engine.Components
 {
+    [DataContract]
     public abstract class Component
     {
         /// <summary>
@@ -9,6 +11,7 @@ namespace Engine.Components
         /// </summary>
         private GameObject go;
 
+        [DataMember]
         public bool Enabled
         {
             get;
@@ -20,6 +23,7 @@ namespace Engine.Components
         /// Used by GameObject class to manage its components' owners automatically.
         /// Null if component has no owner.
         /// </summary>
+        [IgnoreDataMember]
         public GameObject Owner
         {
             get

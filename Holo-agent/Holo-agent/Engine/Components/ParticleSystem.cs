@@ -1,16 +1,23 @@
 ﻿using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 
 namespace Engine.Components
 {
+    [DataContract]
     class ParticleSystem : Component
     {
+        [DataMember]
         private ParticleSystemType type;
+        [DataMember]
         private int amount;
         private List<Particle> particles;
+        [DataMember]
         private readonly float lifeTime;
+        [DataMember]
         private List<SpriteInstance> forms;
+        [DataMember]
         private float size;
         private Guid particleID;
         private Random random;

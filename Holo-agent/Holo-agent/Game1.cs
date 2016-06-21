@@ -10,6 +10,10 @@ using Microsoft.Xna.Framework.Audio;
 using Animation;
 using System.Collections.Generic;
 using System;
+using Microsoft.Xna.Framework.Storage;
+using System.IO;
+using System.Runtime.Serialization;
+using System.Xml;
 
 namespace Holo_agent
 {
@@ -23,6 +27,7 @@ namespace Holo_agent
         RenderTarget2D renderTarget;
         Effect postProcessingEffect;
         Effect color_time;
+        Effect cameraShader;
         Texture2D crosshair;
         SpriteFont font;
         FrameCounter frameCounter;
@@ -59,11 +64,22 @@ namespace Holo_agent
         string objectiveString = "[Some objective]";
         private double? startTime;
 
+        StorageDevice device;
+        Type[] knownTypes;
+
         public Game1()
         {
             graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
             gameMenu = new GameMenu();
+            knownTypes = new Type[]
+            {
+                typeof(AIController), typeof(AnimationController), typeof(Camera), typeof(CharacterController), typeof(Collider),
+                typeof(DoorInteraction), typeof(EnemyController), typeof(HologramPlayback), typeof(HologramRecorder), typeof(Interaction),
+                typeof(MeshInstance), typeof(ParticleSystem), typeof(PlayerController), typeof(Rigidbody), typeof(SpriteInstance),
+                typeof(Weapon), typeof(WeaponInteraction), typeof(Engine.Bounding_Volumes.BoundingVolume), typeof(Engine.Bounding_Volumes.BoundingBox),
+                typeof(Engine.Bounding_Volumes.BoundingSphere), typeof(Vector3)
+            };
             // Uncomment to enable 60+ FPS.
             /*graphics.SynchronizeWithVerticalRetrace = false;
             this.IsFixedTimeStep = false;*/
@@ -82,6 +98,7 @@ namespace Holo_agent
             graphics.IsFullScreen = true;
             graphics.ApplyChanges();*/
             Input.Initialize();
+            Input.BindActionPress(GameAction.SAVE, SaveGame);
             // TODO: Add your initialization logic here
             frameCounter = new FrameCounter();
             weapons = new List<GameObject>();
@@ -228,6 +245,7 @@ namespace Holo_agent
             color_time = Content.Load<Effect>("FX/Changing_color");
             color_time.Parameters["Timer"].SetValue(0.0f);
             color_time.Parameters["Color"].SetValue(Color.White.ToVector4());
+            cameraShader = Content.Load<Effect>("FX/Shader1");
             gameMenu.LoadContent(Content);
             Minimap.LoadContent(Content);
             Model columnModel = Content.Load<Model>("Models/kolumna");
@@ -456,9 +474,9 @@ namespace Holo_agent
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.Clear(Color.CornflowerBlue);
             if (gameState == GameState.Menu)
             {
+                GraphicsDevice.Clear(Color.CornflowerBlue);
                 gameMenu.Draw(spriteBatch, graphics);
             }
             if (gameState == GameState.GameRunning)
@@ -481,7 +499,7 @@ namespace Holo_agent
                     color_time.Parameters["Timer"].SetValue(0.0f);
                 }
 
-                spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.Default, RasterizerState.CullNone, color_time);
+                spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.Default, RasterizerState.CullNone, (special_timer > 0.0f? color_time : cameraShader));
                 spriteBatch.Draw(texture, new Rectangle(0, 0, graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight), null, Color.White, 0, Vector2.Zero, SpriteEffects.None, 0);
                 spriteBatch.End();
 
@@ -712,6 +730,58 @@ namespace Holo_agent
             GraphicsDevice.SetRenderTarget(null);
             // Return the texture in the render target
             return currentRenderTarget;
+        }
+
+        private void SaveGame(PressedActionArgs args)
+        {
+            if (gameState == GameState.GameRunning)
+            {
+                device = null;
+                gameState = GameState.Pause;
+                StorageDevice.BeginShowSelector(PlayerIndex.One, GetDevice, null);
+            }
+        }
+
+        private void GetDevice(IAsyncResult result)
+        {
+            device = StorageDevice.EndShowSelector(result);
+            if (device != null && device.IsConnected)
+            {
+                DoSaveGame();
+            }
+        }
+
+        private void DoSaveGame()
+        {
+            // Open a storage container.
+            IAsyncResult result =
+                device.BeginOpenContainer("Storage", null, null);
+            // Wait for the WaitHandle to become signaled.
+            result.AsyncWaitHandle.WaitOne();
+            StorageContainer container = device.EndOpenContainer(result);
+            // Close the wait handle.
+            result.AsyncWaitHandle.Close();
+
+            string filename = "savegame.sav";
+            // Check to see whether the save exists.
+            if (container.FileExists(filename))
+                // Delete it so that we can create one fresh.
+                container.DeleteFile(filename);
+
+            // Create the file.
+            Stream stream = container.CreateFile(filename);
+            // Convert the object to XML data and put it in the stream.
+
+            DataContractSerializer serializer = new DataContractSerializer(scene.GetType(), knownTypes,
+                0x7FFF, false, true, null);
+            using (XmlWriter writer = XmlWriter.Create(stream, new XmlWriterSettings { Indent = true, IndentChars = "\t" }))
+                serializer.WriteObject(writer, scene);
+            // Close the file.
+            stream.Close();
+            // Dispose the container, to commit changes.
+            container.Dispose();
+
+            gameState = GameState.GameRunning;
         }
     }
 }

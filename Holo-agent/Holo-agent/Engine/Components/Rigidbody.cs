@@ -1,15 +1,20 @@
 ﻿using Microsoft.Xna.Framework;
+using System.Runtime.Serialization;
 
 namespace Engine.Components
 {
+    [DataContract]
     public class Rigidbody : Component
     {
+        [DataMember]
         private float velocityThreshhold;
-
+        [DataMember]
         private float invertMass;
+        [DataMember]
         private Vector3 velocity;
         private Vector3 force;
         private Vector3 impulseForce;
+        [DataMember]
         private float dragCoefficient;
         private float groundDrag = 0.1f;
 
@@ -19,16 +24,19 @@ namespace Engine.Components
             set { invertMass = 1.0f / value; }
         }
 
+        [DataMember]
         public bool IsGrounded
         {
             get; set;
         } = false;
 
+        [DataMember]
         public bool GravityEnabled
         {
             get; set;
         } = true;
 
+        [DataMember]
         public bool IsSleeping
         {
             get; set;

@@ -4,19 +4,27 @@ using Microsoft.Xna.Framework;
 using Engine.Utilities;
 using Engine.Components;
 using Microsoft.Xna.Framework.Graphics;
+using System.Xml.Serialization;
+using System.Runtime.Serialization;
 
 namespace Engine
 {
+    [DataContract]
     public struct Room
     {
+        [DataMember]
         public GameObject go;
+        [DataMember]
         public List<GameObject> contents;
     }
 
+    [DataContract]
     public class Scene
     {
         private List<GameObject> objectsToDestroy;
+        [DataMember(Order = 0)]
         private Graph<Room,BoundingBox> roomGraph;
+        [DataMember(Order = 1)]
         private GameObject activeCamera;
         private List<GameObject> objectsToRespace;
 
@@ -100,6 +108,7 @@ namespace Engine
             }
         }
 
+        [IgnoreDataMember]
         public GameObject Camera
         {
             get

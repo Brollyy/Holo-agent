@@ -2,11 +2,14 @@
 using Engine.Utilities;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using System.Runtime.Serialization;
 
 namespace Engine.Components
 {
+    [DataContract]
     public class Collider : Component
     {
+        [DataMember]
         public BoundingVolume bound;
         public CollisionResult Collide(Collider other)
         {

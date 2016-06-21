@@ -1,5 +1,8 @@
-﻿namespace Engine.Utilities
+﻿using System.Runtime.Serialization;
+
+namespace Engine.Utilities
 {
+    [DataContract]
     public class Pair<T1, T2>
     {
         public T1 First { get; set; }

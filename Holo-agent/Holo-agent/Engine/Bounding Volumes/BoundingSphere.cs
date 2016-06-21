@@ -1,13 +1,16 @@
 ﻿using System;
 using Microsoft.Xna.Framework;
 using Engine.Components;
+using System.Runtime.Serialization;
 
 namespace Engine.Bounding_Volumes
 {
+    [DataContract]
     public class BoundingSphere : BoundingVolume
     {
         private double radius;
 
+        [DataMember]
         public double Radius
         {
             get

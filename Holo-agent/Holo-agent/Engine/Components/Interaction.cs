@@ -1,5 +1,8 @@
-﻿namespace Engine.Components
+﻿using System.Runtime.Serialization;
+
+namespace Engine.Components
 {
+    [DataContract]
     public abstract class Interaction : Component
     {
         /// <summary>

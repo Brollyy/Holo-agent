@@ -2,11 +2,13 @@
 using System.Collections.Generic;
 using Engine.Utilities;
 using System;
+using System.Runtime.Serialization;
 
 namespace Engine.Components
 {
     public delegate void FinalizeHologramRecording(HologramPath path);
 
+    [DataContract]
     public class HologramRecorder : Component
     {
         private FinalizeHologramRecording handler;
@@ -161,6 +163,7 @@ namespace Engine.Components
 
     public delegate void FinalizeHologramPlayback();
 
+    [DataContract]
     public class HologramPlayback : Component
     {
         private FinalizeHologramPlayback handler;
@@ -297,14 +300,22 @@ namespace Engine.Components
         }
     }
 
+    [DataContract]
     public struct HologramPath
     {
+        [DataMember]
         public float Duration;
+        [DataMember]
         public int NumberOfSteps;
+        [DataMember]
         public Vector3 StartGlobalPosition;
+        [DataMember]
         public Quaternion StartGlobalRotation;
+        [DataMember]
         public List<Vector3> LocalPositions;
+        [DataMember]
         public List<float> LocalRotations;
+        [DataMember]
         public List<Pair<Pair<float,float?>,Pair<GameAction,bool>>> Actions;
 
         public HologramPath(HologramPath other)

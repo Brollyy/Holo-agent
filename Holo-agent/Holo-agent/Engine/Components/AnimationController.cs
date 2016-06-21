@@ -6,16 +6,22 @@ using System.Threading.Tasks;
 using Animation;
 using Engine.Utilities;
 using Microsoft.Xna.Framework;
+using System.Runtime.Serialization;
 
 namespace Engine.Components
 {
+    [DataContract]
     public class AnimationController : Component
     {
+        [DataMember]
         private Dictionary<string, int> clipIndex = new Dictionary<string, int>();
+        [DataMember]
         private List<Pair<AnimationClip, bool>> clips = new List<Pair<AnimationClip, bool>>();
         private Dictionary<string, Pair<Pair<AnimationPlayer, float>, Pair<float, float>>> blendingInAnimations = new Dictionary<string, Pair<Pair<AnimationPlayer, float>, Pair<float, float>>>();
         private Dictionary<string, Pair<AnimationPlayer, float>> playingAnimations = new Dictionary<string, Pair<AnimationPlayer, float>>();
         private Dictionary<string, Pair<Pair<AnimationPlayer, float>, Pair<float, float>>> blendingOutAnimations = new Dictionary<string, Pair<Pair<AnimationPlayer, float>, Pair<float, float>>>();
+        [DataMember]
+        private int bindPoseIndex = -1;
         private AnimationPlayer BIND_POSE = null;
         private AnimationPlayer currentAnimation = null;
 
@@ -43,8 +49,16 @@ namespace Engine.Components
 
         public void SetBindPose(AnimationClip clip)
         {
-            if (clip == null) BIND_POSE = null;
-            else BIND_POSE = new AnimationPlayer(clip, Owner.GetComponent<MeshInstance>().Model);
+            if (clip == null)
+            {
+                BIND_POSE = null;
+                bindPoseIndex = -1;
+            }
+            else
+            {
+                BIND_POSE = new AnimationPlayer(clip, Owner.GetComponent<MeshInstance>().Model);
+                bindPoseIndex = clips.FindIndex(x => x.First == clip);
+            }
         }
 
         public void SetBindPose(string name, float blendOutTime = 0, float positionNormalized = 0)
@@ -56,6 +70,7 @@ namespace Engine.Components
                      new Pair<AnimationPlayer, float>(BIND_POSE, 1), new Pair<float, float>(0, blendOutTime));
                 BIND_POSE = new AnimationPlayer(clips[index].First, Owner.GetComponent<MeshInstance>().Model);
                 BIND_POSE.Position = positionNormalized * BIND_POSE.Duration;
+                bindPoseIndex = index;
             }
         }
 

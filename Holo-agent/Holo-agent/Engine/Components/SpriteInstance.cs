@@ -5,16 +5,21 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
+using System.Runtime.Serialization;
 
 namespace Engine.Components
 {
+    [DataContract]
     public class SpriteInstance : Component
     {
         private Texture2D texture;
         private VertexPositionTexture[] spriteVerts;
         private BasicEffect effect;
+        [DataMember]
         private Vector3 coordinates;
+        [DataMember]
         private int tilesNumber;
+        [DataMember]
         private float alpha;
         private GraphicsDeviceManager graphics;
         public float Alpha
@@ -28,6 +33,7 @@ namespace Engine.Components
                 alpha = value;
             }
         }
+
         public SpriteInstance(Texture2D texture, Vector3 coordinates, int tilesNumber, float alpha, GraphicsDeviceManager graphics)
         {
             this.texture = texture;

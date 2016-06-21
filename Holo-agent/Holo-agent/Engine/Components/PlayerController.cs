@@ -3,19 +3,25 @@ using Microsoft.Xna.Framework;
 using Engine.Utilities;
 using System;
 using System.Linq;
+using System.Runtime.Serialization;
 
 namespace Engine.Components
 {
+    [DataContract]
     public class PlayerController : CharacterController
     {
+        [DataMember]
         private const float hologramCooldown = 5.0f;
+        [DataMember]
         private float turnSpeed;
         private bool hologramRecording;
         private bool hologramPlaying;
         private bool hologramPreview;
         private GameObject preview;
         private GameObject hologramPlayback;
+        [DataMember]
         private Pair<HologramPath?,float>[] recordedPaths;
+        [DataMember]
         private int selectedPath;
         private int playingPath;
         private GameObject player;
@@ -24,8 +30,11 @@ namespace Engine.Components
         private Vector3 playerCameraScale;
         private Quaternion playerRotation;
         private Color crosshairColor;
+        [DataMember]
         private GameObject[] weapons;
+        [DataMember]
         private bool isCrouching;
+        [DataMember]
         private bool isRunning;
 
         public int SelectedPath
@@ -67,16 +76,19 @@ namespace Engine.Components
                 return crosshairColor;
             }
         }
+        [DataMember]
         public MeshInstance PlayerMesh
         {
             get;
             set;
         }
+        [DataMember]
         public MeshInstance HologramMesh
         {
             get;
             set;
         }
+        [DataMember]
         public MeshInstance PreviewMesh
         {
             get;
