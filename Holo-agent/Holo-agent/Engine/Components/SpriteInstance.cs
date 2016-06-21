@@ -5,16 +5,21 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
+using System.Runtime.Serialization;
 
 namespace Engine.Components
 {
+    [DataContract]
     public class SpriteInstance : Component
     {
         private Texture2D texture;
         private VertexPositionTexture[] spriteVerts;
         private BasicEffect effect;
+        [DataMember]
         private Vector3 coordinates;
+        [DataMember]
         private int tilesNumber;
+        [DataMember]
         private float alpha;
         private GraphicsDeviceManager graphics;
         public float Alpha
@@ -28,6 +33,18 @@ namespace Engine.Components
                 alpha = value;
             }
         }
+
+        public GraphicsDeviceManager Graphics
+        {
+            set { graphics = value; effect = new BasicEffect(graphics.GraphicsDevice); }
+        }
+
+        public Texture2D Texture
+        {
+            get { return texture; }
+            set { texture = value; }
+        }
+
         public SpriteInstance(Texture2D texture, Vector3 coordinates, int tilesNumber, float alpha, GraphicsDeviceManager graphics)
         {
             this.texture = texture;
@@ -73,6 +90,12 @@ namespace Engine.Components
                 pass.Apply();
                 graphics.GraphicsDevice.DrawUserPrimitives(PrimitiveType.TriangleList, spriteVerts, 0, 2);
             }
+        }
+
+        [OnDeserialized]
+        public void InitializeAfterLoading(StreamingContext context)
+        {
+            spriteVerts = new VertexPositionTexture[6];
         }
     }
 }

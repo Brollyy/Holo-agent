@@ -3,31 +3,45 @@ using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace Engine.Components
 {
+    [DataContract]
     public abstract class CharacterController : Component
     {
+        [DataMember]
         protected float walkSpeed;
+        [DataMember]
         protected float walkVolume;
+        [DataMember]
         protected float runSpeed;
+        [DataMember]
         protected float runVolume;
+        [DataMember]
         protected float crouchSpeed;
+        [DataMember]
         protected float crouchVolume;
         protected Movement movement;
 
+        [DataMember]
         protected float? closestObjectDistance;
+        [DataMember]
         protected GameObject closestObject;
 
         public Movement Movement { get { return movement; } }
 
+        [DataMember]
         protected float health = 100;
+        [DataMember]
         protected float maxHealth = 100;
         protected float regenRate = 20;
         protected float regenCooldown = 3;
         protected float regenTimer = 3;
+
+        public float Health { get { return health; } }
 
         public GameObject ClosestObject
         {
@@ -95,7 +109,7 @@ namespace Engine.Components
         }
 
         public CharacterController() : 
-            this(80.0f, 0.5f, 75.0f, 1.0f, 20.0f, 0.0f)
+            this(80.0f, 0.5f, 150.0f, 1.0f, 40.0f, 0.0f)
         {
         }
 

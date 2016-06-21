@@ -4,15 +4,22 @@ using System.Collections.Generic;
 using Engine.Components;
 using System.Reflection;
 using Microsoft.Xna.Framework.Graphics;
+using System.Xml.Serialization;
+using System.Xml;
+using System.Xml.Schema;
+using System.Runtime.Serialization;
 
 namespace Engine
 {
     /// <summary>
     /// Class for every object on the scene.
     /// </summary>
+    [DataContract]
     public class GameObject
     {
+        [DataMember(Order = 1)]
         private BoundingBox bound = new BoundingBox(-0.5f * Vector3.One, 0.5f * Vector3.One);
+        [IgnoreDataMember]
         public BoundingBox Bound
         {
             get
@@ -30,7 +37,9 @@ namespace Engine
         }
 
         // TODO: Implement Instantiate and Destroy static functions (maybe?).
+        [DataMember(Order = 0)]
         private bool isVisible;
+        [IgnoreDataMember]
         public bool IsVisible
         {
             get
@@ -43,7 +52,10 @@ namespace Engine
             }
         }
 
+        [DataMember(Order = 0)]
         private Scene scene;
+
+        [IgnoreDataMember]
         public Scene Scene
         {
             get
@@ -55,11 +67,13 @@ namespace Engine
         /// <summary>
         /// Stores name of this object.
         /// </summary>
+        [DataMember(Order = 0)]
         private string name;
 
         /// <summary>
         /// Name property of this object.
         /// </summary>
+        [IgnoreDataMember]
         public string Name
         {
             get
@@ -77,6 +91,7 @@ namespace Engine
         /// Reference to scene parent of this GameObject.
         /// If null, local space is the same as global space.
         /// </summary>
+        [DataMember(Order = 2)]
         private GameObject parent;
 
         /// <summary>
@@ -118,6 +133,7 @@ namespace Engine
         /// <summary>
         /// Stores references to children of this object.
         /// </summary>
+        [DataMember(Order = 7)]
         private SortedList<string, GameObject> children;
 
         /// <summary>
@@ -126,6 +142,7 @@ namespace Engine
         /// <param name="child"> Object to be added to children set.</param>
         private void AddChild(GameObject child)
         {
+            if (children == null || children.ContainsKey(child.Name)) return;
             // TODO: Think about exceptions.
             children.Add(child.name, child);
         }
@@ -187,19 +204,23 @@ namespace Engine
         /// <summary>
         /// Stores position of the object in local space.
         /// </summary>
+        [DataMember(Order = 5)]
         private Vector3 localPosition;
         /// <summary>
         /// Stores rotation of the object in local space.
         /// </summary>
+        [DataMember(Order = 5)]
         private Quaternion localRotation;
         /// <summary>
         /// Stores scale of the object in local space.
         /// </summary>
+        [DataMember(Order = 5)]
         private Vector3 localScale;
 
         /// <summary>
         /// Local position property of the object.
         /// </summary>
+        [IgnoreDataMember]
         public Vector3 LocalPosition
         {
             get
@@ -220,6 +241,7 @@ namespace Engine
         /// <summary>
         /// Local rotation property of the object.
         /// </summary>
+        [IgnoreDataMember]
         public Quaternion LocalQuaternionRotation
         {
             get
@@ -241,6 +263,7 @@ namespace Engine
         /// <summary>
         /// Local space rotation using Euler angles in yaw-pitch-roll notation.
         /// </summary>
+        [IgnoreDataMemberAttribute]
         public Vector3 LocalEulerRotation
         {
             // TODO: implement conversion between quaternions and Euler angles.
@@ -301,6 +324,7 @@ namespace Engine
         /// Local scale property of the object.
         /// </summary>
         /// <value> 3D vector containing scale coefficients along X,Y and Z axes.</value>
+        [IgnoreDataMember]
         public Vector3 LocalScale
         {
             get
@@ -322,6 +346,7 @@ namespace Engine
         /// <summary>
         /// Stores local to world coordinates transform matrix.
         /// </summary>
+        [DataMember(Order = 5)]
         private Matrix localToWorldMatrix;
 
         private void UpdateLocalToWorldMatrix(Matrix parentLocalToWorldMatrix)
@@ -338,6 +363,7 @@ namespace Engine
         /// <summary>
         /// Transform matrix used to transform points from local coordinates to global.
         /// </summary>
+        [IgnoreDataMemberAttribute]
         public Matrix LocalToWorldMatrix
         {
             get
@@ -352,6 +378,7 @@ namespace Engine
         /// <summary>
         /// Transform matrix used to transform points from global coordinates to local.
         /// </summary>
+        [IgnoreDataMemberAttribute]
         public Matrix WorldToLocalMatrix
         {
             get
@@ -363,6 +390,7 @@ namespace Engine
         /// <summary>
         /// Global position property of the object.
         /// </summary>
+        [IgnoreDataMemberAttribute]
         public Vector3 GlobalPosition
         {
             get
@@ -378,6 +406,7 @@ namespace Engine
         /// <summary>
         /// Global rotation property of the object.
         /// </summary>
+        [IgnoreDataMemberAttribute]
         public Quaternion GlobalRotation
         {
             get
@@ -393,6 +422,7 @@ namespace Engine
         /// <summary>
         /// Global scale property of this object.
         /// </summary>
+        [IgnoreDataMemberAttribute]
         public Vector3 GlobalScale
         {
             // TODO: Implement global scale conversions.
@@ -409,6 +439,7 @@ namespace Engine
         /// <summary>
         /// Stores object's components.
         /// </summary>
+        [DataMember(Order = 3)]
         private List<Component> components;
 
         /// <summary>
@@ -528,13 +559,13 @@ namespace Engine
             {
                 Vector3[] corners = Bound.GetCorners();
 
-                VertexPosition[] vertices = new VertexPosition[8];
+                VertexPositionColor[] vertices = new VertexPositionColor[8];
                 for (int j = 0; j < 8; ++j)
                 {
-                    vertices[j].Position = corners[j];
+                    vertices[j] = new VertexPositionColor(corners[j], Color.Red);
                 }
 
-                graphics.GraphicsDevice.DrawUserIndexedPrimitives<VertexPosition>(PrimitiveType.LineList, vertices, 0, 8, indexes, 0, 12);
+                graphics.GraphicsDevice.DrawUserIndexedPrimitives(PrimitiveType.LineList, vertices, 0, 8, indexes, 0, 12);
             }
 
             Collider col = GetComponent<Collider>();
@@ -564,8 +595,18 @@ namespace Engine
         /// <summary>
         /// Default constructor for GameObject. Sets unnamed, parentless object at point (0,0,0), without any rotation and scale.
         /// </summary>
-        public GameObject() : this(null, Vector3.Zero, Quaternion.Identity, Vector3.One, null)
+        public GameObject()
         {
+            name = "";
+            isVisible = true;
+            components = new List<Component>();
+            localToWorldMatrix = Matrix.Identity;
+            children = new SortedList<string, GameObject>();
+            parent = null;
+            localPosition = Vector3.Zero;
+            localRotation = Quaternion.Identity;
+            localScale = Vector3.One;
+            scene = null;
         }
 
         /// <summary>

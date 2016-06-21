@@ -6,16 +6,20 @@ using System.Threading.Tasks;
 using Animation;
 using Engine.Utilities;
 using Microsoft.Xna.Framework;
+using System.Runtime.Serialization;
 
 namespace Engine.Components
 {
+    [DataContract]
     public class AnimationController : Component
     {
-        private Dictionary<string, int> clipIndex = new Dictionary<string, int>();
-        private List<Pair<AnimationClip, bool>> clips = new List<Pair<AnimationClip, bool>>();
+        [DataMember]
+        private Dictionary<string, Pair<int,bool>> clipIndex = new Dictionary<string, Pair<int,bool>>();
         private Dictionary<string, Pair<Pair<AnimationPlayer, float>, Pair<float, float>>> blendingInAnimations = new Dictionary<string, Pair<Pair<AnimationPlayer, float>, Pair<float, float>>>();
         private Dictionary<string, Pair<AnimationPlayer, float>> playingAnimations = new Dictionary<string, Pair<AnimationPlayer, float>>();
         private Dictionary<string, Pair<Pair<AnimationPlayer, float>, Pair<float, float>>> blendingOutAnimations = new Dictionary<string, Pair<Pair<AnimationPlayer, float>, Pair<float, float>>>();
+        [DataMember]
+        private int bindPoseIndex = -1;
         private AnimationPlayer BIND_POSE = null;
         private AnimationPlayer currentAnimation = null;
 
@@ -24,18 +28,11 @@ namespace Engine.Components
             return (blendingInAnimations.Count > 0 || playingAnimations.Count > 0 || blendingOutAnimations.Count > 0);
         }
 
-        public bool BindAnimation(string name, AnimationClip clip, bool looping = false)
+        public bool BindAnimation(string name, int clipIndex, bool looping = false)
         {
-            if (clip == null)
+            if(!this.clipIndex.ContainsKey(name))
             {
-                clipIndex.Add(name, -1);
-                return true;
-            }
-
-            if(!clips.Exists(x => x.Equals(clip)))
-            {
-                clips.Add(new Pair<AnimationClip,bool>(clip, looping));
-                clipIndex.Add(name, clips.Count - 1);
+                this.clipIndex.Add(name, new Pair<int, bool>(clipIndex, looping));
                 return true;
             }
             return false;
@@ -43,29 +40,38 @@ namespace Engine.Components
 
         public void SetBindPose(AnimationClip clip)
         {
-            if (clip == null) BIND_POSE = null;
-            else BIND_POSE = new AnimationPlayer(clip, Owner.GetComponent<MeshInstance>().Model);
+            if (clip == null)
+            {
+                BIND_POSE = null;
+                bindPoseIndex = -1;
+            }
+            else
+            {
+                BIND_POSE = new AnimationPlayer(clip, Owner.GetComponent<MeshInstance>().Model);
+                bindPoseIndex = -1;
+            }
         }
 
         public void SetBindPose(string name, float blendOutTime = 0, float positionNormalized = 0)
         {
-            int index = clipIndex[name];
+            int index = clipIndex[name].First;
             if(index >= 0)
             {
                 if (BIND_POSE != null) blendingOutAnimations["bind"] = new Pair<Pair<AnimationPlayer, float>, Pair<float, float>>(
                      new Pair<AnimationPlayer, float>(BIND_POSE, 1), new Pair<float, float>(0, blendOutTime));
-                BIND_POSE = new AnimationPlayer(clips[index].First, Owner.GetComponent<MeshInstance>().Model);
+                BIND_POSE = new AnimationPlayer(Owner.GetComponent<MeshInstance>().Model.Clips[index], Owner.GetComponent<MeshInstance>().Model);
                 BIND_POSE.Position = positionNormalized * BIND_POSE.Duration;
+                bindPoseIndex = index;
             }
         }
 
         public void PlayAnimation(string name, float weight = 1, float blendingTime = 0)
         {
-            int animIndex = clipIndex[name];
+            int animIndex = clipIndex[name].First;
             if (animIndex >= 0)
             {
-                AnimationPlayer animPlayer = new AnimationPlayer(clips[animIndex].First, Owner.GetComponent<MeshInstance>().Model);
-                animPlayer.Looping = clips[animIndex].Second;
+                AnimationPlayer animPlayer = new AnimationPlayer(Owner.GetComponent<MeshInstance>().Model.Clips[animIndex], Owner.GetComponent<MeshInstance>().Model);
+                animPlayer.Looping = clipIndex[name].Second;
                 blendingInAnimations[name] = new Pair<Pair<AnimationPlayer,float>, Pair<float,float>>(new Pair<AnimationPlayer, float>(animPlayer, weight),
                                                                                                       new Pair<float, float>(0,blendingTime));
             }
@@ -191,6 +197,14 @@ namespace Engine.Components
             {
                 AnimationPlayer.Set(BIND_POSE);
             }
+        }
+
+        [OnDeserialized]
+        private void InitializeAfterLoading(StreamingContext context)
+        {
+            blendingInAnimations = new Dictionary<string, Pair<Pair<AnimationPlayer, float>, Pair<float, float>>>();
+            playingAnimations = new Dictionary<string, Pair<AnimationPlayer, float>>();
+            blendingOutAnimations = new Dictionary<string, Pair<Pair<AnimationPlayer, float>, Pair<float, float>>>();
         }
     }
 }

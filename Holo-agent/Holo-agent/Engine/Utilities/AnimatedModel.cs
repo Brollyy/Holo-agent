@@ -8,6 +8,7 @@ using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Content;
 using Animation;
 using Engine.Components;
+using System.Runtime.Serialization;
 
 namespace Engine.Utilities
 {
@@ -122,6 +123,13 @@ namespace Engine.Utilities
             if (model == null)
                 return;
 
+            Camera camera = owner.Scene.Camera.GetComponent<Camera>();
+            if (model.Tag == null)
+            {
+                model.Draw(owner.LocalToWorldMatrix, camera.ViewMatrix, camera.ProjectionMatrix);
+                return;
+            }
+
             //
             // Compute all of the bone absolute transforms
             //
@@ -151,7 +159,6 @@ namespace Engine.Utilities
                 }
             }
 
-            Camera camera = owner.Scene.Camera.GetComponent<Camera>();
             // Draw the model.
             foreach (ModelMesh modelMesh in model.Meshes)
             {

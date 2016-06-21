@@ -2,11 +2,14 @@
 using Engine.Utilities;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using System.Runtime.Serialization;
 
 namespace Engine.Components
 {
+    [DataContract]
     public class Collider : Component
     {
+        [DataMember]
         public BoundingVolume bound;
         public CollisionResult Collide(Collider other)
         {
@@ -33,13 +36,13 @@ namespace Engine.Components
             {
                 Vector3[] corners = box.Corners();
 
-                VertexPosition[] vertices = new VertexPosition[8];
+                VertexPositionColor[] vertices = new VertexPositionColor[8];
                 for (int j = 0; j < 8; ++j)
                 {
-                    vertices[j].Position = corners[j];
+                    vertices[j] = new VertexPositionColor(corners[j], Color.Green);
                 }
-
-                graphics.GraphicsDevice.DrawUserIndexedPrimitives<VertexPosition>(PrimitiveType.LineList, vertices, 0, 8, indexes, 0, 12);
+                
+                graphics.GraphicsDevice.DrawUserIndexedPrimitives(PrimitiveType.LineList, vertices, 0, 8, indexes, 0, 12);
             }
         }
 

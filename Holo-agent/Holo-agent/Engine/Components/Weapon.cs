@@ -1,20 +1,37 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Audio;
+using System.Runtime.Serialization;
 
 namespace Engine.Components
 {
+    [DataContract]
     public class Weapon : Component
     {
         private SoundEffect gunshotSound;
+        [DataMember]
         private WeaponTypes weaponType;
-        private int magazine, ammo, magazineCapacity, ammoCapacity;
-        private bool isArmed, isLocked, gunfire, collision;
+        [DataMember]
+        private int magazine;
+        [DataMember]
+        private int ammo;
+        [DataMember]
+        private int magazineCapacity;
+        [DataMember]
+        private int ammoCapacity;
+        [DataMember]
+        private bool isArmed;
+        private bool isLocked, gunfire;
+        [DataMember]
+        private bool collision;
+        [DataMember]
         private float range;
+        [DataMember]
         private readonly Vector3 asChildPosition;
         public string info;
         float machineGunTimer = 100;
         float timer = 0;
         const float MACHINE_GUN_TIMER = 100;
+
         public bool IsArmed
         {
             get
@@ -76,7 +93,7 @@ namespace Engine.Components
             gunfire = false;
             collision = true;
         }
-        public void shoot(GameTime gameTime)
+        public void shoot()
         {
             GameObject gameObject = null;
             float? distance = null;
@@ -85,11 +102,9 @@ namespace Engine.Components
                 gameObject = Owner.Parent.GetComponent<CharacterController>().ClosestObject;
                 distance = Owner.Parent.GetComponent<CharacterController>().ClosestObjectDistance;
             }
-            if (weaponType == WeaponTypes.MachineGun && magazine > 0)
+            if (weaponType == WeaponTypes.MachineGun && !isLocked && magazine > 0)
             {
-                float deltaTime = (float)gameTime.ElapsedGameTime.TotalMilliseconds;
-                machineGunTimer -= deltaTime;
-                if (machineGunTimer < 0)
+                if (!isLocked)
                 {
                     magazine--;
                     if (gunshotSound != null) gunshotSound.Play();
@@ -101,6 +116,7 @@ namespace Engine.Components
                         info = gameObject.Name + " " + distance;
                     }
                     machineGunTimer = MACHINE_GUN_TIMER;
+                    isLocked = true;
                 }
             }
             if (weaponType == WeaponTypes.Pistol && isLocked == false && magazine > 0)
@@ -186,6 +202,13 @@ namespace Engine.Components
             {
                 timer = 0.01f;
                 setGunfire(false);
+            }
+
+            if (weaponType == WeaponTypes.MachineGun && isLocked)
+            {
+                float deltaTime = (float)gameTime.ElapsedGameTime.TotalMilliseconds;
+                machineGunTimer -= deltaTime;
+                if (machineGunTimer < 0.0f) isLocked = false;
             }
         }
     }

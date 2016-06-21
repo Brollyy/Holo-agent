@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using Engine.Utilities;
+using System.Runtime.Serialization;
 
 namespace Engine.Components
 {
@@ -81,13 +82,24 @@ namespace Engine.Components
         Combat
     }
 
+    [DataContract]
     public class EnemyController : AIController
     {
+        [DataMember]
         private EnemyState state = EnemyState.Patrolling;
+        [DataMember]
         private float range;
-        private GameTime lastSearch = new GameTime();
+        [DataMember]
+        private float shootingRange;
+        [DataMember]
+        private float meleeRange;
+        [DataMember]
+        private float lastSearch = 0.0f;
+        [DataMember]
         private GameObject weapon;
+        [DataMember]
         private List<Vector3> patrolPoints = new List<Vector3>();
+        [DataMember]
         private int patrolIndex = 0;
 
         public bool CanAttack
@@ -115,12 +127,12 @@ namespace Engine.Components
 
         private void MoveForward(GameTime gameTime)
         {
-            if (movement == Movement.WALK) return;
+            if (movement == Movement.RUN) return;
             Rigidbody rigidbody = Owner.GetComponent<Rigidbody>();
-            if (rigidbody != null && rigidbody.IsGrounded)
+            if (rigidbody != null && (rigidbody.IsGrounded || !rigidbody.GravityEnabled))
             {
-                movement = Movement.WALK;
-                Owner.GetComponent<AnimationController>().PlayAnimation("walk");
+                movement = Movement.RUN;
+                Owner.GetComponent<AnimationController>().PlayAnimation("run");
             }
         }
 
@@ -129,7 +141,7 @@ namespace Engine.Components
             if (movement == Movement.IDLE) return;
 
             movement = Movement.IDLE;
-            Owner.GetComponent<AnimationController>().StopAnimation("walk");
+            Owner.GetComponent<AnimationController>().StopAnimation("run");
             Rigidbody rigidbody = Owner.GetComponent<Rigidbody>();
             if (rigidbody != null)
             {
@@ -145,7 +157,7 @@ namespace Engine.Components
             {
                 Weapon weap = weapon.GetComponent<Weapon>();
                 Ray(1000.0f, Owner.Scene.GetNearbyObjects(Owner), Owner.LocalToWorldMatrix.Forward);
-                weap.shoot(gameTime);
+                weap.shoot();
             }
         }
         
@@ -174,6 +186,12 @@ namespace Engine.Components
         public override void DealDamage(float amount, Weapon causer)
         {
             base.DealDamage(amount, causer);
+
+            if(amount > 0)
+            {
+                AnimationController contr = Owner.GetComponent<AnimationController>();
+                if (contr != null) contr.PlayAnimation("hit", 5, 0.2f);
+            }
 
             if (causer.Owner.Parent.Name == "Player" && attributes[1] != causer.Owner.Parent)
             {
@@ -208,18 +226,19 @@ namespace Engine.Components
 
         public override void Update(GameTime gameTime)
         {
-            if(movement == Movement.WALK)
+            lastSearch += (float)gameTime.ElapsedGameTime.TotalSeconds;
+            if (movement == Movement.RUN)
             {
                 Rigidbody rigidbody = Owner.GetComponent<Rigidbody>();
-                if (rigidbody != null && rigidbody.IsGrounded)
+                if (rigidbody != null && (rigidbody.IsGrounded || !rigidbody.GravityEnabled))
                 {
-                    rigidbody.AddForce(rigidbody.Mass * walkSpeed * Owner.LocalToWorldMatrix.Forward);
+                    rigidbody.AddForce(rigidbody.Mass * runSpeed * Owner.LocalToWorldMatrix.Forward);
                 }
             }
-            if (state != EnemyState.Combat && gameTime.TotalGameTime.Subtract(lastSearch.TotalGameTime).TotalSeconds > 0.5)
+            if (state != EnemyState.Combat && lastSearch > 0.5f)
             {
                 LookForTarget();
-                lastSearch.TotalGameTime = new TimeSpan(gameTime.TotalGameTime.Ticks);
+                lastSearch = 0.0f;
             }
 
             base.Update(gameTime);
@@ -232,10 +251,10 @@ namespace Engine.Components
             foreach (GameObject go in nearbyObjects)
             {
                 Vector3 distance = go.GlobalPosition - Owner.GlobalPosition;
-                if (go.IsVisible && distance.LengthSquared() < range*range)
+                if (go.IsVisible && distance.LengthSquared() < 2.25f*range*range)
                 {
                     distance.Normalize();
-                    if ((distance - Owner.LocalToWorldMatrix.Forward).LengthSquared() > 1.0f) continue;
+                    if (distance.LengthSquared() > 0.25f * range * range && (distance - Owner.LocalToWorldMatrix.Forward).LengthSquared() > 1.0f) continue;
                     if(go.Name.Equals("Player")) // Possibly temporary, but seems good
                     {
                         Ray(range, Owner.Scene.GetNearbyObjects(Owner), Vector3.Normalize(go.GlobalPosition - Owner.GlobalPosition));
@@ -282,6 +301,8 @@ namespace Engine.Components
         {
             movement = Movement.IDLE;
             this.range = range;
+            this.shootingRange = shootingRange;
+            this.meleeRange = meleeRange;
             this.weapon = weapon;
 
             attributes.Add(this);   // EnemyController
@@ -294,16 +315,25 @@ namespace Engine.Components
                 attributes[1] = (Vector3?)(patrolPoints[0]);
             }
 
+            InitializeDecisionTree(new StreamingContext());
+        }
+
+        [OnDeserialized]
+        private void InitializeDecisionTree(StreamingContext context)
+        {
+            decisionTree = new DecisionTree();
             // Decision tree
             DecisionTreeNode startNode = decisionTree.AddNode(decisionTree.root, (x => x[1] != null), null);
             {
-                DecisionTreeNode targetNode = decisionTree.AddNode(startNode, (x => x[1] is GameObject), null);
+                DecisionTreeNode targetNode = decisionTree.AddNode(startNode, (x => x[1] is GameObject && (x[1] as GameObject).IsVisible), null);
                 {
                     decisionTree.AddNode(targetNode,
                         (x => (Matrix.CreateFromQuaternion((x[0] as EnemyController).Owner.GlobalRotation).Forward -
                               Vector3.Normalize((x[1] as GameObject).GlobalPosition - (x[0] as EnemyController).Owner.GlobalPosition)).LengthSquared() > 0.05f),
                         new TurnToTarget(Turn));
-                    DecisionTreeNode shootingNode = decisionTree.AddNode(targetNode, (x => x[2] != null && (x[2] as GameObject).GetComponent<Weapon>() != null), null);
+                    DecisionTreeNode shootingNode = decisionTree.AddNode(targetNode,
+                        (x => x[2] != null && (x[2] as GameObject).GetComponent<Weapon>() != null && (x[2] as GameObject).GetComponent<Weapon>().getAmmo() > 0),
+                        null);
                     {
                         DecisionTreeNode shootingRangeNode = decisionTree.AddNode(shootingNode,
                             (x => ((x[0] as EnemyController).Owner.GlobalPosition - (x[1] as GameObject).GlobalPosition).Length() < shootingRange),
@@ -325,14 +355,14 @@ namespace Engine.Components
                     }
                     decisionTree.AddNode(targetNode, (x => true), new PerformAction(MoveForward));
                 }
-                DecisionTreeNode patrolNode = decisionTree.AddNode(startNode, (x => true), null);
+                DecisionTreeNode patrolNode = decisionTree.AddNode(startNode, (x => x[1] is Vector3?), null);
                 {
-                    decisionTree.AddNode(patrolNode, 
-                        (x => ((x[0] as EnemyController).Owner.GlobalPosition - (x[1] as Vector3?).Value).Length() < meleeRange), 
+                    decisionTree.AddNode(patrolNode,
+                        (x => ((x[0] as EnemyController).Owner.GlobalPosition - (x[1] as Vector3?).Value).Length() < meleeRange),
                         new PerformAction(PickNextPatrolTarget));
                     decisionTree.AddNode(patrolNode,
                         (x => (Matrix.CreateFromQuaternion((x[0] as EnemyController).Owner.GlobalRotation).Forward -
-                              Vector3.Normalize((x[1] as Vector3?).Value - (x[0] as EnemyController).Owner.GlobalPosition)).LengthSquared() > 0.05f), 
+                              Vector3.Normalize((x[1] as Vector3?).Value - (x[0] as EnemyController).Owner.GlobalPosition)).LengthSquared() > 0.05f),
                         new TurnToTarget(Turn));
                     decisionTree.AddNode(patrolNode, (x => true), new PerformAction(MoveForward));
                 }

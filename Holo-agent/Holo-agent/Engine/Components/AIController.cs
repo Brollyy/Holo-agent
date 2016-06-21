@@ -5,12 +5,15 @@ using System.Text;
 using System.Threading.Tasks;
 using Engine.Utilities;
 using Microsoft.Xna.Framework;
+using System.Runtime.Serialization;
 
 namespace Engine.Components
 {
+    [DataContract]
     public class AIController : CharacterController
     {
         protected DecisionTree decisionTree;
+        [DataMember]
         protected List<object> attributes;
 
         /// <summary>

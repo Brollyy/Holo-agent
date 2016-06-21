@@ -3,19 +3,25 @@ using Microsoft.Xna.Framework;
 using Engine.Utilities;
 using System;
 using System.Linq;
+using System.Runtime.Serialization;
 
 namespace Engine.Components
 {
+    [DataContract]
     public class PlayerController : CharacterController
     {
+        [DataMember]
         private const float hologramCooldown = 5.0f;
+        [DataMember]
         private float turnSpeed;
         private bool hologramRecording;
         private bool hologramPlaying;
         private bool hologramPreview;
         private GameObject preview;
         private GameObject hologramPlayback;
+        [DataMember]
         private Pair<HologramPath?,float>[] recordedPaths;
+        [DataMember]
         private int selectedPath;
         private int playingPath;
         private GameObject player;
@@ -24,8 +30,11 @@ namespace Engine.Components
         private Vector3 playerCameraScale;
         private Quaternion playerRotation;
         private Color crosshairColor;
+        [DataMember]
         private GameObject[] weapons;
+        [DataMember]
         private bool isCrouching;
+        [DataMember]
         private bool isRunning;
 
         public int SelectedPath
@@ -67,12 +76,24 @@ namespace Engine.Components
                 return crosshairColor;
             }
         }
+        [DataMember]
         public MeshInstance PlayerMesh
         {
             get;
             set;
         }
-
+        [DataMember]
+        public MeshInstance HologramMesh
+        {
+            get;
+            set;
+        }
+        [DataMember]
+        public MeshInstance PreviewMesh
+        {
+            get;
+            set;
+        }
         protected override void HandleDeath()
         {
             
@@ -198,7 +219,7 @@ namespace Engine.Components
             }
             direction.Y = 0; direction.Normalize();
 
-            if (rigidbody != null && rigidbody.IsGrounded && Vector3.Dot(rigidbody.Velocity, direction) < speed)
+            if (rigidbody != null && (rigidbody.IsGrounded || !rigidbody.GravityEnabled) && Vector3.Dot(rigidbody.Velocity, direction) < speed)
             {
                 rigidbody.AddForce(rigidbody.Mass * 5*(speed - rigidbody.Velocity.Length()) * direction);
             }
@@ -206,7 +227,7 @@ namespace Engine.Components
         private void Stay(ReleasedActionArgs args)
         {
             Rigidbody rigidbody = Owner.GetComponent<Rigidbody>();
-            if (rigidbody != null && rigidbody.IsGrounded)
+            if (rigidbody != null && (rigidbody.IsGrounded || !rigidbody.GravityEnabled))
             {
                 Vector3 direction;
                 if (args == null)
@@ -317,7 +338,7 @@ namespace Engine.Components
             if (hologramRecording) return;
             Weapon weapon = getWeapon();
             if (weapon == null) return;
-            weapon.shoot(args.gameTime);
+            weapon.shoot();
         }
 
         private void UnlockFire(ReleasedActionArgs args)
@@ -343,7 +364,7 @@ namespace Engine.Components
         private void RecordingButton(PressedActionArgs args)
         {
             Rigidbody rig = Owner.GetComponent<Rigidbody>();
-            if (!hologramRecording && !hologramPlaying && (rig == null || rig.IsGrounded))
+            if (!hologramRecording && !hologramPlaying && (rig == null || rig.IsGrounded || !rig.GravityEnabled))
             {
                 GameObject hologramRecording = new GameObject("HologramRecorder", Owner.LocalPosition, 
                                                               Owner.LocalQuaternionRotation, Owner.LocalScale, Owner.Scene, Owner.Parent);
@@ -407,25 +428,25 @@ namespace Engine.Components
                 Minimap.Hologram = hologramPlayback;
                 hologramPlayback.AddComponent(new HologramPlayback(recordedPaths[selectedPath].First.Value, StopPlayback));
                 recordedPaths[selectedPath].Second = recordedPaths[selectedPath].First.Value.Duration;
-                if (PlayerMesh != null)
+                if (HologramMesh != null)
                 {
-                    hologramPlayback.AddComponent(PlayerMesh);
+                    hologramPlayback.AddComponent(HologramMesh);
                     AnimationController anim = hologramPlayback.AddNewComponent<AnimationController>();
-                    anim.BindAnimation("runForward", PlayerMesh.Model.Clips[1], true);
-                    anim.BindAnimation("runBackward", PlayerMesh.Model.Clips[1], true);
-                    anim.BindAnimation("runLeft", PlayerMesh.Model.Clips[1], true);
-                    anim.BindAnimation("runRight", PlayerMesh.Model.Clips[1], true);
-                    anim.BindAnimation("walkForward", PlayerMesh.Model.Clips[2], true);
-                    anim.BindAnimation("walkBackward", PlayerMesh.Model.Clips[2], true);
-                    anim.BindAnimation("walkLeft", PlayerMesh.Model.Clips[2], true);
-                    anim.BindAnimation("walkRight", PlayerMesh.Model.Clips[2], true);
-                    anim.BindAnimation("death", PlayerMesh.Model.Clips[3]);
-                    anim.BindAnimation("jump", PlayerMesh.Model.Clips[4]);
-                    anim.BindAnimation("crouchForward", PlayerMesh.Model.Clips[5], true);
-                    anim.BindAnimation("crouchBackward", PlayerMesh.Model.Clips[5], true);
-                    anim.BindAnimation("crouchLeft", PlayerMesh.Model.Clips[5], true);
-                    anim.BindAnimation("crouchRight", PlayerMesh.Model.Clips[5], true);
-                    anim.SetBindPose(isCrouching ? PlayerMesh.Model.Clips[5] : PlayerMesh.Model.Clips[3]);
+                    anim.BindAnimation("runForward", 1, true);
+                    anim.BindAnimation("runBackward", 1, true);
+                    anim.BindAnimation("runLeft", 1, true);
+                    anim.BindAnimation("runRight", 1, true);
+                    anim.BindAnimation("walkForward", 2, true);
+                    anim.BindAnimation("walkBackward", 2, true);
+                    anim.BindAnimation("walkLeft", 2, true);
+                    anim.BindAnimation("walkRight", 2, true);
+                    anim.BindAnimation("death", 3);
+                    anim.BindAnimation("jump", 4);
+                    anim.BindAnimation("crouchForward", 5, true);
+                    anim.BindAnimation("crouchBackward", 5, true);
+                    anim.BindAnimation("crouchLeft", 5, true);
+                    anim.BindAnimation("crouchRight", 5, true);
+                    anim.SetBindPose(isCrouching ? HologramMesh.Model.Clips[5] : HologramMesh.Model.Clips[3]);
                 }
                 this.hologramPlaying = true;
                 playingPath = selectedPath;
@@ -434,8 +455,9 @@ namespace Engine.Components
 
         private void StopPlayback()
         {
+            hologramPlayback.IsVisible = false;
             this.hologramPlaying = false;
-            if(PlayerMesh != null) PlayerMesh.Owner.RemoveComponent(PlayerMesh);
+            if(HologramMesh != null) HologramMesh.Owner.RemoveComponent(PlayerMesh);
             recordedPaths[playingPath].Second = hologramCooldown;
             if (recordedPaths[selectedPath].First.HasValue) Minimap.Hologram = recordedPaths[selectedPath].First.Value.StartGlobalPosition;
             else Minimap.Hologram = null;
@@ -475,25 +497,25 @@ namespace Engine.Components
                                                               Owner.LocalScale, Owner.Scene, Owner.Parent);
                 Minimap.Hologram = preview;
                 preview.AddComponent(new HologramPlayback(recordedPaths[selectedPath].First.Value, StopPreview));
-                if (PlayerMesh != null)
+                if (PreviewMesh != null)
                 {
-                    preview.AddComponent(PlayerMesh);
+                    preview.AddComponent(PreviewMesh);
                     AnimationController anim = preview.AddNewComponent<AnimationController>();
-                    anim.BindAnimation("runForward", PlayerMesh.Model.Clips[1], true);
-                    anim.BindAnimation("runBackward", PlayerMesh.Model.Clips[1], true);
-                    anim.BindAnimation("runLeft", PlayerMesh.Model.Clips[1], true);
-                    anim.BindAnimation("runRight", PlayerMesh.Model.Clips[1], true);
-                    anim.BindAnimation("walkForward", PlayerMesh.Model.Clips[2], true);
-                    anim.BindAnimation("walkBackward", PlayerMesh.Model.Clips[2], true);
-                    anim.BindAnimation("walkLeft", PlayerMesh.Model.Clips[2], true);
-                    anim.BindAnimation("walkRight", PlayerMesh.Model.Clips[2], true);
-                    anim.BindAnimation("death", PlayerMesh.Model.Clips[3]);
-                    anim.BindAnimation("jump", PlayerMesh.Model.Clips[4]);
-                    anim.BindAnimation("crouchForward", PlayerMesh.Model.Clips[5], true);
-                    anim.BindAnimation("crouchBackward", PlayerMesh.Model.Clips[5], true);
-                    anim.BindAnimation("crouchLeft", PlayerMesh.Model.Clips[5], true);
-                    anim.BindAnimation("crouchRight", PlayerMesh.Model.Clips[5], true);
-                    anim.SetBindPose(isCrouching ? PlayerMesh.Model.Clips[5] : PlayerMesh.Model.Clips[3]);
+                    anim.BindAnimation("runForward", 1, true);
+                    anim.BindAnimation("runBackward", 1, true);
+                    anim.BindAnimation("runLeft", 1, true);
+                    anim.BindAnimation("runRight", 1, true);
+                    anim.BindAnimation("walkForward", 2, true);
+                    anim.BindAnimation("walkBackward", 2, true);
+                    anim.BindAnimation("walkLeft", 2, true);
+                    anim.BindAnimation("walkRight", 2, true);
+                    anim.BindAnimation("death", 3);
+                    anim.BindAnimation("jump", 4);
+                    anim.BindAnimation("crouchForward", 5, true);
+                    anim.BindAnimation("crouchBackward", 5, true);
+                    anim.BindAnimation("crouchLeft", 5, true);
+                    anim.BindAnimation("crouchRight", 5, true);
+                    anim.SetBindPose(isCrouching ? PreviewMesh.Model.Clips[5] : PreviewMesh.Model.Clips[3]);
                 }
                 hologramPreview = true;
             }
@@ -567,7 +589,7 @@ namespace Engine.Components
         }
 
         public PlayerController() : 
-            this(40f, 0.5f, 75f, 1.0f, 20f, 0.0f, 20.0f)
+            this(80f, 0.5f, 150f, 1.0f, 40f, 0.0f, 20.0f)
         {
         }
 
@@ -594,6 +616,22 @@ namespace Engine.Components
             closestObject = null;
             crosshairColor = Color.Orange;
             weapons = new GameObject[3];
+            InitializeInput(new StreamingContext());
+        }
+
+        private void DownTemp(PressingActionArgs args)
+        {
+            Owner.LocalPosition = Owner.LocalPosition - 100 * (float)args.gameTime.ElapsedGameTime.TotalSeconds * Vector3.UnitY;
+        }
+
+        private void UpTemp(PressingActionArgs args)
+        {
+            Owner.LocalPosition = Owner.LocalPosition + 100 * (float)args.gameTime.ElapsedGameTime.TotalSeconds * Vector3.UnitY;
+        }
+
+        [OnDeserialized]
+        private void InitializeInput(StreamingContext context)
+        {
             // Bind actions to input.
             Input.BindActionContinuousPress(GameAction.MOVE_FORWARD, Move);
             Input.BindActionRelease(GameAction.MOVE_FORWARD, Stay);
@@ -622,16 +660,6 @@ namespace Engine.Components
             Input.BindActionContinuousPress(GameAction.GO_UP, UpTemp);
             Input.BindActionContinuousPress(GameAction.GO_DOWN, DownTemp);
             Input.BindMouseMovement(Turn);
-        }
-
-        private void DownTemp(PressingActionArgs args)
-        {
-            Owner.LocalPosition = Owner.LocalPosition - 100 * (float)args.gameTime.ElapsedGameTime.TotalSeconds * Vector3.UnitY;
-        }
-
-        private void UpTemp(PressingActionArgs args)
-        {
-            Owner.LocalPosition = Owner.LocalPosition + 100 * (float)args.gameTime.ElapsedGameTime.TotalSeconds * Vector3.UnitY;
         }
     }
 }

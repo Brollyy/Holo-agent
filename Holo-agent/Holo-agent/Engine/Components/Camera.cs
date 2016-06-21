@@ -1,9 +1,12 @@
 ﻿using Microsoft.Xna.Framework;
+using System.Runtime.Serialization;
 
 namespace Engine.Components
 {
+    [DataContract]
     public class Camera : Component
     {
+        [DataMember]
         private Matrix projectionMatrix;
         public Matrix ProjectionMatrix
         {
@@ -12,6 +15,7 @@ namespace Engine.Components
                 return projectionMatrix;
             }
         }
+        [DataMember]
         private Matrix viewMatrix;
         public Matrix ViewMatrix
         {

@@ -1,41 +1,22 @@
-﻿float4x4 World;
-float4x4 View;
-float4x4 Projection;
+﻿texture ScreenTexture;
 
-float4 AmbientColor = float4(1, 1, 1, 1);
-float AmbientIntensity = 0.1;
-
-struct VertexShaderInput
+sampler TextureSampler = sampler_state
 {
-	float4 Position : POSITION0;
+	Texture = <ScreenTexture>;
 };
 
-struct VertexShaderOutput
+float4 PixelShaderFunction(float4 pos : SV_POSITION, float4 color1 : COLOR0, float2 TextureCoordinate : TEXCOORD0) : COLOR0
 {
-	float4 Position : POSITION0;
-};
-
-VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
-{
-	VertexShaderOutput output;
-
-	float4 worldPosition = mul(input.Position, World);
-	float4 viewPosition = mul(worldPosition, View);
-	output.Position = mul(viewPosition, Projection);
-
-	return output;
+	float4 tex;
+	tex = tex2D(TextureSampler, TextureCoordinate) * .6f;
+	tex += tex2D(TextureSampler, TextureCoordinate + (0.005)) * .2f;
+	return tex;
 }
 
-float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
-{
-	return AmbientColor * AmbientIntensity;
-}
-
-technique Ambient
+technique Technique1
 {
 	pass Pass1
 	{
-		VertexShader = compile vs_4_0 VertexShaderFunction();
 		PixelShader = compile ps_4_0 PixelShaderFunction();
 	}
 }

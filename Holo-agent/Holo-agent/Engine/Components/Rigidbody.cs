@@ -1,16 +1,22 @@
 ﻿using Microsoft.Xna.Framework;
+using System.Runtime.Serialization;
 
 namespace Engine.Components
 {
+    [DataContract]
     public class Rigidbody : Component
     {
+        [DataMember]
         private float velocityThreshhold;
-
+        [DataMember]
         private float invertMass;
+        [DataMember]
         private Vector3 velocity;
         private Vector3 force;
         private Vector3 impulseForce;
+        [DataMember]
         private float dragCoefficient;
+        [DataMember]
         private float groundDrag = 0.1f;
 
         public float Mass
@@ -19,16 +25,19 @@ namespace Engine.Components
             set { invertMass = 1.0f / value; }
         }
 
+        [DataMember]
         public bool IsGrounded
         {
             get; set;
         } = false;
 
+        [DataMember]
         public bool GravityEnabled
         {
             get; set;
         } = true;
 
+        [DataMember]
         public bool IsSleeping
         {
             get; set;
@@ -67,7 +76,7 @@ namespace Engine.Components
             float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
             if (!IsSleeping)
             {
-                if (IsGrounded) velocity *= (1 - groundDrag);
+                if (IsGrounded || !GravityEnabled) velocity *= (1 - groundDrag);
                 velocity += ((force + 
                              impulseForce / deltaTime -
                              (velocity.LengthSquared() > 0.00001f ? velocity.LengthSquared() * dragCoefficient * Vector3.Normalize(velocity) : Vector3.Zero)) * invertMass +

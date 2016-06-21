@@ -2,24 +2,28 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace Engine.Utilities
 {
-
+    [DataContract]
     public class GraphNode<T,U>
     {
+        [DataMember]
         public T Value
         {
             get; set;
         } = default(T);
 
+        [DataMember]
         public List<GraphNode<T,U>> Neighbours
         {
             get; set;
         } = new List<GraphNode<T,U>>();
 
+        [DataMember]
         public List<U> Costs
         {
             get; set;
@@ -29,8 +33,10 @@ namespace Engine.Utilities
         public GraphNode(T value) { Value = value; }
     }
 
+    [DataContract]
     public class Graph<T,U> : IEnumerable<GraphNode<T,U>>
     {
+        [DataMember]
         private List<GraphNode<T,U>> nodeSet;
 
         public Graph() : this(null) { }
@@ -115,6 +121,11 @@ namespace Engine.Utilities
         public int Count
         {
             get { return nodeSet.Count; }
+        }
+
+        public void Add(Object go)
+        {
+
         }
     }
 }
