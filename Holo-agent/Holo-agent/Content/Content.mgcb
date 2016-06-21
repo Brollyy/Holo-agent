@@ -988,3 +988,9 @@
 /processorParam:TextureFormat=DxtCompressed
 /build:Models/kolumna.FBX
 
+#begin FX/Health.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:FX/Health.fx
+

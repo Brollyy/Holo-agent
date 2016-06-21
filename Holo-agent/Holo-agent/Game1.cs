@@ -28,6 +28,7 @@ namespace Holo_agent
         Effect postProcessingEffect;
         Effect color_time;
         Effect cameraShader;
+        Effect healthShader;
         Texture2D crosshair;
         SpriteFont font;
         FrameCounter frameCounter;
@@ -245,6 +246,8 @@ namespace Holo_agent
             color_time.Parameters["Timer"].SetValue(0.0f);
             color_time.Parameters["Color"].SetValue(Color.White.ToVector4());
             cameraShader = Content.Load<Effect>("FX/Shader1");
+            healthShader = Content.Load<Effect>("FX/Health");
+            healthShader.Parameters["Health"].SetValue(100.0f);
             gameMenu.LoadContent(Content);
             Minimap.LoadContent(Content);
             Model columnModel = Content.Load<Model>("Models/kolumna");
@@ -504,6 +507,14 @@ namespace Holo_agent
                 {
                     special_timer = 0.0f;
                     color_time.Parameters["Timer"].SetValue(0.0f);
+                }
+
+                if (player.GetComponent<PlayerController>() != null)
+                {
+                    healthShader.Parameters["Health"].SetValue(player.GetComponent<PlayerController>().Health);
+                    spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.Default, RasterizerState.CullNone, healthShader);
+                    spriteBatch.Draw(texture, new Rectangle(0, 0, graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight), null, Color.White, 0, Vector2.Zero, SpriteEffects.None, 0);
+                    spriteBatch.End();
                 }
 
                 spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.Default, RasterizerState.CullNone, (special_timer > 0.0f? color_time : cameraShader));
