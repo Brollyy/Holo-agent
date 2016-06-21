@@ -14,12 +14,9 @@ namespace Engine.Utilities
 
     public delegate void DecisionOutcomeHandler(DecisionOutcome outcome);
 
-    [DataContract]
     public class DecisionTreeNode
     {
-        [DataMember]
         public Decision value;
-        [DataMember]
         public List<Pair<Predicate<List<object>>, DecisionTreeNode>> connections;
 
         public DecisionTreeNode(Decision decision)

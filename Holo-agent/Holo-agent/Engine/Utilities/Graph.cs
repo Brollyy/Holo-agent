@@ -33,7 +33,7 @@ namespace Engine.Utilities
         public GraphNode(T value) { Value = value; }
     }
 
-    [CollectionDataContract]
+    [DataContract]
     public class Graph<T,U> : IEnumerable<GraphNode<T,U>>
     {
         [DataMember]

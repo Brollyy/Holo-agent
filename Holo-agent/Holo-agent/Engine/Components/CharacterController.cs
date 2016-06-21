@@ -24,7 +24,6 @@ namespace Engine.Components
         protected float crouchSpeed;
         [DataMember]
         protected float crouchVolume;
-        [DataMember]
         protected Movement movement;
 
         [DataMember]

@@ -34,6 +34,17 @@ namespace Engine.Components
             }
         }
 
+        public GraphicsDeviceManager Graphics
+        {
+            set { graphics = value; effect = new BasicEffect(graphics.GraphicsDevice); }
+        }
+
+        public Texture2D Texture
+        {
+            get { return texture; }
+            set { texture = value; }
+        }
+
         public SpriteInstance(Texture2D texture, Vector3 coordinates, int tilesNumber, float alpha, GraphicsDeviceManager graphics)
         {
             this.texture = texture;
@@ -79,6 +90,12 @@ namespace Engine.Components
                 pass.Apply();
                 graphics.GraphicsDevice.DrawUserPrimitives(PrimitiveType.TriangleList, spriteVerts, 0, 2);
             }
+        }
+
+        [OnDeserialized]
+        public void InitializeAfterLoading(StreamingContext context)
+        {
+            spriteVerts = new VertexPositionTexture[6];
         }
     }
 }

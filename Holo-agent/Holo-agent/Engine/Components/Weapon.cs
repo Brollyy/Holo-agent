@@ -7,7 +7,6 @@ namespace Engine.Components
     [DataContract]
     public class Weapon : Component
     {
-        [DataMember]
         private SoundEffect gunshotSound;
         [DataMember]
         private WeaponTypes weaponType;

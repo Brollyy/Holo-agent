@@ -9,6 +9,7 @@ namespace Engine.Components
         /// <summary>
         /// Stores object this component is attached to.
         /// </summary>
+        [DataMember]
         private GameObject go;
 
         [DataMember]

@@ -17,7 +17,7 @@ namespace Engine
     [DataContract]
     public class GameObject
     {
-        [DataMember]
+        [DataMember(Order = 1)]
         private BoundingBox bound = new BoundingBox(-0.5f * Vector3.One, 0.5f * Vector3.One);
         [IgnoreDataMember]
         public BoundingBox Bound
@@ -37,7 +37,7 @@ namespace Engine
         }
 
         // TODO: Implement Instantiate and Destroy static functions (maybe?).
-        [DataMember]
+        [DataMember(Order = 0)]
         private bool isVisible;
         [IgnoreDataMember]
         public bool IsVisible
@@ -52,7 +52,10 @@ namespace Engine
             }
         }
 
+        [DataMember(Order = 0)]
         private Scene scene;
+
+        [IgnoreDataMember]
         public Scene Scene
         {
             get
@@ -64,12 +67,13 @@ namespace Engine
         /// <summary>
         /// Stores name of this object.
         /// </summary>
+        [DataMember(Order = 0)]
         private string name;
 
         /// <summary>
         /// Name property of this object.
         /// </summary>
-        [DataMember]
+        [IgnoreDataMember]
         public string Name
         {
             get
@@ -87,13 +91,13 @@ namespace Engine
         /// Reference to scene parent of this GameObject.
         /// If null, local space is the same as global space.
         /// </summary>
+        [DataMember(Order = 2)]
         private GameObject parent;
 
         /// <summary>
         /// Scene parent property.
         /// Setting it will not change the transform of the object in the global space.
         /// </summary>
-        [DataMember]
         public GameObject Parent
         {
             get
@@ -129,7 +133,7 @@ namespace Engine
         /// <summary>
         /// Stores references to children of this object.
         /// </summary>
-        [DataMember]
+        [DataMember(Order = 7)]
         private SortedList<string, GameObject> children;
 
         /// <summary>
@@ -138,6 +142,7 @@ namespace Engine
         /// <param name="child"> Object to be added to children set.</param>
         private void AddChild(GameObject child)
         {
+            if (children == null || children.ContainsKey(child.Name)) return;
             // TODO: Think about exceptions.
             children.Add(child.name, child);
         }
@@ -199,20 +204,23 @@ namespace Engine
         /// <summary>
         /// Stores position of the object in local space.
         /// </summary>
+        [DataMember(Order = 5)]
         private Vector3 localPosition;
         /// <summary>
         /// Stores rotation of the object in local space.
         /// </summary>
+        [DataMember(Order = 5)]
         private Quaternion localRotation;
         /// <summary>
         /// Stores scale of the object in local space.
         /// </summary>
+        [DataMember(Order = 5)]
         private Vector3 localScale;
 
         /// <summary>
         /// Local position property of the object.
         /// </summary>
-        [DataMember]
+        [IgnoreDataMember]
         public Vector3 LocalPosition
         {
             get
@@ -233,7 +241,7 @@ namespace Engine
         /// <summary>
         /// Local rotation property of the object.
         /// </summary>
-        [DataMember]
+        [IgnoreDataMember]
         public Quaternion LocalQuaternionRotation
         {
             get
@@ -316,7 +324,7 @@ namespace Engine
         /// Local scale property of the object.
         /// </summary>
         /// <value> 3D vector containing scale coefficients along X,Y and Z axes.</value>
-        [DataMember]
+        [IgnoreDataMember]
         public Vector3 LocalScale
         {
             get
@@ -338,6 +346,7 @@ namespace Engine
         /// <summary>
         /// Stores local to world coordinates transform matrix.
         /// </summary>
+        [DataMember(Order = 5)]
         private Matrix localToWorldMatrix;
 
         private void UpdateLocalToWorldMatrix(Matrix parentLocalToWorldMatrix)
@@ -430,7 +439,7 @@ namespace Engine
         /// <summary>
         /// Stores object's components.
         /// </summary>
-        [DataMember]
+        [DataMember(Order = 3)]
         private List<Component> components;
 
         /// <summary>
@@ -586,8 +595,18 @@ namespace Engine
         /// <summary>
         /// Default constructor for GameObject. Sets unnamed, parentless object at point (0,0,0), without any rotation and scale.
         /// </summary>
-        public GameObject() : this(null, Vector3.Zero, Quaternion.Identity, Vector3.One, null)
+        public GameObject()
         {
+            name = "";
+            isVisible = true;
+            components = new List<Component>();
+            localToWorldMatrix = Matrix.Identity;
+            children = new SortedList<string, GameObject>();
+            parent = null;
+            localPosition = Vector3.Zero;
+            localRotation = Quaternion.Identity;
+            localScale = Vector3.One;
+            scene = null;
         }
 
         /// <summary>

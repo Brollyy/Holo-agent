@@ -12,63 +12,67 @@ namespace Engine
     [DataContract]
     public struct Room
     {
-        [DataMember]
+        [DataMember(Order = 0)]
         public GameObject go;
-        [DataMember]
+        [DataMember(Order = 1)]
         public List<GameObject> contents;
     }
 
     [DataContract]
     public class Scene
     {
-        private List<GameObject> objectsToDestroy;
+        private List<GameObject> objectsToDestroy = new List<GameObject>();
         [DataMember(Order = 0)]
         private Graph<Room,BoundingBox> roomGraph;
         [DataMember(Order = 1)]
         private GameObject activeCamera;
-        private List<GameObject> objectsToRespace;
+        [DataMember(Order = 2)]
+        private float sceneTime = 0.0f;
+        private List<GameObject> objectsToRespace = new List<GameObject>();
 
         public List<GameObject> GetAllObjects()
         {
-            List<GameObject> allObjects = new List<GameObject>();
+            HashSet<GameObject> allObjects = new HashSet<GameObject>();
             foreach(GraphNode<Room,BoundingBox> node in roomGraph)
             {
-                Room room = node.Value;
-                PopulateGameObjectList(ref allObjects, room.go);
+                allObjects.Add(node.Value.go);
+                foreach (GameObject go2 in node.Value.contents)
+                    allObjects.Add(go2);
+
+                foreach (GraphNode<Room, BoundingBox> neighbour in node.Neighbours)
+                {
+                    allObjects.Add(neighbour.Value.go);
+                    foreach (GameObject go2 in neighbour.Value.contents)
+                        allObjects.Add(go2);
+                }
             }
-            return allObjects;
+            return new List<GameObject>(allObjects);
         }
 
         public List<GameObject> GetNearbyObjects(GameObject go)
         {
-            List<GameObject> nearbyObjects = new List<GameObject>();
+            HashSet<GameObject> nearbyObjects = new HashSet<GameObject>();
             foreach (GraphNode<Room, BoundingBox> node in roomGraph)
             {
                 if (node.Value.contents.Contains(go))
                 {
-                    nearbyObjects.AddRange(node.Value.contents);
+                    foreach(GameObject go2 in node.Value.contents)
+                        nearbyObjects.Add(go2);
+
                     foreach (GraphNode<Room, BoundingBox> neighbour in node.Neighbours)
                     {
-                        nearbyObjects.AddRange(neighbour.Value.contents);
+                        foreach (GameObject go2 in neighbour.Value.contents)
+                            nearbyObjects.Add(go2);
                     }
                     break;
                 }
             }
-            return nearbyObjects;
-        }
-
-        private void PopulateGameObjectList(ref List<GameObject> list, GameObject go)
-        {
-            list.Add(go);
-            List<GameObject> children = go.GetChildren();
-            foreach (GameObject child in children)
-            {
-                PopulateGameObjectList(ref list, child);
-            }
+            return new List<GameObject>(nearbyObjects);
         }
 
         public void Respace(GameObject go)
         {
+            if (objectsToRespace == null) return;
             if(!objectsToRespace.Contains(go)) objectsToRespace.Add(go);
         }
 
@@ -121,6 +125,12 @@ namespace Engine
             }
         }
 
+        [IgnoreDataMember]
+        public float SceneTime
+        {
+            get { return sceneTime; }
+        }
+
         public GameObject FindRoomContaining(GameObject gameObject)
         {
             if (gameObject.Parent == null) return null;
@@ -143,6 +153,8 @@ namespace Engine
 
         public void Update(GameTime gameTime)
         {
+            sceneTime += (float)gameTime.ElapsedGameTime.TotalSeconds;
+
             foreach(GraphNode<Room,BoundingBox> node in roomGraph)
             {
                 Room room = node.Value;
@@ -289,6 +301,13 @@ namespace Engine
             {
                 go.DrawDebug(gameTime, graphicsDevice);
             }
+        }
+
+        [OnDeserialized]
+        private void InitializeAfterLoading(StreamingContext context)
+        {
+            objectsToDestroy = new List<GameObject>();
+            objectsToRespace = new List<GameObject>();
         }
     }
 }

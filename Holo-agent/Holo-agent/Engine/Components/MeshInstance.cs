@@ -21,6 +21,11 @@ namespace Engine.Components
             {
                 return model;
             }
+
+            set
+            {
+                model = value;
+            }
         }
 
         [DataMember]

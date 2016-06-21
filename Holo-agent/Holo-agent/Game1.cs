@@ -42,8 +42,6 @@ namespace Holo_agent
         GameObject bench2;
         GameObject bench3;
         GameObject bench4;
-        GameObject column;
-        GameObject column1;
         GameObject column2;
         GameObject bench7;
         List<GameObject> propsRoom5;
@@ -78,7 +76,7 @@ namespace Holo_agent
                 typeof(DoorInteraction), typeof(EnemyController), typeof(HologramPlayback), typeof(HologramRecorder), typeof(Interaction),
                 typeof(MeshInstance), typeof(ParticleSystem), typeof(PlayerController), typeof(Rigidbody), typeof(SpriteInstance),
                 typeof(Weapon), typeof(WeaponInteraction), typeof(Engine.Bounding_Volumes.BoundingVolume), typeof(Engine.Bounding_Volumes.BoundingBox),
-                typeof(Engine.Bounding_Volumes.BoundingSphere), typeof(Vector3)
+                typeof(Engine.Bounding_Volumes.BoundingSphere), typeof(Vector3), typeof(GameObject)
             };
             // Uncomment to enable 60+ FPS.
             /*graphics.SynchronizeWithVerticalRetrace = false;
@@ -99,6 +97,7 @@ namespace Holo_agent
             graphics.ApplyChanges();*/
             Input.Initialize();
             Input.BindActionPress(GameAction.SAVE, SaveGame);
+            Input.BindActionPress(GameAction.LOAD, LoadGame);
             // TODO: Add your initialization logic here
             frameCounter = new FrameCounter();
             weapons = new List<GameObject>();
@@ -342,18 +341,26 @@ namespace Holo_agent
 
             enemy.AddComponent(new MeshInstance(enemyModel));
             enemy.GetComponent<MeshInstance>().Offset = new Vector3(0, -17, 0);
+            enemy.GetComponent<MeshInstance>().Model.Clips.Add(enemyRunClip);
+            enemy.GetComponent<MeshInstance>().Model.Clips.Add(enemyDeathClip);
+            enemy.GetComponent<MeshInstance>().Model.Clips.Add(enemyShootClip);
+            enemy.GetComponent<MeshInstance>().Model.Clips.Add(enemyHitClip);
             enemy.AddNewComponent<AnimationController>();
             enemy.GetComponent<AnimationController>().SetBindPose(enemyShootClip);
-            enemy.GetComponent<AnimationController>().BindAnimation("run", enemyRunClip, true);
-            enemy.GetComponent<AnimationController>().BindAnimation("death", enemyDeathClip, false);
-            enemy.GetComponent<AnimationController>().BindAnimation("hit", enemyHitClip, false);
+            enemy.GetComponent<AnimationController>().BindAnimation("run", 1, true);
+            enemy.GetComponent<AnimationController>().BindAnimation("death", 2, false);
+            enemy.GetComponent<AnimationController>().BindAnimation("hit", 3, false);
             enemy2.AddComponent(new MeshInstance(enemyModel));
             enemy2.GetComponent<MeshInstance>().Offset = new Vector3(0, -17, 0);
+            enemy2.GetComponent<MeshInstance>().Model.Clips.Add(enemyRunClip);
+            enemy2.GetComponent<MeshInstance>().Model.Clips.Add(enemyDeathClip);
+            enemy2.GetComponent<MeshInstance>().Model.Clips.Add(enemyShootClip);
+            enemy2.GetComponent<MeshInstance>().Model.Clips.Add(enemyHitClip);
             enemy2.AddNewComponent<AnimationController>();
             enemy2.GetComponent<AnimationController>().SetBindPose(enemyShootClip);
-            enemy2.GetComponent<AnimationController>().BindAnimation("run", enemyRunClip, true);
-            enemy2.GetComponent<AnimationController>().BindAnimation("death", enemyDeathClip, false);
-            enemy2.GetComponent<AnimationController>().BindAnimation("hit", enemyHitClip, false);
+            enemy2.GetComponent<AnimationController>().BindAnimation("run", 1, true);
+            enemy2.GetComponent<AnimationController>().BindAnimation("death", 2, false);
+            enemy2.GetComponent<AnimationController>().BindAnimation("hit", 3, false);
 
             Model doorModel = Content.Load<Model>("Models/door_001");
             Model pistolModel = Content.Load<Model>("Models/Pistol");
@@ -738,16 +745,35 @@ namespace Holo_agent
             {
                 device = null;
                 gameState = GameState.Pause;
-                StorageDevice.BeginShowSelector(PlayerIndex.One, GetDevice, null);
+                StorageDevice.BeginShowSelector(PlayerIndex.One, GetDeviceForSaving, null);
             }
         }
 
-        private void GetDevice(IAsyncResult result)
+        private void LoadGame(PressedActionArgs args)
+        {
+            if(gameState == GameState.GameRunning)
+            {
+                device = null;
+                gameState = GameState.Pause;
+                StorageDevice.BeginShowSelector(PlayerIndex.One, GetDeviceForLoading, null);
+            }
+        }
+
+        private void GetDeviceForSaving(IAsyncResult result)
         {
             device = StorageDevice.EndShowSelector(result);
             if (device != null && device.IsConnected)
             {
                 DoSaveGame();
+            }
+        }
+
+        private void GetDeviceForLoading(IAsyncResult result)
+        {
+            device = StorageDevice.EndShowSelector(result);
+            if (device != null && device.IsConnected)
+            {
+                DoLoadGame();
             }
         }
 
@@ -770,10 +796,9 @@ namespace Holo_agent
 
             // Create the file.
             Stream stream = container.CreateFile(filename);
-            // Convert the object to XML data and put it in the stream.
 
             DataContractSerializer serializer = new DataContractSerializer(scene.GetType(), knownTypes,
-                0x7FFF, false, true, null);
+                Int32.MaxValue, false, true, null);
             using (XmlWriter writer = XmlWriter.Create(stream, new XmlWriterSettings { Indent = true, IndentChars = "\t" }))
                 serializer.WriteObject(writer, scene);
             // Close the file.
@@ -782,6 +807,76 @@ namespace Holo_agent
             container.Dispose();
 
             gameState = GameState.GameRunning;
+        }
+
+        private void DoLoadGame()
+        {
+            // Open a storage container.
+            IAsyncResult result =
+                device.BeginOpenContainer("Storage", null, null);
+            // Wait for the WaitHandle to become signaled.
+            result.AsyncWaitHandle.WaitOne();
+            StorageContainer container = device.EndOpenContainer(result);
+            // Close the wait handle.
+            result.AsyncWaitHandle.Close();
+
+            string filename = "savegame.sav";
+            // Check to see whether the save exists.
+            if (!container.FileExists(filename))
+            {
+                // If not, dispose of the container and return.
+                container.Dispose();
+                return;
+            }
+
+            // Open the file.
+            Stream stream = container.OpenFile(filename, FileMode.Open);
+
+            DataContractSerializer serializer = new DataContractSerializer(scene.GetType(), knownTypes,
+                0xFFFF, false, true, null);
+            Scene newScene = null;
+            using (XmlReader reader = XmlReader.Create(stream, new XmlReaderSettings { IgnoreWhitespace = true }))
+                newScene = (Scene)serializer.ReadObject(reader);
+
+            if (newScene != null) InitializeNewScene(newScene);
+
+            gameState = GameState.GameRunning;
+        }
+
+        private void InitializeNewScene(Scene newScene)
+        {
+            List<GameObject> newObjects = newScene.GetAllObjects();
+            List<GameObject> objects = scene.GetAllObjects();
+
+            foreach(GameObject newGo in newObjects)
+            {
+                GameObject go = objects.Find(x => x.Name == newGo.Name);
+                List<Component> components = newGo.GetInactiveComponents<Component>();
+                foreach(Component comp in components)
+                {
+                    if(comp is MeshInstance) (comp as MeshInstance).Model = go.GetInactiveComponent<MeshInstance>().Model;
+                    if(comp is PlayerController)
+                    {
+                        (comp as PlayerController).PlayerMesh = go.GetInactiveComponent<PlayerController>().PlayerMesh;
+                        (comp as PlayerController).PreviewMesh = go.GetInactiveComponent<PlayerController>().PreviewMesh;
+                        (comp as PlayerController).HologramMesh = go.GetInactiveComponent<PlayerController>().HologramMesh;
+                    }
+                    if(comp is Weapon) (comp as Weapon).GunshotSound = go.GetInactiveComponent<Weapon>().GunshotSound;
+                    if(comp is SpriteInstance)
+                    {
+                        (comp as SpriteInstance).Graphics = graphics;
+                        (comp as SpriteInstance).Texture = go.GetInactiveComponent<SpriteInstance>().Texture;
+                    }
+                }
+
+                if (newGo.Name == "Player") player = newGo;
+                if (newGo.Name == "Enemy") enemy = newGo;
+                if (newGo.Name == "Enemy2") enemy2 = newGo;
+            }
+
+            
+
+            scene = newScene;
         }
     }
 }

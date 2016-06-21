@@ -24,7 +24,7 @@ namespace Engine.Bounding_Volumes
     [DataContract]
     public abstract class BoundingVolume
     {
-        [IgnoreDataMember]
+        [DataMember]
         public Collider Collider
         {
             get;

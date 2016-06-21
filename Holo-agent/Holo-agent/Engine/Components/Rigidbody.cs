@@ -16,6 +16,7 @@ namespace Engine.Components
         private Vector3 impulseForce;
         [DataMember]
         private float dragCoefficient;
+        [DataMember]
         private float groundDrag = 0.1f;
 
         public float Mass

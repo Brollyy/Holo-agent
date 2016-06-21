@@ -90,7 +90,11 @@ namespace Engine.Components
         [DataMember]
         private float range;
         [DataMember]
-        private GameTime lastSearch = new GameTime();
+        private float shootingRange;
+        [DataMember]
+        private float meleeRange;
+        [DataMember]
+        private float lastSearch = 0.0f;
         [DataMember]
         private GameObject weapon;
         [DataMember]
@@ -222,7 +226,8 @@ namespace Engine.Components
 
         public override void Update(GameTime gameTime)
         {
-            if(movement == Movement.RUN)
+            lastSearch += (float)gameTime.ElapsedGameTime.TotalSeconds;
+            if (movement == Movement.RUN)
             {
                 Rigidbody rigidbody = Owner.GetComponent<Rigidbody>();
                 if (rigidbody != null && (rigidbody.IsGrounded || !rigidbody.GravityEnabled))
@@ -230,10 +235,10 @@ namespace Engine.Components
                     rigidbody.AddForce(rigidbody.Mass * runSpeed * Owner.LocalToWorldMatrix.Forward);
                 }
             }
-            if (state != EnemyState.Combat && gameTime.TotalGameTime.Subtract(lastSearch.TotalGameTime).TotalSeconds > 0.5)
+            if (state != EnemyState.Combat && lastSearch > 0.5f)
             {
                 LookForTarget();
-                lastSearch.TotalGameTime = new TimeSpan(gameTime.TotalGameTime.Ticks);
+                lastSearch = 0.0f;
             }
 
             base.Update(gameTime);
@@ -296,6 +301,8 @@ namespace Engine.Components
         {
             movement = Movement.IDLE;
             this.range = range;
+            this.shootingRange = shootingRange;
+            this.meleeRange = meleeRange;
             this.weapon = weapon;
 
             attributes.Add(this);   // EnemyController
@@ -308,6 +315,13 @@ namespace Engine.Components
                 attributes[1] = (Vector3?)(patrolPoints[0]);
             }
 
+            InitializeDecisionTree(new StreamingContext());
+        }
+
+        [OnDeserialized]
+        private void InitializeDecisionTree(StreamingContext context)
+        {
+            decisionTree = new DecisionTree();
             // Decision tree
             DecisionTreeNode startNode = decisionTree.AddNode(decisionTree.root, (x => x[1] != null), null);
             {
@@ -317,8 +331,8 @@ namespace Engine.Components
                         (x => (Matrix.CreateFromQuaternion((x[0] as EnemyController).Owner.GlobalRotation).Forward -
                               Vector3.Normalize((x[1] as GameObject).GlobalPosition - (x[0] as EnemyController).Owner.GlobalPosition)).LengthSquared() > 0.05f),
                         new TurnToTarget(Turn));
-                    DecisionTreeNode shootingNode = decisionTree.AddNode(targetNode, 
-                        (x => x[2] != null && (x[2] as GameObject).GetComponent<Weapon>() != null && (x[2] as GameObject).GetComponent<Weapon>().getAmmo() > 0), 
+                    DecisionTreeNode shootingNode = decisionTree.AddNode(targetNode,
+                        (x => x[2] != null && (x[2] as GameObject).GetComponent<Weapon>() != null && (x[2] as GameObject).GetComponent<Weapon>().getAmmo() > 0),
                         null);
                     {
                         DecisionTreeNode shootingRangeNode = decisionTree.AddNode(shootingNode,
@@ -343,12 +357,12 @@ namespace Engine.Components
                 }
                 DecisionTreeNode patrolNode = decisionTree.AddNode(startNode, (x => x[1] is Vector3?), null);
                 {
-                    decisionTree.AddNode(patrolNode, 
-                        (x => ((x[0] as EnemyController).Owner.GlobalPosition - (x[1] as Vector3?).Value).Length() < meleeRange), 
+                    decisionTree.AddNode(patrolNode,
+                        (x => ((x[0] as EnemyController).Owner.GlobalPosition - (x[1] as Vector3?).Value).Length() < meleeRange),
                         new PerformAction(PickNextPatrolTarget));
                     decisionTree.AddNode(patrolNode,
                         (x => (Matrix.CreateFromQuaternion((x[0] as EnemyController).Owner.GlobalRotation).Forward -
-                              Vector3.Normalize((x[1] as Vector3?).Value - (x[0] as EnemyController).Owner.GlobalPosition)).LengthSquared() > 0.05f), 
+                              Vector3.Normalize((x[1] as Vector3?).Value - (x[0] as EnemyController).Owner.GlobalPosition)).LengthSquared() > 0.05f),
                         new TurnToTarget(Turn));
                     decisionTree.AddNode(patrolNode, (x => true), new PerformAction(MoveForward));
                 }

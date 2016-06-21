@@ -12,7 +12,6 @@ namespace Engine.Components
     [DataContract]
     public class AIController : CharacterController
     {
-        [DataMember]
         protected DecisionTree decisionTree;
         [DataMember]
         protected List<object> attributes;
