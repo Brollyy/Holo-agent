@@ -29,6 +29,7 @@ namespace Holo_agent
         Effect color_time;
         Effect cameraShader;
         Effect healthShader;
+        Effect bloomShader;
         Texture2D healthShaderTexture;
         Texture2D crosshair;
         SpriteFont font;
@@ -56,6 +57,8 @@ namespace Holo_agent
         float /*emitterTimer,*/ objectiveTimer;
         float special_timer = 0.0f;
         SoundEffect shot;
+        SoundEffect stepsWalk, stepsRun;
+        List<SoundEffectInstance> ouchSounds;
         Texture2D gunfireTexture;
         Texture2D floorTexture;
         GameState gameState = GameState.Menu;
@@ -230,7 +233,7 @@ namespace Holo_agent
             Minimap.Objectives.Add(new Vector3(70, 0, -100));
             Minimap.Enemies.Add(enemy);
             Minimap.Enemies.Add(enemy2);
-
+            ouchSounds = new List<SoundEffectInstance>();
             base.Initialize();
         }
 
@@ -250,6 +253,7 @@ namespace Holo_agent
             healthShader = Content.Load<Effect>("FX/Health");
             healthShader.Parameters["Health"].SetValue(100.0f);
             healthShaderTexture = Content.Load<Texture2D>("Textures/Blood_Screen");
+            bloomShader = Content.Load<Effect>("FX/Bloom");
             gameMenu.LoadContent(Content);
             Minimap.LoadContent(Content);
             Model columnModel = Content.Load<Model>("Models/kolumna");
@@ -258,7 +262,13 @@ namespace Holo_agent
             crosshair = Content.Load<Texture2D>("Textures/Crosshair");
             font = Content.Load<SpriteFont>("Textures/Arial");
             shot = Content.Load<SoundEffect>("Sounds/Pistol");
-
+            stepsWalk = Content.Load<SoundEffect>("Sounds/Steps_Walk");
+            stepsRun = Content.Load<SoundEffect>("Sounds/Steps_Run");;
+            ouchSounds.Add(Content.Load<SoundEffect>("Sounds/Ouch_1").CreateInstance());
+            ouchSounds.Add(Content.Load<SoundEffect>("Sounds/Ouch_2").CreateInstance());
+            player.GetComponent<PlayerController>().StepsWalkSound = stepsWalk;
+            player.GetComponent<PlayerController>().StepsRunSound = stepsRun;
+            player.GetComponent<PlayerController>().OuchSounds = ouchSounds;
             weapons[0].GetComponent<Weapon>().GunshotSound = shot;
             weapons[1].GetComponent<Weapon>().GunshotSound = shot;
 
@@ -510,6 +520,10 @@ namespace Holo_agent
                     special_timer = 0.0f;
                     color_time.Parameters["Timer"].SetValue(0.0f);
                 }
+                
+                spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.Default, RasterizerState.CullNone, bloomShader);
+                spriteBatch.Draw(texture, new Rectangle(0, 0, graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight), null, Color.White, 0, Vector2.Zero, SpriteEffects.None, 0);
+                spriteBatch.End();
 
                 spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.Default, RasterizerState.CullNone, (special_timer > 0.0f? color_time : cameraShader));
                 spriteBatch.Draw(texture, new Rectangle(0, 0, graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight), null, Color.White, 0, Vector2.Zero, SpriteEffects.None, 0);
@@ -522,6 +536,7 @@ namespace Holo_agent
                     spriteBatch.Draw(healthShaderTexture, new Rectangle(0, 0, graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight), null, Color.White, 0, Vector2.Zero, SpriteEffects.None, 0);
                     spriteBatch.End();
                 }
+
                 spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.AnisotropicWrap, DepthStencilState.Default, RasterizerState.CullNone);
                 Point w = new Point(graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight);
                 DrawTutorialTips(spriteBatch, font, w, Color.Orange, gameTime);

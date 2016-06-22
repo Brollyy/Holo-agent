@@ -4,6 +4,8 @@ using Engine.Utilities;
 using System;
 using System.Linq;
 using System.Runtime.Serialization;
+using Microsoft.Xna.Framework.Audio;
+using System.Resources;
 
 namespace Engine.Components
 {
@@ -30,6 +32,10 @@ namespace Engine.Components
         private Vector3 playerCameraScale;
         private Quaternion playerRotation;
         private Color crosshairColor;
+        private SoundEffect stepsSound, stepsWalkSound, stepsRunSound;
+        private SoundEffectInstance stepsSoundInstance;
+        private float STEPS_TIMER;
+        private float stepsTimer;
         [DataMember]
         private GameObject[] weapons;
         [DataMember]
@@ -74,6 +80,20 @@ namespace Engine.Components
             get
             {
                 return crosshairColor;
+            }
+        }
+        public SoundEffect StepsWalkSound
+        {
+            set
+            {
+                stepsWalkSound = value;
+            }
+        }
+        public SoundEffect StepsRunSound
+        {
+            set
+            {
+                stepsRunSound = value;
             }
         }
         [DataMember]
@@ -200,6 +220,12 @@ namespace Engine.Components
             float speed;
             Rigidbody rigidbody = Owner.GetComponent<Rigidbody>();
             float delta = (float)args.gameTime.ElapsedGameTime.TotalSeconds;
+            if (isRunning)
+                movement = Movement.RUN;
+            else if (isCrouching)
+                movement = Movement.CROUCH;
+            else
+                movement = Movement.WALK;
             switch (movement)
             {
                 case Movement.WALK: speed = walkSpeed; break;
@@ -222,6 +248,19 @@ namespace Engine.Components
             if (rigidbody != null && (rigidbody.IsGrounded || !rigidbody.GravityEnabled) && Vector3.Dot(rigidbody.Velocity, direction) < speed)
             {
                 rigidbody.AddForce(rigidbody.Mass * 5*(speed - rigidbody.Velocity.Length()) * direction);
+                if (stepsSound != null)
+                {
+                    if(stepsTimer >= STEPS_TIMER)
+                    {
+                        stepsTimer = 0;
+                        if (stepsSound != null && !hologramRecording)
+                        {
+                            stepsSoundInstance = stepsSound.CreateInstance();
+                            stepsSoundInstance.Volume *= 0.25f;
+                            stepsSoundInstance.Play();
+                        }
+                    }
+                }
             }
         }
         private void Stay(ReleasedActionArgs args)
@@ -252,6 +291,7 @@ namespace Engine.Components
                         rigidbody.AddVelocityChange(-vel * direction);
                     }
                 }
+                movement = Movement.IDLE;
             }
         }
         
@@ -296,7 +336,7 @@ namespace Engine.Components
         private void Run(PressedActionArgs args)
         {
             isRunning = true;
-            if (movement == Movement.WALK)
+            if (movement == Movement.WALK || movement == Movement.IDLE)
             {
                 movement = Movement.RUN;
             }
@@ -551,6 +591,28 @@ namespace Engine.Components
             else
                 crosshairColor = Color.Orange;
             changeWeapon(Input.getMouseWheelState());
+            if (movement.Equals(Movement.WALK) || movement.Equals(Movement.RUN) || movement.Equals(Movement.CROUCH))
+            {
+                stepsTimer += (float)gameTime.ElapsedGameTime.TotalSeconds;
+                if(movement.Equals(Movement.WALK) || movement.Equals(Movement.CROUCH))
+                {
+                    STEPS_TIMER = (float)stepsWalkSound.Duration.TotalSeconds;
+                    stepsSound = stepsWalkSound;
+                }
+                if (movement.Equals(Movement.RUN))
+                {
+                    STEPS_TIMER = (float)stepsRunSound.Duration.TotalSeconds;
+                    stepsSound = stepsRunSound;
+                }
+            }
+            else
+            {
+                stepsTimer = 0;
+                if (stepsSoundInstance != null)
+                {
+                    stepsSoundInstance.Stop();
+                }
+            }
         }
 
         public override void Destroy()

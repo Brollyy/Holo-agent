@@ -16,7 +16,7 @@ float4 PixelShaderFunction(float4 Position : SV_POSITION, float4 Color : COLOR0,
 	return pixelColor;
 }
 
-technique ChangeColor
+technique Blood
 {
 	pass Pass1
 	{
