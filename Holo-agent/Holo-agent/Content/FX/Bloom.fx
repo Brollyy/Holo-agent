@@ -5,7 +5,7 @@ sampler TextureSampler = sampler_state
 	Texture = <ScreenTexture>;
 };
 
-float4 PixelShaderFunction(float2 TextureCoordinate : TEXCOORD0) : COLOR0
+float4 PixelShaderFunction(float4 Position : SV_POSITION, float4 Color : COLOR0, float2 TextureCoordinate : TEXCOORD0) : COLOR0
 {
 	float4 pixelColor = tex2D(TextureSampler, TextureCoordinate);
 	return saturate((pixelColor - Threshold) / (1.0f - Threshold));
