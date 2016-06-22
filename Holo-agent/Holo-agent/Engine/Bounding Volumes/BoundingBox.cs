@@ -224,23 +224,23 @@ namespace Engine.Bounding_Volumes
             // We need to check if there's a pair of faces from boxes that intersect.
             Plane[] planes1 = new Plane[6]
             {
-                FrontFace(), BackFace(),
-                LeftFace(), RightFace(),
-                UpFace(), DownFace()
+                UpFace(), FrontFace(),
+                BackFace(), LeftFace(),
+                RightFace(), DownFace()
             };
             Plane[] planes2 = new Plane[6]
             {
-                other.FrontFace(), other.BackFace(),
-                other.LeftFace(), other.RightFace(),
-                other.UpFace(), other.DownFace()
+                other.UpFace(), other.FrontFace(),
+                other.BackFace(), other.LeftFace(),
+                other.RightFace(), other.DownFace()
             };
             int[] ind = new int[24]
             {
+                0, 1, 5, 4,
                 0, 1, 2, 3,
                 4, 5, 6, 7,
                 5, 1, 2, 6,
                 4, 0, 3, 7,
-                0, 1, 5, 4,
                 3, 2, 6, 7
             };
             #endregion

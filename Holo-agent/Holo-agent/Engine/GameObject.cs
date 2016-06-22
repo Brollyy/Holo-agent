@@ -548,7 +548,7 @@ namespace Engine
 
         public void DrawDebug(GameTime gameTime, GraphicsDeviceManager graphics)
         {
-            short[] indexes = new short[24]
+            /*short[] indexes = new short[24]
             {
                 0, 1, 1, 2, 2, 3, 3, 0,
                 4, 5, 5, 6, 6, 7, 7, 4,
@@ -566,7 +566,7 @@ namespace Engine
                 }
 
                 graphics.GraphicsDevice.DrawUserIndexedPrimitives(PrimitiveType.LineList, vertices, 0, 8, indexes, 0, 12);
-            }
+            }*/
 
             Collider col = GetComponent<Collider>();
             if (col != null) col.DrawDebug(gameTime, graphics);

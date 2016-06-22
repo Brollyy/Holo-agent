@@ -140,9 +140,9 @@ namespace Engine.Components
             }
             weapon.GetComponent<Weapon>().IsArmed = true;
             weapon.IsVisible = true;
-            if (weapon.Parent != Owner)
+            if (weapon.Parent != Owner.Scene.Camera)
             {
-                weapon.Parent = Owner;
+                weapon.Parent = Owner.Scene.Camera;
                 weapon.LocalScale = Vector3.One;
                 weapon.LocalQuaternionRotation = Quaternion.Identity;
                 weapon.LocalPosition = weapon.GetComponent<Weapon>().AsChildPosition;
@@ -185,14 +185,16 @@ namespace Engine.Components
         private void Turn(float xMove, float yMove, GameTime gameTime)
         {
             Vector3 rot = Owner.LocalEulerRotation;
+            Vector3 cameraRot = Owner.Scene.Camera.LocalEulerRotation;
             rot.X -= (float)(turnSpeed * xMove * gameTime.ElapsedGameTime.TotalMilliseconds);
-            if (rot.Y < 75f || rot.Y > 285f)
+            if (cameraRot.Y < 75f || cameraRot.Y > 285f)
             {
-                float newRot = rot.Y - (float)(turnSpeed * yMove * gameTime.ElapsedGameTime.TotalMilliseconds);
+                float newRot = cameraRot.Y - (float)(turnSpeed * yMove * gameTime.ElapsedGameTime.TotalMilliseconds);
                 if (newRot < 75f || newRot > 285f)
-                    rot.Y = newRot;
+                    cameraRot.Y = newRot;
             }
             Owner.LocalEulerRotation = Vector3.Lerp(Owner.LocalEulerRotation, rot, 0.75f);
+            Owner.Scene.Camera.LocalEulerRotation = Vector3.Lerp(Owner.Scene.Camera.LocalEulerRotation, cameraRot, 0.75f);
         }
 
         private void Move(PressingActionArgs args)

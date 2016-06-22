@@ -47,8 +47,8 @@ namespace Engine.Components
             direction.Normalize();
             Matrix rotation = Matrix.CreateFromQuaternion(contr.Owner.GlobalRotation);
             float x = Vector3.Dot(direction, rotation.Right);
-            if(Math.Abs(x) < 0.05f) EndDecision(DecisionOutcome.SUCCESSFUL);
-            Handler(0.05f * ((direction + rotation.Forward).LengthSquared() < 0.00001f ? 1 : x), 0, gameTime);
+            if(Math.Abs(x) < 0.02f) EndDecision(DecisionOutcome.SUCCESSFUL);
+            Handler(0.02f * ((direction + rotation.Forward).LengthSquared() < 0.00001f ? 1 : x), 0, gameTime);
         }
     }
 
@@ -193,9 +193,9 @@ namespace Engine.Components
                 if (contr != null) contr.PlayAnimation("hit", 5, 0.2f);
             }
 
-            if (causer.Owner.Parent.Name == "Player" && attributes[1] != causer.Owner.Parent)
+            if (causer.Owner.Parent.Parent.Name == "Player" && attributes[1] != causer.Owner.Parent.Parent)
             {
-                attributes[1] = causer.Owner.Parent;
+                attributes[1] = causer.Owner.Parent.Parent;
                 state = EnemyState.Combat;
                 decisionTree.InterruptCurrentDecision();
             }
@@ -211,7 +211,7 @@ namespace Engine.Components
             if(contr != null)
             {
                 contr.StopAllAnimations(0.2f);
-                contr.PlayAnimation("death", 1, 0f);
+                contr.PlayAnimation("death", 100, 0f);
                 contr.SetBindPose("death", 0.2f, 1);
             }
             List<Component> comps = Owner.GetComponents<Component>();
@@ -235,7 +235,7 @@ namespace Engine.Components
                     rigidbody.AddForce(rigidbody.Mass * runSpeed * Owner.LocalToWorldMatrix.Forward);
                 }
             }
-            if (state != EnemyState.Combat && lastSearch > 0.5f)
+            if (lastSearch > 0.5f)
             {
                 LookForTarget();
                 lastSearch = 0.0f;
@@ -247,38 +247,51 @@ namespace Engine.Components
         private void LookForTarget()
         {
             List<GameObject> nearbyObjects = Owner.Scene.GetNearbyObjects(Owner);
-            GameObject found = null;
-            foreach (GameObject go in nearbyObjects)
+            if (state != EnemyState.Patrolling)
             {
-                Vector3 distance = go.GlobalPosition - Owner.GlobalPosition;
-                if (go.IsVisible && distance.LengthSquared() < 2.25f*range*range)
+                Ray(shootingRange, nearbyObjects, Vector3.Normalize((attributes[1] as GameObject).GlobalPosition - Owner.GlobalPosition));
+                if(ClosestObject != (attributes[1] as GameObject))
                 {
-                    distance.Normalize();
-                    if (distance.LengthSquared() > 0.25f * range * range && (distance - Owner.LocalToWorldMatrix.Forward).LengthSquared() > 1.0f) continue;
-                    if(go.Name.Equals("Player")) // Possibly temporary, but seems good
+                    if (patrolPoints.Count > 0) attributes[1] = patrolPoints[patrolIndex];
+                    else attributes[1] = null;
+                    state = EnemyState.Patrolling;
+                }
+            }
+            else
+            {
+                GameObject found = null;
+                foreach (GameObject go in nearbyObjects)
+                {
+                    Vector3 distance = go.GlobalPosition - Owner.GlobalPosition;
+                    if (go.IsVisible && distance.LengthSquared() < shootingRange * shootingRange)
                     {
-                        Ray(range, Owner.Scene.GetNearbyObjects(Owner), Vector3.Normalize(go.GlobalPosition - Owner.GlobalPosition));
-                        if (found == null && ClosestObject == go)
+                        if (distance.LengthSquared() > meleeRange * meleeRange && (Vector3.Normalize(distance) - Owner.LocalToWorldMatrix.Forward).LengthSquared() > 1.0f) continue;
+                        distance.Normalize();
+                        if (go.Name.Equals("Player")) // Possibly temporary, but seems good
                         {
-                            found = go;
-                            state = EnemyState.Alert;
+                            Ray(shootingRange, nearbyObjects, Vector3.Normalize(go.GlobalPosition - Owner.GlobalPosition));
+                            if (found == null && ClosestObject == go)
+                            {
+                                found = go;
+                                state = EnemyState.Alert;
+                            }
                         }
-                    }
 
-                    if (go.Name.Equals("HologramPlayback"))
-                    {
-                        Ray(range, Owner.Scene.GetNearbyObjects(Owner), Vector3.Normalize(go.GlobalPosition - Owner.GlobalPosition));
-                        if (ClosestObject == go)
+                        if (go.Name.Equals("HologramPlayback"))
                         {
-                            found = go;
-                            state = EnemyState.Alert;
-                            break;
+                            Ray(shootingRange, nearbyObjects, Vector3.Normalize(go.GlobalPosition - Owner.GlobalPosition));
+                            if (ClosestObject == go)
+                            {
+                                found = go;
+                                state = EnemyState.Alert;
+                                break;
+                            }
                         }
                     }
                 }
-            }
 
-            if (found != null) attributes[1] = found;
+                if (found != null) attributes[1] = found;
+            }
         }
 
         protected override void InitializeNewOwner(GameObject newOwner)
@@ -297,7 +310,7 @@ namespace Engine.Components
             base.InitializeNewOwner(newOwner);
         }
 
-        public EnemyController(GameObject weapon, List<Vector3> patrolPoints = null, float range = 150, float shootingRange = 200, float meleeRange = 20) : base()
+        public EnemyController(GameObject weapon, List<Vector3> patrolPoints = null, float range = 500, float shootingRange = 700, float meleeRange = 20) : base()
         {
             movement = Movement.IDLE;
             this.range = range;

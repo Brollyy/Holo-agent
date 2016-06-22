@@ -80,7 +80,7 @@ namespace Engine.Components
                 velocity += ((force + 
                              impulseForce / deltaTime -
                              (velocity.LengthSquared() > 0.00001f ? velocity.LengthSquared() * dragCoefficient * Vector3.Normalize(velocity) : Vector3.Zero)) * invertMass +
-                            (!IsGrounded && GravityEnabled ? Physics.GravitationalAcceleration : Vector3.Zero)) * deltaTime;
+                            (GravityEnabled ? Physics.GravitationalAcceleration : Vector3.Zero)) * deltaTime;
                 Owner.GlobalPosition += velocity * deltaTime;
                 force = Vector3.Zero;
                 impulseForce = Vector3.Zero;

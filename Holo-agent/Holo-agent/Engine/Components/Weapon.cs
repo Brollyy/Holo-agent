@@ -102,6 +102,11 @@ namespace Engine.Components
                 gameObject = Owner.Parent.GetComponent<CharacterController>().ClosestObject;
                 distance = Owner.Parent.GetComponent<CharacterController>().ClosestObjectDistance;
             }
+            else if (Owner.Parent.Parent.GetComponent<CharacterController>() != null)
+            {
+                gameObject = Owner.Parent.Parent.GetComponent<CharacterController>().ClosestObject;
+                distance = Owner.Parent.Parent.GetComponent<CharacterController>().ClosestObjectDistance;
+            }
             if (weaponType == WeaponTypes.MachineGun && !isLocked && magazine > 0)
             {
                 if (!isLocked)
