@@ -249,7 +249,7 @@ namespace Holo_agent
             cameraShader = Content.Load<Effect>("FX/Shader1");
             healthShader = Content.Load<Effect>("FX/Health");
             healthShader.Parameters["Health"].SetValue(100.0f);
-            healthShaderTexture = Content.Load<Texture2D>("Textures/HealthShader");
+            healthShaderTexture = Content.Load<Texture2D>("Textures/Blood_Screen");
             gameMenu.LoadContent(Content);
             Minimap.LoadContent(Content);
             Model columnModel = Content.Load<Model>("Models/kolumna");
@@ -522,7 +522,6 @@ namespace Holo_agent
                     spriteBatch.Draw(healthShaderTexture, new Rectangle(0, 0, graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight), null, Color.White, 0, Vector2.Zero, SpriteEffects.None, 0);
                     spriteBatch.End();
                 }
-
                 spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.AnisotropicWrap, DepthStencilState.Default, RasterizerState.CullNone);
                 Point w = new Point(graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight);
                 DrawTutorialTips(spriteBatch, font, w, Color.Orange, gameTime);

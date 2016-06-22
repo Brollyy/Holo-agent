@@ -994,7 +994,7 @@
 /processorParam:DebugMode=Auto
 /build:FX/Health.fx
 
-#begin Textures/HealthShader.png
+#begin Textures/Blood_Screen.png
 /importer:TextureImporter
 /processor:TextureProcessor
 /processorParam:ColorKeyColor=255,0,255,255
@@ -1004,5 +1004,5 @@
 /processorParam:ResizeToPowerOfTwo=False
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
-/build:Textures/HealthShader.png
+/build:Textures/Blood_Screen.png
 
