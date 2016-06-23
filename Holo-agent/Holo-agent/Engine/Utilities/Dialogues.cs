@@ -56,12 +56,66 @@ namespace Engine.Utilities
 
         public static void StopDialogue(string message)
         {
-            dialogueQuery.RemoveAll(x => x.First.First.First == message);
+            List<Pair<Pair<Pair<string, Color>, bool>, Pair<Pair<float, float>, Pair<SoundEffectInstance, string>>>> dialoguesCopy =
+                new List<Pair<Pair<Pair<string, Color>, bool>, Pair<Pair<float, float>, Pair<SoundEffectInstance, string>>>>(dialogueQuery);
+            foreach(Pair<Pair<Pair<string, Color>, bool>, Pair<Pair<float, float>, Pair<SoundEffectInstance, string>>> dialogue in dialoguesCopy)
+            {
+                if(dialogue.First.First.First == message)
+                {
+                    dialogue.Second.Second.First.Stop();
+                    dialogueQuery.Remove(dialogue);
+                }
+            }
         }
 
         public static void StopDialogue(SoundEffect messageAudio)
         {
-            dialogueQuery.RemoveAll(x => x.Second.Second.Second == messageAudio.Name);
+            List<Pair<Pair<Pair<string, Color>, bool>, Pair<Pair<float, float>, Pair<SoundEffectInstance, string>>>> dialoguesCopy =
+                new List<Pair<Pair<Pair<string, Color>, bool>, Pair<Pair<float, float>, Pair<SoundEffectInstance, string>>>>(dialogueQuery);
+            foreach (Pair<Pair<Pair<string, Color>, bool>, Pair<Pair<float, float>, Pair<SoundEffectInstance, string>>> dialogue in dialoguesCopy)
+            {
+                if (dialogue.Second.Second.Second == messageAudio.Name)
+                {
+                    dialogue.Second.Second.First.Stop();
+                    dialogueQuery.Remove(dialogue);
+                }
+            }
+        }
+
+        public static void StopCurrentDialogue()
+        {
+            Pair<string, bool> message = new Pair<string, bool>(null, false);
+            foreach (Pair<Pair<Pair<string, Color>, bool>, Pair<Pair<float, float>, Pair<SoundEffectInstance, string>>> dialogue in dialogueQuery)
+            {
+                if (dialogue.Second.First.First >= 0.0f)
+                {
+                    if (dialogue.First != null)
+                    {
+                        if (message.First == null || (!message.Second && dialogue.First.Second))
+                        {
+                            message.First = dialogue.First.First.First;
+                            message.Second = dialogue.First.Second;
+                        }
+                    }
+                }
+            }
+            if (message.First != null)
+            {
+                StopDialogue(message.First);
+                return;
+            }
+
+            List<Pair<Pair<Pair<string, Color>, bool>, Pair<Pair<float, float>, Pair<SoundEffectInstance, string>>>> dialoguesCopy =
+                new List<Pair<Pair<Pair<string, Color>, bool>, Pair<Pair<float, float>, Pair<SoundEffectInstance, string>>>>(dialogueQuery);
+            foreach (Pair<Pair<Pair<string, Color>, bool>, Pair<Pair<float, float>, Pair<SoundEffectInstance, string>>> dialogue in dialoguesCopy)
+            {
+                if (dialogue.Second.Second.First.State == SoundState.Playing)
+                {
+                    dialogue.Second.Second.First.Stop();
+                    dialogueQuery.Remove(dialogue);
+                    break;
+                }
+            }
         }
 
         public static void Draw(ref SpriteBatch spriteBatch, SpriteFont font, Point size, GameTime gameTime)
