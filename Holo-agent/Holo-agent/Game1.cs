@@ -277,6 +277,7 @@ namespace Holo_agent
             Minimap.Enemies.Add(enemy2);
             stepsSounds = new List<SoundEffectInstance>();
             ouchSounds = new List<SoundEffectInstance>();
+            DrawTutorialTips();
             base.Initialize();
         }
 
@@ -583,8 +584,8 @@ namespace Holo_agent
 
                 spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.AnisotropicWrap, DepthStencilState.Default, RasterizerState.CullNone);
                 Point w = new Point(graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight);
-                DrawTutorialTips(spriteBatch, font, w, Color.Orange, gameTime);
-                if(enemy.GetComponent<EnemyController>() != null)
+                Dialogues.Draw(ref spriteBatch, font, w, gameTime);
+                if (enemy.GetComponent<EnemyController>() != null)
                 {
                     Weapon enemyWeapon = enemy.GetComponent<EnemyController>().Weapon.GetComponent<Weapon>();
                     if(enemyWeapon != null)
@@ -690,86 +691,19 @@ namespace Holo_agent
             base.Draw(gameTime);
         }
 
-        private void DrawTutorialTips(SpriteBatch spriteBatch, SpriteFont font, Point w, Color color, GameTime gameTime)
+        private void DrawTutorialTips()
         {
-            double time = gameTime.TotalGameTime.TotalSeconds;
-            double start = startTime.Value;
-            if (time - start > 1 && time - start < 6)
-            {
-                string message = "Hold W, S, A and D to move";
-                Vector2 size = font.MeasureString(message);
-                spriteBatch.DrawString(font, message, new Vector2(w.X / 2 - 0.2f * size.X / 2, 0.85f * w.Y), color, 0, Vector2.Zero, 0.2f, SpriteEffects.None, 0);
-            }
-
-            if (time - start > 6.5 && time - start < 11.5)
-            {
-                string message = "Hold Shift to run and C to crouch";
-                Vector2 size = font.MeasureString(message);
-                spriteBatch.DrawString(font, message, new Vector2(w.X / 2 - 0.2f * size.X / 2, 0.85f * w.Y), color, 0, Vector2.Zero, 0.2f, SpriteEffects.None, 0);
-            }
-
-            if (time - start > 12 && time - start < 17)
-            {
-                string message = "Press Left Mouse Button to shoot";
-                Vector2 size = font.MeasureString(message);
-                spriteBatch.DrawString(font, message, new Vector2(w.X / 2 - 0.2f * size.X / 2, 0.85f * w.Y), color, 0, Vector2.Zero, 0.2f, SpriteEffects.None, 0);
-            }
-
-            if (time - start > 17.5 && time - start < 21.5)
-            {
-                string message = "Press R to reload your weapon";
-                Vector2 size = font.MeasureString(message);
-                spriteBatch.DrawString(font, message, new Vector2(w.X / 2 - 0.2f * size.X / 2, 0.85f * w.Y), color, 0, Vector2.Zero, 0.2f, SpriteEffects.None, 0);
-            }
-
-            if (time - start > 22 && time - start < 27)
-            {
-                string message = "Press 1, 2, 3 to select the hologram slot";
-                Vector2 size = font.MeasureString(message);
-                spriteBatch.DrawString(font, message, new Vector2(w.X / 2 - 0.2f * size.X / 2, 0.85f * w.Y), color, 0, Vector2.Zero, 0.2f, SpriteEffects.None, 0);
-            }
-
-            if (time - start > 27.5 && time - start < 30.5)
-            {
-                string message = "Press Q to record hologram into selected slot";
-                Vector2 size = font.MeasureString(message);
-                spriteBatch.DrawString(font, message, new Vector2(w.X / 2 - 0.2f * size.X / 2, 0.85f * w.Y), color, 0, Vector2.Zero, 0.2f, SpriteEffects.None, 0);
-            }
-
-            if (time - start > 31 && time - start < 34)
-            {
-                string message = "Press Q again to stop recording earlier";
-                Vector2 size = font.MeasureString(message);
-                spriteBatch.DrawString(font, message, new Vector2(w.X / 2 - 0.2f * size.X / 2, 0.85f * w.Y), color, 0, Vector2.Zero, 0.2f, SpriteEffects.None, 0);
-            }
-
-            if (time - start > 34.5 && time - start < 42.5)
-            {
-                string message = "Press Z to preview the path hologram will take";
-                Vector2 size = font.MeasureString(message);
-                spriteBatch.DrawString(font, message, new Vector2(w.X / 2 - 0.2f * size.X / 2, 0.85f * w.Y), color, 0, Vector2.Zero, 0.2f, SpriteEffects.None, 0);
-            }
-
-            if (time - start > 43 && time - start < 46)
-            {
-                string message = "Press E to start the hologram";
-                Vector2 size = font.MeasureString(message);
-                spriteBatch.DrawString(font, message, new Vector2(w.X / 2 - 0.2f * size.X / 2, 0.85f * w.Y), color, 0, Vector2.Zero, 0.2f, SpriteEffects.None, 0);
-            }
-
-            if (time - start > 46.5 && time - start < 51.5)
-            {
-                string message = "Press E again to stop the hologram";
-                Vector2 size = font.MeasureString(message);
-                spriteBatch.DrawString(font, message, new Vector2(w.X / 2 - 0.2f * size.X / 2, 0.85f * w.Y), color, 0, Vector2.Zero, 0.2f, SpriteEffects.None, 0);
-            }
-
-            if (time - start > 52 && time - start < 59)
-            {
-                string message = "Hold Tab to see your objective";
-                Vector2 size = font.MeasureString(message);
-                spriteBatch.DrawString(font, message, new Vector2(w.X / 2 - 0.2f * size.X / 2, 0.85f * w.Y), color, 0, Vector2.Zero, 0.2f, SpriteEffects.None, 0);
-            }
+            Dialogues.PlayDialogue("Hold W, S, A and D to move", 1, 5);
+            Dialogues.PlayDialogue("Hold Shift to run and C to crouch", 6.5f, 5);
+            Dialogues.PlayDialogue("Press Left Mouse Button to shoot", 12, 5);
+            Dialogues.PlayDialogue("Press R to reload your weapon", 17.5f, 4);
+            Dialogues.PlayDialogue("Press 1, 2, 3 to select the hologram slot", 22, 5);
+            Dialogues.PlayDialogue("Press Q to record hologram into selected slot", 27.5f, 3);
+            Dialogues.PlayDialogue("Press Q again to stop recording earlier", 31, 3);
+            Dialogues.PlayDialogue("Press Z to preview the path hologram will take", 34.5f, 8);
+            Dialogues.PlayDialogue("Press E to start the hologram", 43, 3);
+            Dialogues.PlayDialogue("Press E again to stop the hologram", 46.5f, 5);
+            Dialogues.PlayDialogue("Hold Tab to see your objective", 52, 7);
         }
 
         protected Texture2D DrawSceneToTexture(RenderTarget2D currentRenderTarget, GameTime gameTime)
