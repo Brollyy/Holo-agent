@@ -587,7 +587,7 @@ namespace Engine.Components
                 }
                 else
                 {
-                    if(movement.Equals(Movement.IDLE))
+                    if(movement.Equals(Movement.IDLE) || hologramRecording)
                     {
                         int index = stepsSounds.FindIndex(step => step.State.Equals(SoundState.Playing));
                         if (index != -1)
