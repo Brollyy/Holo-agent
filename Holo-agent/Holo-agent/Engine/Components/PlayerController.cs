@@ -402,6 +402,9 @@ namespace Engine.Components
                     contr.SetBindPose(PlayerMesh.Model.Clips[isCrouching ? 5 : 3]);
                 }
                 Stay(null);
+                getWeapon().Owner.Parent = Owner;
+                getWeapon().Owner.LocalPosition = getWeapon().AsChildPosition;
+                getWeapon().Owner.LocalQuaternionRotation = Quaternion.Identity;
                 player = Owner;
                 playerRotation = Owner.LocalQuaternionRotation;
                 Vector3 rotation = Owner.LocalEulerRotation;
@@ -435,6 +438,9 @@ namespace Engine.Components
             Owner.Scene.Camera.LocalPosition = playerCameraPosition;
             Owner.Scene.Camera.LocalQuaternionRotation = playerCameraRotation;
             Owner.Scene.Camera.LocalScale = playerCameraScale;
+            getWeapon().Owner.Parent = Owner.Scene.Camera;
+            getWeapon().Owner.LocalPosition = getWeapon().AsChildPosition;
+            getWeapon().Owner.LocalQuaternionRotation = Quaternion.Identity;
         }
 
         private void PlaybackButton(PressedActionArgs args)
