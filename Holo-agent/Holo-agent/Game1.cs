@@ -57,8 +57,7 @@ namespace Holo_agent
         float /*emitterTimer,*/ objectiveTimer;
         float special_timer = 0.0f;
         SoundEffect shot;
-        SoundEffect stepsWalk, stepsRun;
-        List<SoundEffectInstance> ouchSounds;
+        List<SoundEffectInstance> stepsSounds, ouchSounds;
         Texture2D gunfireTexture;
         Texture2D floorTexture;
         GameState gameState = GameState.Menu;
@@ -233,6 +232,7 @@ namespace Holo_agent
             Minimap.Objectives.Add(new Vector3(70, 0, -100));
             Minimap.Enemies.Add(enemy);
             Minimap.Enemies.Add(enemy2);
+            stepsSounds = new List<SoundEffectInstance>();
             ouchSounds = new List<SoundEffectInstance>();
             base.Initialize();
         }
@@ -262,12 +262,11 @@ namespace Holo_agent
             crosshair = Content.Load<Texture2D>("Textures/Crosshair");
             font = Content.Load<SpriteFont>("Textures/Arial");
             shot = Content.Load<SoundEffect>("Sounds/Pistol");
-            stepsWalk = Content.Load<SoundEffect>("Sounds/Steps_Walk");
-            stepsRun = Content.Load<SoundEffect>("Sounds/Steps_Run");;
+            stepsSounds.Add(Content.Load<SoundEffect>("Sounds/Steps_Walk").CreateInstance());
+            stepsSounds.Add(Content.Load<SoundEffect>("Sounds/Steps_Run").CreateInstance());
             ouchSounds.Add(Content.Load<SoundEffect>("Sounds/Ouch_1").CreateInstance());
             ouchSounds.Add(Content.Load<SoundEffect>("Sounds/Ouch_2").CreateInstance());
-            player.GetComponent<PlayerController>().StepsWalkSound = stepsWalk;
-            player.GetComponent<PlayerController>().StepsRunSound = stepsRun;
+            player.GetComponent<PlayerController>().StepsSounds = stepsSounds;
             player.GetComponent<PlayerController>().OuchSounds = ouchSounds;
             weapons[0].GetComponent<Weapon>().GunshotSound = shot;
             weapons[1].GetComponent<Weapon>().GunshotSound = shot;
@@ -525,7 +524,7 @@ namespace Holo_agent
                 spriteBatch.Draw(texture, new Rectangle(0, 0, graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight), null, Color.White, 0, Vector2.Zero, SpriteEffects.None, 0);
                 spriteBatch.End();
 
-                spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.Default, RasterizerState.CullNone, (special_timer > 0.0f? color_time : cameraShader));
+                spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.Default, RasterizerState.CullNone, /*(special_timer > 0.0f ? */color_time/* : cameraShader)*/);
                 spriteBatch.Draw(texture, new Rectangle(0, 0, graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight), null, Color.White, 0, Vector2.Zero, SpriteEffects.None, 0);
                 spriteBatch.End();
 

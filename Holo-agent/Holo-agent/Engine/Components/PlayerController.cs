@@ -32,16 +32,21 @@ namespace Engine.Components
         private Vector3 playerCameraScale;
         private Quaternion playerRotation;
         private Color crosshairColor;
-        private SoundEffect stepsSound, stepsWalkSound, stepsRunSound;
-        private SoundEffectInstance stepsSoundInstance;
-        private float STEPS_TIMER;
-        private float stepsTimer;
+        private List<SoundEffectInstance> stepsSounds;
         [DataMember]
         private GameObject[] weapons;
         [DataMember]
         private bool isCrouching;
         [DataMember]
         private bool isRunning;
+
+        public List<SoundEffectInstance> StepsSounds
+        {
+            set
+            {
+                stepsSounds = value;
+            }
+        }
 
         public int SelectedPath
         {
@@ -80,20 +85,6 @@ namespace Engine.Components
             get
             {
                 return crosshairColor;
-            }
-        }
-        public SoundEffect StepsWalkSound
-        {
-            set
-            {
-                stepsWalkSound = value;
-            }
-        }
-        public SoundEffect StepsRunSound
-        {
-            set
-            {
-                stepsRunSound = value;
             }
         }
         [DataMember]
@@ -248,19 +239,6 @@ namespace Engine.Components
             if (rigidbody != null && (rigidbody.IsGrounded || !rigidbody.GravityEnabled) && Vector3.Dot(rigidbody.Velocity, direction) < speed)
             {
                 rigidbody.AddForce(rigidbody.Mass * 5*(speed - rigidbody.Velocity.Length()) * direction);
-                if (stepsSound != null)
-                {
-                    if(stepsTimer >= STEPS_TIMER)
-                    {
-                        stepsTimer = 0;
-                        if (stepsSound != null && !hologramRecording)
-                        {
-                            stepsSoundInstance = stepsSound.CreateInstance();
-                            stepsSoundInstance.Volume *= 0.25f;
-                            stepsSoundInstance.Play();
-                        }
-                    }
-                }
             }
         }
         private void Stay(ReleasedActionArgs args)
@@ -591,26 +569,30 @@ namespace Engine.Components
             else
                 crosshairColor = Color.Orange;
             changeWeapon(Input.getMouseWheelState());
-            if (movement.Equals(Movement.WALK) || movement.Equals(Movement.RUN) || movement.Equals(Movement.CROUCH))
+            if (stepsSounds != null && stepsSounds.Count > 0 && !hologramRecording)
             {
-                stepsTimer += (float)gameTime.ElapsedGameTime.TotalSeconds;
-                if(movement.Equals(Movement.WALK) || movement.Equals(Movement.CROUCH))
+                if (movement.Equals(Movement.WALK) || movement.Equals(Movement.CROUCH))
                 {
-                    STEPS_TIMER = (float)stepsWalkSound.Duration.TotalSeconds;
-                    stepsSound = stepsWalkSound;
+                    int index = stepsSounds.FindIndex(step => step.State.Equals(SoundState.Playing));
+                    if (index != -1 && index != 0)
+                        stepsSounds[index].Stop();
+                    stepsSounds[0].Play();
                 }
-                if (movement.Equals(Movement.RUN))
+                else if (movement.Equals(Movement.RUN))
                 {
-                    STEPS_TIMER = (float)stepsRunSound.Duration.TotalSeconds;
-                    stepsSound = stepsRunSound;
+                    int index = stepsSounds.FindIndex(step => step.State.Equals(SoundState.Playing));
+                    if (index != -1 && index != 1)
+                        stepsSounds[index].Stop();
+                    stepsSounds[1].Play();
                 }
-            }
-            else
-            {
-                stepsTimer = 0;
-                if (stepsSoundInstance != null)
+                else
                 {
-                    stepsSoundInstance.Stop();
+                    if(movement.Equals(Movement.IDLE))
+                    {
+                        int index = stepsSounds.FindIndex(step => step.State.Equals(SoundState.Playing));
+                        if (index != -1)
+                            stepsSounds[index].Stop();
+                    }
                 }
             }
         }
@@ -678,6 +660,7 @@ namespace Engine.Components
             closestObject = null;
             crosshairColor = Color.Orange;
             weapons = new GameObject[3];
+            movement = Movement.IDLE;
             InitializeInput(new StreamingContext());
         }
 
