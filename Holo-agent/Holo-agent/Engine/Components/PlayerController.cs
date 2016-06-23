@@ -405,6 +405,7 @@ namespace Engine.Components
                 getWeapon().Owner.Parent = Owner;
                 getWeapon().Owner.LocalPosition = getWeapon().AsChildPosition;
                 getWeapon().Owner.LocalQuaternionRotation = Quaternion.Identity;
+                getWeapon().Owner.LocalScale = Vector3.One;
                 player = Owner;
                 playerRotation = Owner.LocalQuaternionRotation;
                 Vector3 rotation = Owner.LocalEulerRotation;
@@ -441,6 +442,7 @@ namespace Engine.Components
             getWeapon().Owner.Parent = Owner.Scene.Camera;
             getWeapon().Owner.LocalPosition = getWeapon().AsChildPosition;
             getWeapon().Owner.LocalQuaternionRotation = Quaternion.Identity;
+            getWeapon().Owner.LocalScale = Vector3.One;
         }
 
         private void PlaybackButton(PressedActionArgs args)
