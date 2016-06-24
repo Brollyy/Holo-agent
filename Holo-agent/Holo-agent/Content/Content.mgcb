@@ -723,12 +723,6 @@
 /processorParam:TextureFormat=Color
 /build:Textures/Hologram_Direction.png
 
-#begin FX/Shader1.fx
-/importer:EffectImporter
-/processor:EffectProcessor
-/processorParam:DebugMode=Auto
-/build:FX/Shader1.fx
-
 #begin FX/PostProcess.fx
 /importer:EffectImporter
 /processor:EffectProcessor

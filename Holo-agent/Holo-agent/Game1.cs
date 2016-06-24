@@ -1,4 +1,4 @@
-﻿#define DRAW_DEBUG_WIREFRAME
+﻿//#define DRAW_DEBUG_WIREFRAME
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -27,7 +27,6 @@ namespace Holo_agent
         RenderTarget2D renderTarget;
         Effect postProcessingEffect;
         Effect color_time;
-        Effect cameraShader;
         Effect healthShader;
         Effect bloomShader;
         Texture2D healthShaderTexture;
@@ -293,7 +292,6 @@ namespace Holo_agent
             color_time = Content.Load<Effect>("FX/Changing_color");
             color_time.Parameters["Timer"].SetValue(0.0f);
             color_time.Parameters["Color"].SetValue(Color.White.ToVector4());
-            cameraShader = Content.Load<Effect>("FX/Shader1");
             healthShader = Content.Load<Effect>("FX/Health");
             healthShader.Parameters["Health"].SetValue(100.0f);
             healthShaderTexture = Content.Load<Texture2D>("Textures/Blood_Screen");
@@ -551,7 +549,7 @@ namespace Holo_agent
                 if (startTime == null) startTime = gameTime.TotalGameTime.TotalSeconds;
                 GraphicsDevice.Clear(Color.Black);
                 Texture2D texture = DrawSceneToTexture(renderTarget, gameTime);
-
+                Texture2D bloomTexture;
                 if (player.GetComponent<PlayerController>() == null)
                 {
                     if (special_timer < 5.0f)
@@ -565,14 +563,22 @@ namespace Holo_agent
                     special_timer = 0.0f;
                     color_time.Parameters["Timer"].SetValue(0.0f);
                 }
-                
-                spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.Default, RasterizerState.CullNone, bloomShader);
-                spriteBatch.Draw(texture, new Rectangle(0, 0, graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight), null, Color.White, 0, Vector2.Zero, SpriteEffects.None, 0);
-                spriteBatch.End();
 
-                spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.Default, RasterizerState.CullNone, /*(special_timer > 0.0f ? */color_time/* : cameraShader)*/);
-                spriteBatch.Draw(texture, new Rectangle(0, 0, graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight), null, Color.White, 0, Vector2.Zero, SpriteEffects.None, 0);
-                spriteBatch.End();
+                if (special_timer > 0.0f)
+                {
+                    spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.Default, RasterizerState.CullNone, color_time);
+                    spriteBatch.Draw(texture, new Rectangle(0, 0, graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight), null, Color.White, 0, Vector2.Zero, SpriteEffects.None, 0);
+                    spriteBatch.End();
+                }
+                else
+                {
+                    spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.Default, RasterizerState.CullNone);
+                    bloomShader.Parameters["ScreenTexture"].SetValue(texture);
+                    bloomShader.CurrentTechnique.Passes[0].Apply();
+                    bloomTexture = bloomShader.Parameters["ScreenTexture"].GetValueTexture2D();
+                    spriteBatch.Draw(bloomTexture, new Rectangle(0, 0, graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight), null, Color.White, 0, Vector2.Zero, SpriteEffects.None, 0);
+                    spriteBatch.End();
+                }
 
                 if (player.GetComponent<PlayerController>() != null)
                 {
