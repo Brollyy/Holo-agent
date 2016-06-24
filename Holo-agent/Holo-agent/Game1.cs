@@ -486,19 +486,19 @@ namespace Holo_agent
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Update(GameTime gameTime)
         {
-            gameMenu.Update(ref gameState, this);
-            if (gameState == GameState.Menu)
+            gameState = gameMenu.Update(gameState, this);
+            if (gameState.Equals(GameState.Menu))
             {
                 if (!IsMouseVisible)
                     IsMouseVisible = true;
             }
-            if (gameState == GameState.GameRunning)
+            if(gameState.Equals(GameState.Pause))
             {
-                if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
-                {
-                    Exit();
-                    return;
-                }
+                if (!IsMouseVisible)
+                    IsMouseVisible = true;
+            }
+            if (gameState.Equals(GameState.GameRunning))
+            {
                 if (IsMouseVisible)
                 {
                     IsMouseVisible = false;
@@ -539,12 +539,17 @@ namespace Holo_agent
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Draw(GameTime gameTime)
         {
-            if (gameState == GameState.Menu)
+            if (gameState.Equals(GameState.Menu))
             {
                 GraphicsDevice.Clear(Color.CornflowerBlue);
                 gameMenu.Draw(spriteBatch, graphics);
             }
-            if (gameState == GameState.GameRunning)
+            if (gameState.Equals(GameState.Pause))
+            {
+                GraphicsDevice.Clear(Color.CornflowerBlue);
+                gameMenu.Draw(spriteBatch, graphics);
+            }
+            if (gameState.Equals(GameState.GameRunning))
             {
                 if (startTime == null) startTime = gameTime.TotalGameTime.TotalSeconds;
                 GraphicsDevice.Clear(Color.Black);
