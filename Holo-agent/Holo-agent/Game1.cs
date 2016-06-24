@@ -497,7 +497,7 @@ namespace Holo_agent
                 if (!IsMouseVisible)
                     IsMouseVisible = true;
             }
-            if (gameState.Equals(GameState.GameRunning))
+            if (gameState.Equals(GameState.Game))
             {
                 if (IsMouseVisible)
                 {
@@ -549,7 +549,7 @@ namespace Holo_agent
                 GraphicsDevice.Clear(Color.CornflowerBlue);
                 gameMenu.Draw(spriteBatch, graphics);
             }
-            if (gameState.Equals(GameState.GameRunning))
+            if (gameState.Equals(GameState.Game))
             {
                 if (startTime == null) startTime = gameTime.TotalGameTime.TotalSeconds;
                 GraphicsDevice.Clear(Color.Black);
@@ -758,7 +758,7 @@ namespace Holo_agent
 
         private void SaveGame(PressedActionArgs args)
         {
-            if (gameState == GameState.GameRunning)
+            if (gameState.Equals(GameState.Game))
             {
                 device = null;
                 gameState = GameState.Pause;
@@ -768,7 +768,7 @@ namespace Holo_agent
 
         private void LoadGame(PressedActionArgs args)
         {
-            if(gameState == GameState.GameRunning)
+            if(gameState.Equals(GameState.Game))
             {
                 device = null;
                 gameState = GameState.Pause;
@@ -823,7 +823,7 @@ namespace Holo_agent
             // Dispose the container, to commit changes.
             container.Dispose();
 
-            gameState = GameState.GameRunning;
+            gameState = GameState.Game;
         }
 
         private void DoLoadGame()
@@ -857,7 +857,7 @@ namespace Holo_agent
 
             if (newScene != null) InitializeNewScene(newScene);
 
-            gameState = GameState.GameRunning;
+            gameState = GameState.Game;
         }
 
         private void InitializeNewScene(Scene newScene)
