@@ -723,12 +723,6 @@
 /processorParam:TextureFormat=Color
 /build:Textures/Hologram_Direction.png
 
-#begin FX/Changing_color.fx
-/importer:EffectImporter
-/processor:EffectProcessor
-/processorParam:DebugMode=Auto
-/build:FX/Changing_color.fx
-
 #begin Models/cop/cop_t_pose.FBX
 /importer:FbxImporter
 /processor:AnimationProcessor
@@ -1029,4 +1023,10 @@
 /processor:EffectProcessor
 /processorParam:DebugMode=Auto
 /build:FX/PauseMenu.fx
+
+#begin FX/HologramRecording.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:FX/HologramRecording.fx
 

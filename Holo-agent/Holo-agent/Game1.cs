@@ -25,7 +25,7 @@ namespace Holo_agent
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
         RenderTarget2D renderTarget;
-        Effect color_time;
+        Effect hologramRecordingShader;
         Effect healthShader;
         Effect bloomShader;
         Effect pauseMenuShader;
@@ -56,7 +56,8 @@ namespace Holo_agent
         List<Collider> weaponColliders;
         Weapon weapon;
         float /*emitterTimer,*/ objectiveTimer;
-        float special_timer = 0.0f;
+        float hologramRecordingTimer = 0.0f;
+        float hologramRecordingMaxTime;
         SoundEffect shot;
         List<SoundEffectInstance> stepsSounds, ouchSounds;
         Texture2D gunfireTexture;
@@ -277,6 +278,7 @@ namespace Holo_agent
             stepsSounds = new List<SoundEffectInstance>();
             ouchSounds = new List<SoundEffectInstance>();
             DrawTutorialTips();
+            hologramRecordingMaxTime = 5.0f;
             base.Initialize();
         }
 
@@ -288,9 +290,9 @@ namespace Holo_agent
         {
             // Create a new SpriteBatch, which can be used to draw textures.
             spriteBatch = new SpriteBatch(GraphicsDevice);
-            color_time = Content.Load<Effect>("FX/Changing_color");
-            color_time.Parameters["Timer"].SetValue(0.0f);
-            color_time.Parameters["Color"].SetValue(Color.White.ToVector4());
+            hologramRecordingShader = Content.Load<Effect>("FX/HologramRecording");
+            hologramRecordingShader.Parameters["RecordingTime"].SetValue(0.0f);
+            hologramRecordingShader.Parameters["RecordingTimeLimit"].SetValue(hologramRecordingMaxTime);
             healthShader = Content.Load<Effect>("FX/Health");
             healthShader.Parameters["Health"].SetValue(100.0f);
             healthShaderTexture = Content.Load<Texture2D>("Textures/Blood_Screen");
@@ -563,21 +565,21 @@ namespace Holo_agent
                 Texture2D bloomTexture;
                 if (player.GetComponent<PlayerController>() == null)
                 {
-                    if (special_timer < 5.0f)
+                    if (hologramRecordingTimer < hologramRecordingMaxTime)
                     {
-                        special_timer += (float)gameTime.ElapsedGameTime.TotalSeconds;
-                        color_time.Parameters["Timer"].SetValue(special_timer / 5.0f);
+                        hologramRecordingTimer += (float)gameTime.ElapsedGameTime.TotalSeconds;
+                        hologramRecordingShader.Parameters["RecordingTime"].SetValue(hologramRecordingTimer / hologramRecordingMaxTime);
                     }
                 }
-                else if (special_timer > 0.0f)
+                else if (hologramRecordingTimer > hologramRecordingMaxTime)
                 {
-                    special_timer = 0.0f;
-                    color_time.Parameters["Timer"].SetValue(0.0f);
+                    hologramRecordingTimer = 0.0f;
+                    hologramRecordingShader.Parameters["RecordingTime"].SetValue(0.0f);
                 }
 
-                if (special_timer > 0.0f)
+                if (hologramRecordingTimer > 0.0f)
                 {
-                    spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.Default, RasterizerState.CullNone, color_time);
+                    spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.Default, RasterizerState.CullNone, hologramRecordingShader);
                     spriteBatch.Draw(texture, new Rectangle(0, 0, graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight), null, Color.White, 0, Vector2.Zero, SpriteEffects.None, 0);
                     spriteBatch.End();
                 }
