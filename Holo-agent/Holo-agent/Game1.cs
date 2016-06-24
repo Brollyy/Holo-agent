@@ -25,10 +25,10 @@ namespace Holo_agent
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
         RenderTarget2D renderTarget;
-        Effect postProcessingEffect;
         Effect color_time;
         Effect healthShader;
         Effect bloomShader;
+        Effect pauseMenuShader;
         Texture2D healthShaderTexture;
         Texture2D crosshair;
         SpriteFont font;
@@ -288,7 +288,6 @@ namespace Holo_agent
         {
             // Create a new SpriteBatch, which can be used to draw textures.
             spriteBatch = new SpriteBatch(GraphicsDevice);
-            postProcessingEffect = Content.Load<Effect>("FX/PostProcess");
             color_time = Content.Load<Effect>("FX/Changing_color");
             color_time.Parameters["Timer"].SetValue(0.0f);
             color_time.Parameters["Color"].SetValue(Color.White.ToVector4());
@@ -296,6 +295,7 @@ namespace Holo_agent
             healthShader.Parameters["Health"].SetValue(100.0f);
             healthShaderTexture = Content.Load<Texture2D>("Textures/Blood_Screen");
             bloomShader = Content.Load<Effect>("FX/Bloom");
+            pauseMenuShader = Content.Load<Effect>("FX/PauseMenu");
             gameMenu.LoadContent(Content);
             Minimap.LoadContent(Content);
             Model columnModel = Content.Load<Model>("Models/kolumna");
@@ -546,7 +546,13 @@ namespace Holo_agent
             }
             if (gameState.Equals(GameState.Pause))
             {
-                GraphicsDevice.Clear(Color.CornflowerBlue);
+                GraphicsDevice.Clear(Color.Transparent);
+                Texture2D texture = DrawSceneToTexture(renderTarget, gameTime);
+                spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.Default, RasterizerState.CullNone);
+                pauseMenuShader.Parameters["ScreenTexture"].SetValue(texture);
+                pauseMenuShader.CurrentTechnique.Passes[0].Apply();
+                spriteBatch.Draw(pauseMenuShader.Parameters["ScreenTexture"].GetValueTexture2D(), new Rectangle(0, 0, graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight), null, Color.White, 0, Vector2.Zero, SpriteEffects.None, 0);
+                spriteBatch.End();
                 gameMenu.Draw(spriteBatch, graphics);
             }
             if (gameState.Equals(GameState.Game))
