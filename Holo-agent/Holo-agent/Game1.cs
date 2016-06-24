@@ -577,7 +577,7 @@ namespace Holo_agent
                     hologramRecordingShader.Parameters["RecordingTime"].SetValue(0.0f);
                 }
 
-                if (hologramRecordingTimer > 0.0f)
+                if (player.GetComponent<PlayerController>() == null && hologramRecordingTimer > 0.0f)
                 {
                     spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.Default, RasterizerState.CullNone, hologramRecordingShader);
                     spriteBatch.Draw(texture, new Rectangle(0, 0, graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight), null, Color.White, 0, Vector2.Zero, SpriteEffects.None, 0);
