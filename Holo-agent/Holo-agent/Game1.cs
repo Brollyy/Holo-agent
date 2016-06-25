@@ -304,7 +304,7 @@ namespace Holo_agent
             floorTexture = Content.Load<Texture2D>("Textures/Ground");
             gunfireTexture = Content.Load<Texture2D>("Textures/Gunfire");
             crosshair = Content.Load<Texture2D>("Textures/Crosshair");
-            font = Content.Load<SpriteFont>("Textures/Arial");
+            font = Content.Load<SpriteFont>("Font/Holo-Agent");
             shot = Content.Load<SoundEffect>("Sounds/Pistol");
             stepsSounds.Add(Content.Load<SoundEffect>("Sounds/Steps_Walk").CreateInstance());
             stepsSounds.Add(Content.Load<SoundEffect>("Sounds/Steps_Run").CreateInstance());

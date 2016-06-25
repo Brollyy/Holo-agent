@@ -26,12 +26,6 @@
 /processorParam:TextureFormat=Color
 /build:Textures/Crosshair.png
 
-#begin Textures\Arial
-/importer:FontDescriptionImporter
-/processor:FontDescriptionProcessor
-/processorParam:TextureFormat=Compressed
-/build:Textures\Arial
-
 #begin Models/column_001.FBX
 /importer:FbxImporter
 /processor:ModelProcessor
@@ -1029,4 +1023,10 @@
 /processor:EffectProcessor
 /processorParam:DebugMode=Auto
 /build:FX/HologramRecording.fx
+
+#begin Font/Holo-Agent.spritefont
+/importer:FontDescriptionImporter
+/processor:FontDescriptionProcessor
+/processorParam:TextureFormat=Compressed
+/build:Font/Holo-Agent.spritefont
 

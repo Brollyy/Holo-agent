@@ -101,7 +101,7 @@ namespace Engine
         }
         public void LoadContent(ContentManager content)
         {
-            font = content.Load<SpriteFont>("Textures/Arial");
+            font = content.Load<SpriteFont>("Font/Holo-Agent");
             buttonFrame = content.Load<Texture2D>("Textures/Button_Frame");
             titleSize = 0.6f * font.MeasureString(title);
             newGameSize = 0.3f * font.MeasureString(newGame);

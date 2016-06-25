@@ -11,7 +11,7 @@ with.
     <!--
     Modify this string to change the font that will be imported.
     -->
-    <FontName>Arial</FontName>
+    <FontName>Holo-Agent</FontName>
 
     <!--
     Size is a float value, measured in points. Modify this value to change
@@ -55,6 +55,10 @@ with.
         <Start>&#32;</Start>
         <End>&#126;</End>
       </CharacterRegion>
+	  <CharacterRegion>
+		<Start>&#127;</Start>
+		<End>&#511;</End>
+	  </CharacterRegion>
     </CharacterRegions>
   </Asset>
 </XnaContent>
