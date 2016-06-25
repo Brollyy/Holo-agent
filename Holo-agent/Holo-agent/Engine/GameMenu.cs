@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using Holo_agent;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -27,7 +28,7 @@ namespace Engine
             for (int i = 0; i < buttonColor.Length; i++)
                 buttonColor[i] = Color.Black;
         }
-        public GameState Update(GameState gameState, Game game)
+        public GameState Update(GameState gameState, Game1 game)
         {
             currentState = Keyboard.GetState();
             if (gameState.Equals(GameState.Menu))
@@ -39,6 +40,12 @@ namespace Engine
                 DetectSelection(gameState);
                 ChangeFrameColor();
                 DetectClick(ref gameState, game);
+            }
+            else if(gameState.Equals(GameState.NewGame))
+            {
+                game.InitializeGame();
+                game.LoadGame();
+                gameState = GameState.Game;
             }
             else if (gameState.Equals(GameState.Game))
             {
@@ -129,13 +136,13 @@ namespace Engine
                     buttonColor[i] = Color.Red;
             }
         }
-        private void DetectClick(ref GameState gameState, Game game)
+        private void DetectClick(ref GameState gameState, Game1 game)
         {
             currentLeftButtonState = Mouse.GetState().LeftButton;
             if(currentLeftButtonState.Equals(ButtonState.Pressed) && oldLeftButtonState.Equals(ButtonState.Released))
             {
                 if (isButtonSelected[0])
-                    gameState = GameState.Game;
+                    gameState = GameState.NewGame;
                 if (isButtonSelected[1])
                     game.Exit();
                 if (isButtonSelected[2])

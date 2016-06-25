@@ -67,10 +67,8 @@ namespace Holo_agent
         Vector2 objectivePosition = Vector2.UnitY * -500;
         string objectiveString = "[Some objective]";
         private double? startTime;
-
         StorageDevice device;
         Type[] knownTypes;
-
         public Game1()
         {
             graphics = new GraphicsDeviceManager(this);
@@ -97,188 +95,7 @@ namespace Holo_agent
         /// </summary>
         protected override void Initialize()
         {
-            /*graphics.PreferredBackBufferWidth = GraphicsDevice.DisplayMode.Width;
-            graphics.PreferredBackBufferHeight = GraphicsDevice.DisplayMode.Height;
-            graphics.IsFullScreen = true;
-            graphics.ApplyChanges();*/
-            Input.Initialize();
-            Input.BindActionPress(GameAction.SAVE, SaveGame);
-            Input.BindActionPress(GameAction.LOAD, LoadGame);
-            // TODO: Add your initialization logic here
-            frameCounter = new FrameCounter();
-            weapons = new List<GameObject>();
-            gunfires = new List<GameObject>();
-            weaponColliders = new List<Collider>();
-            propsRoom5 = new List<GameObject>();
-            renderTarget = new RenderTarget2D(
-                GraphicsDevice,
-                GraphicsDevice.PresentationParameters.BackBufferWidth,
-                GraphicsDevice.PresentationParameters.BackBufferHeight,
-                false,
-                GraphicsDevice.PresentationParameters.BackBufferFormat,
-                DepthFormat.Depth24);
-            scene = new Scene();
-            //GameObject roomTemp = new GameObject("RoomTemp", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(new Vector3(-10000, -10000, -10000), new Vector3(10000, 10000, 10000)));
-            GameObject room = new GameObject("Room1", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(new Vector3(175, -5, -300), new Vector3(400, 100, 100)));
-            GameObject room2 = new GameObject("Room2", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(new Vector3(-140, -5, -425), new Vector3(190, 100, -70)));
-            GameObject room3 = new GameObject("Room3", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(new Vector3(-185, -5, -75), new Vector3(10, 40, 40)));
-            GameObject room4 = new GameObject("Room4", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(new Vector3(-265, -65, -10), new Vector3(-180, 40, 40)));
-            GameObject room5 = new GameObject("Room5", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(new Vector3(-300, -65, 35), new Vector3(-180, -25, 230)));
-            GameObject room6 = new GameObject("Room6", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(new Vector3(-178, -65, 100), new Vector3(5, -25, 300)));
-            GameObject room7 = new GameObject("Room7", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(new Vector3(-3, -170, 170), new Vector3(40, -25, 215)));
-            GameObject room8 = new GameObject("Room8", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(new Vector3(-195, -170, 165), new Vector3(5, -130, 220)));
-            GameObject room9 = new GameObject("Room9", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(new Vector3(-175, -250, 218), new Vector3(-110, -130, 265)));
-            GameObject room10 = new GameObject("Room10", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(new Vector3(-255, -250, 260), new Vector3(-10, -170, 420)));
-            GameObject room11 = new GameObject("Room11", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(new Vector3(-20, -250, 255), new Vector3(160, -210, 510)));
-            GameObject room12 = new GameObject("Room12", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(new Vector3(-60, -250, 440), new Vector3(120, -170, 570)));
-            GameObject room13 = new GameObject("Room13", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(new Vector3(-160, -250, 400), new Vector3(-55, -170, 620)));
-            level = new GameObject("Level", new Vector3(-100, -226, 550), Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(-1000*Vector3.One, 1000*Vector3.One));
-
-            scene.AddRoomConnection(room, room2, new BoundingBox());
-            scene.AddRoomConnection(room2, room3, new BoundingBox());
-            scene.AddRoomConnection(room3, room4, new BoundingBox());
-            scene.AddRoomConnection(room4, room5, new BoundingBox());
-            scene.AddRoomConnection(room5, room6, new BoundingBox());
-            scene.AddRoomConnection(room6, room7, new BoundingBox());
-            scene.AddRoomConnection(room7, room8, new BoundingBox());
-            scene.AddRoomConnection(room8, room9, new BoundingBox());
-            scene.AddRoomConnection(room9, room10, new BoundingBox());
-            scene.AddRoomConnection(room10, room11, new BoundingBox());
-            scene.AddRoomConnection(room11, room12, new BoundingBox());
-            scene.AddRoomConnection(room12, room13, new BoundingBox());
-            scene.AddRoomConnection(room13, room10, new BoundingBox());
-
-            (new GameObject("Floor1_1", new Vector3(287.5f, -5, -130), Quaternion.Identity, Vector3.One, scene, room, new BoundingBox(new Vector3(-112.5f, -5, -160), new Vector3(112.5f, 6, 165)))).AddNewComponent<Collider>();
-            (new GameObject("Floor2_1", new Vector3(10, -5f, -230), Quaternion.Identity, Vector3.One, scene, room2, new BoundingBox(new Vector3(-180, -5f, -155), new Vector3(180, 6f, 155)))).AddNewComponent<Collider>();
-            (new GameObject("Floor3_1", new Vector3(-87.5f, -5f, -12.5f), Quaternion.Identity, Vector3.One, scene, room3, new BoundingBox(new Vector3(-97.5f, -5, -65), new Vector3(97.5f, 6, 52.5f)))).AddNewComponent<Collider>();
-            //(new GameObject("Floor4_1", new Vector3(-207.5f, -5f, -4.25f), Quaternion.Identity, Vector3.One, scene, room4, new BoundingBox(new Vector3(-40, 1, -5), new Vector3(22.5f, 6, 5)))).AddNewComponent<Collider>();
-            //(new GameObject("Floor4_2", new Vector3(-194, -10f, 12.5f), Quaternion.CreateFromAxisAngle(Vector3.Right, (float)Math.PI/6), Vector3.One, scene, room4, new BoundingBox(new Vector3(-9, -3, -15f), new Vector3(9, 3, 12.5f)))).AddNewComponent<Collider>();
-            (new GameObject("Floor4_1", new Vector3(-207.5f, -62f, -4.25f), Quaternion.Identity, Vector3.One, scene, room4, new BoundingBox(new Vector3(-40, 1, -5), new Vector3(22.5f, 6, 45)))).AddNewComponent<Collider>();
-
-            (new GameObject("Wall1_1", new Vector3(330, -5, 37.5f), Quaternion.Identity, Vector3.One, scene, room, new BoundingBox(new Vector3(-60, -5, -7.5f), new Vector3(60, 55, 7.5f)))).AddNewComponent<Collider>();
-            (new GameObject("Wall1_2", new Vector3(280, -5, -52f), Quaternion.Identity, Vector3.One, scene, room, new BoundingBox(new Vector3(-90, -5, -106f), new Vector3(11, 55, 90f)))).AddNewComponent<Collider>();
-            (new GameObject("Wall1_3", new Vector3(377.5f, -5, -52f), Quaternion.Identity, Vector3.One, scene, room, new BoundingBox(new Vector3(-11, -5, -224f), new Vector3(10, 55, 90f)))).AddNewComponent<Collider>();
-            (new GameObject("Wall1_4", new Vector3(280f, -5, -270f), Quaternion.Identity, Vector3.One, scene, room, new BoundingBox(new Vector3(-90, -5, -7.5f), new Vector3(110, 55, 7.5f)))).AddNewComponent<Collider>();
-            (new GameObject("Wall2_1", new Vector3(185, -5, -52f), Quaternion.Identity, Vector3.One, scene, room2, new BoundingBox(new Vector3(-7.5f, -5, -106f), new Vector3(11, 55, 90f)))).AddNewComponent<Collider>();
-            (new GameObject("Wall2_2", new Vector3(185, -5, -352.5f), Quaternion.Identity, Vector3.One, scene, room2, new BoundingBox(new Vector3(-7.5f, -5, -106f), new Vector3(11, 55, 90f)))).AddNewComponent<Collider>();
-            (new GameObject("Wall2_3", new Vector3(185, -5, -72f), Quaternion.Identity, Vector3.One, scene, room2, new BoundingBox(new Vector3(-187f, -5, -7.5f), new Vector3(11, 55, 7.5f)))).AddNewComponent<Collider>();
-            (new GameObject("Wall2_4", new Vector3(-38, -5, -72f), Quaternion.Identity, Vector3.One, scene, room2, new BoundingBox(new Vector3(-186f, -5, -7.5f), new Vector3(11, 55, 3f)))).AddNewComponent<Collider>();
-            (new GameObject("Wall2_5", new Vector3(185, -5, -348f), Quaternion.Identity, Vector3.One, scene, room2, new BoundingBox(new Vector3(-409f, -5, -7.5f), new Vector3(11, 55, 7.5f)))).AddNewComponent<Collider>();
-            (new GameObject("Wall2_6", new Vector3(-135, -5, -52f), Quaternion.Identity, Vector3.One, scene, room2, new BoundingBox(new Vector3(-7.5f, -5, -406f), new Vector3(11, 55, -16f)))).AddNewComponent<Collider>();
-            (new GameObject("Wall3_1", new Vector3(0, -5, -16f), Quaternion.Identity, Vector3.One, scene, room3, new BoundingBox(new Vector3(-2f, -5, -56f), new Vector3(11, 55, 56f)))).AddNewComponent<Collider>();
-            (new GameObject("Wall3_2", new Vector3(-91, -5, 40f), Quaternion.Identity, Vector3.One, scene, room3, new BoundingBox(new Vector3(-91f, -5, -7.5f), new Vector3(91, 55, 7.5f)))).AddNewComponent<Collider>();
-            (new GameObject("Wall3_3", new Vector3(-96, -5, -16f), Quaternion.Identity, Vector3.One, scene, room3, new BoundingBox(new Vector3(-5f, -5, -56f), new Vector3(16, 55, 7f)))).AddNewComponent<Collider>();
-            (new GameObject("Wall3_4", new Vector3(-160, -5, -16f), Quaternion.Identity, Vector3.One, scene, room3, new BoundingBox(new Vector3(-20f, -5, -12f), new Vector3(35, 55, 6f)))).AddNewComponent<Collider>();
-
-            player = new GameObject("Player", new Vector3(330, 20, 15), Quaternion.Identity, Vector3.One, scene, room2);
-            player.AddNewComponent<PlayerController>();
-            player.AddComponent(new Rigidbody(80, 1.5f));
-            player.GetComponent<Rigidbody>().GravityEnabled = false;
-            Collider playerCol = player.AddNewComponent<Collider>();
-            playerCol.bound = new Engine.Bounding_Volumes.BoundingBox(playerCol, new Vector3(0, -8f, 0), new Vector3(3, 9f, 6));
-            GameObject camera = new GameObject("Camera", new Vector3(0, 0, 0), Quaternion.Identity, Vector3.One, scene, player, null, false);
-            Camera cameraComp = new Camera(45, graphics.GraphicsDevice.Viewport.AspectRatio, 1, 1000);
-            camera.AddComponent(cameraComp);
-            scene.Camera = camera;
-            weapons.Add(new GameObject("Pistol", new Vector3(20, 18, -40), Quaternion.Identity, 0.5f*Vector3.One, scene, room2));
-            weaponColliders.Add(weapons[0].AddNewComponent<Collider>());
-            weaponColliders[0].bound = new Engine.Bounding_Volumes.BoundingBox(weaponColliders[0], Vector3.Zero, new Vector3(0.5f, 0.75f, 2f));
-            weapons[0].AddNewComponent<WeaponInteraction>();
-            weapons.Add(new GameObject("MachineGun", new Vector3(40, 18, -40), Quaternion.Identity, Vector3.One, scene, room2));
-            weaponColliders.Add(weapons[1].AddNewComponent<Collider>());
-            weaponColliders[1].bound = new Engine.Bounding_Volumes.BoundingBox(weaponColliders[1], new Vector3(0, 0, -2f), new Vector3(0.5f, 1.5f, 2.5f));
-            weapons[1].AddNewComponent<WeaponInteraction>();
-            weapons.Add(new GameObject("MachineGun2", new Vector3(40, 18, -40), Quaternion.Identity, Vector3.One, scene, room5));
-            weaponColliders.Add(weapons[2].AddNewComponent<Collider>());
-            weaponColliders[2].bound = new Engine.Bounding_Volumes.BoundingBox(weaponColliders[2], new Vector3(0, 0, -2f), new Vector3(0.5f, 1.5f, 2.5f));
-            weapons[2].AddNewComponent<WeaponInteraction>();
-            weapons[0].AddComponent(new Weapon(WeaponTypes.Pistol, 12, 28, 12, 240, 1000, new Vector3(2.5f, -1.5f, -5.75f)));
-            weapons[1].AddComponent(new Weapon(WeaponTypes.MachineGun, 32, 72, 32, 640, 1000, new Vector3(2f, -1.5f, -5.5f)));
-            weapons[2].AddComponent(new Weapon(WeaponTypes.MachineGun, 32, 72, 32, 640, 1000, new Vector3(2f, -1.5f, -5.5f)));
-            gunfires.Add(new GameObject("Pistol_Gunfire", new Vector3(0, 0.6f, -4), Quaternion.Identity, Vector3.One * 0.5f, scene, weapons[0]));
-            gunfires.Add(new GameObject("MachineGun_Gunfire", new Vector3(0, 0.15f, -8.5f), Quaternion.Identity, Vector3.One, scene, weapons[1]));
-            gunfires.Add(new GameObject("MachineGun_Gunfire", new Vector3(0, 0.15f, -8.5f), Quaternion.Identity, Vector3.One, scene, weapons[2]));
-            enemy = new GameObject("Enemy", new Vector3(30, 20, -150), Quaternion.Identity, Vector3.One, scene, room2);
-            enemy2 = new GameObject("Enemy2", new Vector3(-165, -39, 242), Quaternion.CreateFromAxisAngle(Vector3.Up, MathHelper.ToRadians(-135)), Vector3.One, scene, room5);
-            enemy.AddComponent(new EnemyController(weapons[1], new List<Vector3>()
-            {
-                new Vector3(-120, 20, -250), new Vector3(-120, 20, -100),
-                new Vector3(170, 20, -100), new Vector3(170, 20, -300)
-            }));
-            enemy2.AddComponent(new EnemyController(weapons[2]));
-            enemy.AddComponent(new Rigidbody(80));
-            enemy2.AddComponent(new Rigidbody(80));
-            enemy.GetComponent<Rigidbody>().GravityEnabled = false;
-            enemy2.GetComponent<Rigidbody>().GravityEnabled = false;
-            Collider enemyCol = enemy.AddNewComponent<Collider>();
-            Collider enemyCol2 = enemy2.AddNewComponent<Collider>();
-            enemyCol.bound = new Engine.Bounding_Volumes.BoundingBox(enemyCol, new Vector3(0, -8f, 0), new Vector3(2, 9f, 2));
-            enemyCol2.bound = new Engine.Bounding_Volumes.BoundingBox(enemyCol2, new Vector3(0, -8f, 0), new Vector3(2, 9f, 2));
-            //emitterTimer = 0;
-            objectiveTimer = 2;
-            player.GetComponent<PlayerController>().addWeapon(weapons[0]);
-            particles = new List<SpriteInstance>();
-            particleFireEmitter = new GameObject("Fire_Emitter", new Vector3(45, 12, -50), Quaternion.CreateFromAxisAngle(Vector3.UnitY, MathHelper.ToRadians(90)), Vector3.One * 2, scene, room2);
-            particleExplosionEmitter = new GameObject("Explosion_Emitter", new Vector3(25, 18, -60), Quaternion.CreateFromAxisAngle(Vector3.UnitY, MathHelper.ToRadians(90)), Vector3.One, scene, room2);
-            particleSmokeEmitter = new GameObject("Smoke_Emitter", new Vector3(60, 6, -60), Quaternion.CreateFromAxisAngle(Vector3.UnitY, MathHelper.ToRadians(90)), Vector3.One, scene, room2);
-            particleBloodEmitter = new GameObject("Blood_Emitter", new Vector3(20, 18, -40), Quaternion.CreateFromAxisAngle(Vector3.UnitY, MathHelper.ToRadians(90)), Vector3.One, scene, room2);
-            Physics.Initialize();
-
-            Vector3 deskOffset = new Vector3(19, 0, 23);
-            Vector3 couchOffset = new Vector3(10, 0, 20);
-            propsRoom5.Add(new GameObject("Chair5_1", new Vector3(-253, -57, 140), Quaternion.CreateFromYawPitchRoll(-(float)Math.PI/2.0f,0,0), Vector3.One, scene, room5));
-            propsRoom5.Add(new GameObject("Desk5_1", new Vector3(-260, -57, 140) + Vector3.Transform(deskOffset, Matrix.CreateFromAxisAngle(Vector3.Up, -(float)Math.PI / 2)), Quaternion.CreateFromYawPitchRoll(-(float)Math.PI / 2.0f, 0, 0), Vector3.One, scene, room5));
-            propsRoom5.Add(new GameObject("Chair5_2", new Vector3(-148, -57, 253), Quaternion.Identity, Vector3.One, scene, room5));
-            propsRoom5.Add(new GameObject("Desk5_2", new Vector3(-148, -57, 260) + deskOffset, Quaternion.Identity, Vector3.One, scene, room5));
-            propsRoom5.Add(new GameObject("Chair5_3", new Vector3(-33, -57, 253), Quaternion.Identity, Vector3.One, scene, room5));
-            propsRoom5.Add(new GameObject("Desk5_3", new Vector3(-33, -57, 260) + deskOffset, Quaternion.Identity, Vector3.One, scene, room5));
-            propsRoom5.Add(new GameObject("Couch5_1", new Vector3(-152, -60, 116) + couchOffset, Quaternion.Identity, Vector3.One, scene, room5));
-            propsRoom5.Add(new GameObject("Couch5_2", new Vector3(-130, -60, 141) + Vector3.Transform(couchOffset, Matrix.CreateFromAxisAngle(Vector3.Up, -(float)Math.PI / 2)), Quaternion.CreateFromYawPitchRoll(-(float)Math.PI / 2.0f, 0, 0), Vector3.One, scene, room5));
-
-            bench = new GameObject("Bench", new Vector3(138, 88, -220), Quaternion.Identity, Vector3.One, scene, room);
-            bench1 = new GameObject("Bench1", new Vector3(90, 88, -118), Quaternion.Identity, Vector3.One, scene, room);
-            bench2 = new GameObject("Bench2", new Vector3(90, 88, -275), Quaternion.Identity, Vector3.One, scene, room);
-            bench3 = new GameObject("Bench3", new Vector3(0, 88, -220), Quaternion.Identity, Vector3.One, scene, room);
-            bench4 = new GameObject("Bench4", new Vector3(10, 88, -118), Quaternion.Identity, Vector3.One, scene, room);
-            column2 = new GameObject("column2", new Vector3(10, 88, -275), Quaternion.Identity, Vector3.One, scene, room);
-            bench7 = new GameObject("Bench7", new Vector3(138, 88, -148), Quaternion.Identity, Vector3.One, scene, room);
-            bench8 = new GameObject("Bench8", new Vector3(-80, 88, -118), Quaternion.Identity, Vector3.One, scene, room);
-            bench9 = new GameObject("Bench9", new Vector3(-80, 88, -275), Quaternion.Identity, Vector3.One, scene, room);
-
-            Collider columnCol1 = bench.AddNewComponent<Collider>();
-            Collider columnCol2 = bench1.AddNewComponent<Collider>();
-            Collider columnCol3 = bench2.AddNewComponent<Collider>();
-            Collider columnCol4 = bench3.AddNewComponent<Collider>();
-            Collider columnCol5 = bench4.AddNewComponent<Collider>();
-            Collider columnCol6 = bench7.AddNewComponent<Collider>();
-            Collider columnCol7 = bench8.AddNewComponent<Collider>();
-            Collider columnCol8 = bench9.AddNewComponent<Collider>();
-            Collider columnCol9 = column2.AddNewComponent<Collider>();
-
-            columnCol1.bound = new Engine.Bounding_Volumes.BoundingBox(columnCol1, new Vector3(0, 0f, 0), new Vector3(7.5f, 95f, 7.5f));
-            columnCol2.bound = new Engine.Bounding_Volumes.BoundingBox(columnCol2, new Vector3(0, 0f, 0), new Vector3(7.5f, 95f, 7.5f));
-            columnCol3.bound = new Engine.Bounding_Volumes.BoundingBox(columnCol3, new Vector3(0, 0f, 0), new Vector3(7.5f, 95f, 7.5f));
-            columnCol4.bound = new Engine.Bounding_Volumes.BoundingBox(columnCol4, new Vector3(0, 0f, 0), new Vector3(7.5f, 95f, 7.5f));
-            columnCol5.bound = new Engine.Bounding_Volumes.BoundingBox(columnCol5, new Vector3(0, 0f, 0), new Vector3(7.5f, 95f, 7.5f));
-            columnCol6.bound = new Engine.Bounding_Volumes.BoundingBox(columnCol6, new Vector3(0, 0f, 0), new Vector3(7.5f, 95f, 7.5f));
-            columnCol7.bound = new Engine.Bounding_Volumes.BoundingBox(columnCol7, new Vector3(0, 0f, 0), new Vector3(7.5f, 95f, 7.5f));
-            columnCol8.bound = new Engine.Bounding_Volumes.BoundingBox(columnCol8, new Vector3(0, 0f, 0), new Vector3(7.5f, 95f, 7.5f));
-            columnCol9.bound = new Engine.Bounding_Volumes.BoundingBox(columnCol9, new Vector3(0, 0f, 0), new Vector3(7.5f, 95f, 7.5f));
-
-            int minimapOffset = (int)(graphics.PreferredBackBufferWidth * 0.0075f);
-            int minimapSize = (int)(graphics.PreferredBackBufferWidth * 0.15f);
-            Minimap.Initialize(new Point(minimapSize), new Point(minimapOffset), new List<Vector2>()
-            {
-                new Vector2(-1000,1000)
-            }, player);
-            Minimap.Objectives.Add(new Vector3(50, 100001, 90));
-            Minimap.Objectives.Add(new Vector3(70, 0, -100));
-            Minimap.Enemies.Add(enemy);
-            Minimap.Enemies.Add(enemy2);
-            stepsSounds = new List<SoundEffectInstance>();
-            ouchSounds = new List<SoundEffectInstance>();
-            DrawTutorialTips();
-            hologramRecordingMaxTime = 5.0f;
+            InitializeGame();
             base.Initialize();
         }
 
@@ -288,188 +105,7 @@ namespace Holo_agent
         /// </summary>
         protected override void LoadContent()
         {
-            // Create a new SpriteBatch, which can be used to draw textures.
-            spriteBatch = new SpriteBatch(GraphicsDevice);
-            hologramRecordingShader = Content.Load<Effect>("FX/HologramRecording");
-            hologramRecordingShader.Parameters["RecordingTime"].SetValue(0.0f);
-            hologramRecordingShader.Parameters["RecordingTimeLimit"].SetValue(hologramRecordingMaxTime);
-            healthShader = Content.Load<Effect>("FX/Health");
-            healthShader.Parameters["Health"].SetValue(100.0f);
-            healthShaderTexture = Content.Load<Texture2D>("Textures/Blood_Screen");
-            bloomShader = Content.Load<Effect>("FX/Bloom");
-            pauseMenuShader = Content.Load<Effect>("FX/PauseMenu");
-            gameMenu.LoadContent(Content);
-            Minimap.LoadContent(Content);
-            Model columnModel = Content.Load<Model>("Models/kolumna");
-            floorTexture = Content.Load<Texture2D>("Textures/Ground");
-            gunfireTexture = Content.Load<Texture2D>("Textures/Gunfire");
-            crosshair = Content.Load<Texture2D>("Textures/Crosshair");
-            font = Content.Load<SpriteFont>("Font/Holo-Agent");
-            shot = Content.Load<SoundEffect>("Sounds/Pistol");
-            stepsSounds.Add(Content.Load<SoundEffect>("Sounds/Steps_Walk").CreateInstance());
-            stepsSounds.Add(Content.Load<SoundEffect>("Sounds/Steps_Run").CreateInstance());
-            ouchSounds.Add(Content.Load<SoundEffect>("Sounds/Ouch_1").CreateInstance());
-            ouchSounds.Add(Content.Load<SoundEffect>("Sounds/Ouch_2").CreateInstance());
-            player.GetComponent<PlayerController>().StepsSounds = stepsSounds;
-            player.GetComponent<PlayerController>().OuchSounds = ouchSounds;
-            weapons[0].GetComponent<Weapon>().GunshotSound = shot;
-            weapons[1].GetComponent<Weapon>().GunshotSound = shot;
-
-            Model levelModel = Content.Load<Model>("Models/Level");
-            level.AddComponent(new MeshInstance(levelModel));
-
-            Model playerModel = Content.Load<Model>("Models/new/HD/BONE_2");
-            Model playerPreviewModel = Content.Load<Model>("Models/new/HD/BONE_2_PREVIEW");
-            Model playerHologramModel = Content.Load<Model>("Models/new/HD/BONE_2_HOLOGRAM");
-            Model playerRunAnim = Content.Load<Model>("Models/new/HD/BONE_RUN_2");
-            Model playerWalkAnim = Content.Load<Model>("Models/new/HD/BONE_WALK");
-            Model playerDeathAnim = Content.Load<Model>("Models/new/HD/BONE_DEATH");
-            Model playerJumpAnim = Content.Load<Model>("Models/new/HD/BONE_JUMP");
-            Model playerCrouchAnim = Content.Load<Model>("Models/new/HD/BONE_CROUCH");
-            
-            
-            foreach (ModelMesh mesh in playerHologramModel.Meshes)
-            {
-                foreach (ModelMeshPart part in mesh.MeshParts)
-                {
-                    if(part.Effect is BasicEffect)
-                    {
-                        (part.Effect as BasicEffect).Alpha = 0.5f;
-                    }
-                    else if(part.Effect is SkinnedEffect)
-                    {
-                        SkinnedEffect seffect = part.Effect as SkinnedEffect;
-                        seffect.Alpha = 0.5f;
-                    }
-                }
-            }
-
-            foreach (ModelMesh mesh in playerPreviewModel.Meshes)
-            {
-                foreach (ModelMeshPart part in mesh.MeshParts)
-                {
-                    if (part.Effect is BasicEffect)
-                    {
-                        (part.Effect as BasicEffect).Alpha = 0.1f;
-                    }
-                    else if (part.Effect is SkinnedEffect)
-                    {
-                        SkinnedEffect seffect = part.Effect as SkinnedEffect;
-                        seffect.Alpha = 0.1f;
-                    }
-                }
-            }
-
-            player.GetComponent<PlayerController>().PlayerMesh = new MeshInstance(playerModel);
-            player.GetComponent<PlayerController>().HologramMesh = new MeshInstance(playerHologramModel);
-            player.GetComponent<PlayerController>().PreviewMesh = new MeshInstance(playerPreviewModel);
-            AnimationClip runClip = (playerRunAnim.Tag as ModelExtra).Clips[0];
-            AnimationClip walkClip = (playerWalkAnim.Tag as ModelExtra).Clips[0];
-            AnimationClip deathClip = (playerDeathAnim.Tag as ModelExtra).Clips[0];
-            AnimationClip jumpClip = (playerJumpAnim.Tag as ModelExtra).Clips[0];
-            AnimationClip crouchClip = (playerCrouchAnim.Tag as ModelExtra).Clips[0];
-            player.GetComponent<PlayerController>().PlayerMesh.Model.Clips.Add(runClip);
-            player.GetComponent<PlayerController>().PlayerMesh.Model.Clips.Add(walkClip);
-            player.GetComponent<PlayerController>().PlayerMesh.Model.Clips.Add(deathClip);
-            player.GetComponent<PlayerController>().PlayerMesh.Model.Clips.Add(jumpClip);
-            player.GetComponent<PlayerController>().PlayerMesh.Model.Clips.Add(crouchClip);
-            player.GetComponent<PlayerController>().PlayerMesh.Offset = new Vector3(0, -17, 0);
-            player.GetComponent<PlayerController>().HologramMesh.Model.Clips.Add(runClip);
-            player.GetComponent<PlayerController>().HologramMesh.Model.Clips.Add(walkClip);
-            player.GetComponent<PlayerController>().HologramMesh.Model.Clips.Add(deathClip);
-            player.GetComponent<PlayerController>().HologramMesh.Model.Clips.Add(jumpClip);
-            player.GetComponent<PlayerController>().HologramMesh.Model.Clips.Add(crouchClip);
-            player.GetComponent<PlayerController>().HologramMesh.Offset = new Vector3(0, -17, 0);
-            player.GetComponent<PlayerController>().PreviewMesh.Model.Clips.Add(runClip);
-            player.GetComponent<PlayerController>().PreviewMesh.Model.Clips.Add(walkClip);
-            player.GetComponent<PlayerController>().PreviewMesh.Model.Clips.Add(deathClip);
-            player.GetComponent<PlayerController>().PreviewMesh.Model.Clips.Add(jumpClip);
-            player.GetComponent<PlayerController>().PreviewMesh.Model.Clips.Add(crouchClip);
-            player.GetComponent<PlayerController>().PreviewMesh.Offset = new Vector3(0, -17, 0);
-
-            Model enemyModel = Content.Load<Model>("Models/cop/cop_t_pose");
-            Model enemyRunAnim = Content.Load<Model>("Models/cop/cop_run");
-            Model enemyDeathAnim = Content.Load<Model>("Models/cop/cop_death");
-            Model enemyShootAnim = Content.Load<Model>("Models/cop/cop_shoot");
-            Model enemyHitAnim = Content.Load<Model>("Models/cop/cop_hit");
-            AnimationClip enemyRunClip = (enemyRunAnim.Tag as ModelExtra).Clips[0];
-            AnimationClip enemyDeathClip = (enemyDeathAnim.Tag as ModelExtra).Clips[0];
-            AnimationClip enemyShootClip = (enemyShootAnim.Tag as ModelExtra).Clips[0];
-            AnimationClip enemyHitClip = (enemyHitAnim.Tag as ModelExtra).Clips[0];
-
-            enemy.AddComponent(new MeshInstance(enemyModel));
-            enemy.GetComponent<MeshInstance>().Offset = new Vector3(0, -17, 0);
-            enemy.GetComponent<MeshInstance>().Model.Clips.Add(enemyRunClip);
-            enemy.GetComponent<MeshInstance>().Model.Clips.Add(enemyDeathClip);
-            enemy.GetComponent<MeshInstance>().Model.Clips.Add(enemyShootClip);
-            enemy.GetComponent<MeshInstance>().Model.Clips.Add(enemyHitClip);
-            enemy.AddNewComponent<AnimationController>();
-            enemy.GetComponent<AnimationController>().SetBindPose(enemyShootClip);
-            enemy.GetComponent<AnimationController>().BindAnimation("run", 1, true);
-            enemy.GetComponent<AnimationController>().BindAnimation("death", 2, false);
-            enemy.GetComponent<AnimationController>().BindAnimation("hit", 3, false);
-            enemy2.AddComponent(new MeshInstance(enemyModel));
-            enemy2.GetComponent<MeshInstance>().Offset = new Vector3(0, -17, 0);
-            enemy2.GetComponent<MeshInstance>().Model.Clips.Add(enemyRunClip);
-            enemy2.GetComponent<MeshInstance>().Model.Clips.Add(enemyDeathClip);
-            enemy2.GetComponent<MeshInstance>().Model.Clips.Add(enemyShootClip);
-            enemy2.GetComponent<MeshInstance>().Model.Clips.Add(enemyHitClip);
-            enemy2.AddNewComponent<AnimationController>();
-            enemy2.GetComponent<AnimationController>().SetBindPose(enemyShootClip);
-            enemy2.GetComponent<AnimationController>().BindAnimation("run", 1, true);
-            enemy2.GetComponent<AnimationController>().BindAnimation("death", 2, false);
-            enemy2.GetComponent<AnimationController>().BindAnimation("hit", 3, false);
-
-            Model doorModel = Content.Load<Model>("Models/door_001");
-            Model pistolModel = Content.Load<Model>("Models/Pistol");
-            weapons[0].AddComponent(new MeshInstance(pistolModel));
-            gunfires[0].AddComponent(new SpriteInstance(gunfireTexture, new Vector3(0, 5, 5), 1, 1, graphics));
-            gunfires[0].GetComponent<SpriteInstance>().Enabled = false;
-            Model machineGunModel = Content.Load<Model>("Models/Machine_Gun");
-            weapons[1].AddComponent(new MeshInstance(machineGunModel));
-            gunfires[1].AddComponent(new SpriteInstance(gunfireTexture, new Vector3(0, 5, 5), 1, 1, graphics));
-            gunfires[1].GetComponent<SpriteInstance>().Enabled = false;
-            weapons[2].AddComponent(new MeshInstance(machineGunModel));
-            gunfires[2].AddComponent(new SpriteInstance(gunfireTexture, new Vector3(0, 5, 5), 1, 1, graphics));
-            gunfires[2].GetComponent<SpriteInstance>().Enabled = false;
-            for (int i = 1; i < 4; i++)
-                particles.Add(new SpriteInstance(Content.Load<Texture2D>("Textures/Particle" + i + " [Fire]"), new Vector3(0, 1, 1), 1, 0.5f, graphics));
-            for (int i = 1; i < 4; i++)
-                particles.Add(new SpriteInstance(Content.Load<Texture2D>("Textures/Particle" + i + " [Explosion]"), new Vector3(0, 5, 5), 1, 1, graphics));
-            for (int i = 1; i < 4; i++)
-                particles.Add(new SpriteInstance(Content.Load<Texture2D>("Textures/Particle" + i + " [Smoke]"), new Vector3(0, 5, 5), 1, 1, graphics));
-            for (int i = 1; i < 4; i++)
-                particles.Add(new SpriteInstance(Content.Load<Texture2D>("Textures/Particle" + i + " [Blood]"), new Vector3(0, 2, 2), 1, 1, graphics));
-            particleFireEmitter.AddComponent(new ParticleSystem(ParticleSystemType.Fire, 400, 2, particles.GetRange(0, 3), 1));
-            particleExplosionEmitter.AddComponent(new ParticleSystem(ParticleSystemType.Explosion, 6, 2, particles.GetRange(3, 3), 0.01f));
-            particleSmokeEmitter.AddComponent(new ParticleSystem(ParticleSystemType.Smoke, 100, 2, particles.GetRange(6, 3), 1));
-            particleBloodEmitter.AddComponent(new ParticleSystem(ParticleSystemType.Jet, 12, 0.25f, particles.GetRange(9, 3), 0.5f));
-            /*particleFireEmitter.GetComponent<ParticleSystem>().Init();
-            particleExplosionEmitter.GetComponent<ParticleSystem>().Init();
-            particleSmokeEmitter.GetComponent<ParticleSystem>().Init();
-            particleBloodEmitter.GetComponent<ParticleSystem>().Init();*/
-
-            Model chairModel = Content.Load<Model>("Models/krzeselko");
-            Model deskModel = Content.Load<Model>("Models/biurko");
-            Model couchModel = Content.Load<Model>("Models/kanapa");
-            propsRoom5[0].AddComponent(new MeshInstance(chairModel));
-            propsRoom5[1].AddComponent(new MeshInstance(deskModel));
-            propsRoom5[2].AddComponent(new MeshInstance(chairModel));
-            propsRoom5[3].AddComponent(new MeshInstance(deskModel));
-            propsRoom5[4].AddComponent(new MeshInstance(chairModel));
-            propsRoom5[5].AddComponent(new MeshInstance(deskModel));
-            propsRoom5[6].AddComponent(new MeshInstance(couchModel));
-            propsRoom5[7].AddComponent(new MeshInstance(couchModel));
-
-            bench.AddComponent(new MeshInstance(columnModel));
-            bench1.AddComponent(new MeshInstance(columnModel));
-            bench2.AddComponent(new MeshInstance(columnModel));
-            bench3.AddComponent(new MeshInstance(columnModel));
-            bench4.AddComponent(new MeshInstance(columnModel));
-            column2.AddComponent(new MeshInstance(columnModel));
-            bench7.AddComponent(new MeshInstance(columnModel));
-            bench8.AddComponent(new MeshInstance(columnModel));
-            bench9.AddComponent(new MeshInstance(columnModel));
+            LoadGame();
         }
 
         /// <summary>
@@ -709,7 +345,376 @@ namespace Holo_agent
             }
             base.Draw(gameTime);
         }
+        public void InitializeGame()
+        {
+            /*graphics.PreferredBackBufferWidth = GraphicsDevice.DisplayMode.Width;
+            graphics.PreferredBackBufferHeight = GraphicsDevice.DisplayMode.Height;
+            graphics.IsFullScreen = true;
+            graphics.ApplyChanges();*/
+            Input.Initialize();
+            Input.BindActionPress(GameAction.SAVE, SaveGame);
+            Input.BindActionPress(GameAction.LOAD, LoadGame);
+            // TODO: Add your initialization logic here
+            frameCounter = new FrameCounter();
+            weapons = new List<GameObject>();
+            gunfires = new List<GameObject>();
+            weaponColliders = new List<Collider>();
+            propsRoom5 = new List<GameObject>();
+            renderTarget = new RenderTarget2D(
+                GraphicsDevice,
+                GraphicsDevice.PresentationParameters.BackBufferWidth,
+                GraphicsDevice.PresentationParameters.BackBufferHeight,
+                false,
+                GraphicsDevice.PresentationParameters.BackBufferFormat,
+                DepthFormat.Depth24);
+            scene = new Scene();
+            //GameObject roomTemp = new GameObject("RoomTemp", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(new Vector3(-10000, -10000, -10000), new Vector3(10000, 10000, 10000)));
+            GameObject room = new GameObject("Room1", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(new Vector3(175, -5, -300), new Vector3(400, 100, 100)));
+            GameObject room2 = new GameObject("Room2", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(new Vector3(-140, -5, -425), new Vector3(190, 100, -70)));
+            GameObject room3 = new GameObject("Room3", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(new Vector3(-185, -5, -75), new Vector3(10, 40, 40)));
+            GameObject room4 = new GameObject("Room4", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(new Vector3(-265, -65, -10), new Vector3(-180, 40, 40)));
+            GameObject room5 = new GameObject("Room5", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(new Vector3(-300, -65, 35), new Vector3(-180, -25, 230)));
+            GameObject room6 = new GameObject("Room6", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(new Vector3(-178, -65, 100), new Vector3(5, -25, 300)));
+            GameObject room7 = new GameObject("Room7", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(new Vector3(-3, -170, 170), new Vector3(40, -25, 215)));
+            GameObject room8 = new GameObject("Room8", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(new Vector3(-195, -170, 165), new Vector3(5, -130, 220)));
+            GameObject room9 = new GameObject("Room9", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(new Vector3(-175, -250, 218), new Vector3(-110, -130, 265)));
+            GameObject room10 = new GameObject("Room10", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(new Vector3(-255, -250, 260), new Vector3(-10, -170, 420)));
+            GameObject room11 = new GameObject("Room11", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(new Vector3(-20, -250, 255), new Vector3(160, -210, 510)));
+            GameObject room12 = new GameObject("Room12", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(new Vector3(-60, -250, 440), new Vector3(120, -170, 570)));
+            GameObject room13 = new GameObject("Room13", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(new Vector3(-160, -250, 400), new Vector3(-55, -170, 620)));
+            level = new GameObject("Level", new Vector3(-100, -226, 550), Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(-1000 * Vector3.One, 1000 * Vector3.One));
 
+            scene.AddRoomConnection(room, room2, new BoundingBox());
+            scene.AddRoomConnection(room2, room3, new BoundingBox());
+            scene.AddRoomConnection(room3, room4, new BoundingBox());
+            scene.AddRoomConnection(room4, room5, new BoundingBox());
+            scene.AddRoomConnection(room5, room6, new BoundingBox());
+            scene.AddRoomConnection(room6, room7, new BoundingBox());
+            scene.AddRoomConnection(room7, room8, new BoundingBox());
+            scene.AddRoomConnection(room8, room9, new BoundingBox());
+            scene.AddRoomConnection(room9, room10, new BoundingBox());
+            scene.AddRoomConnection(room10, room11, new BoundingBox());
+            scene.AddRoomConnection(room11, room12, new BoundingBox());
+            scene.AddRoomConnection(room12, room13, new BoundingBox());
+            scene.AddRoomConnection(room13, room10, new BoundingBox());
+
+            (new GameObject("Floor1_1", new Vector3(287.5f, -5, -130), Quaternion.Identity, Vector3.One, scene, room, new BoundingBox(new Vector3(-112.5f, -5, -160), new Vector3(112.5f, 6, 165)))).AddNewComponent<Collider>();
+            (new GameObject("Floor2_1", new Vector3(10, -5f, -230), Quaternion.Identity, Vector3.One, scene, room2, new BoundingBox(new Vector3(-180, -5f, -155), new Vector3(180, 6f, 155)))).AddNewComponent<Collider>();
+            (new GameObject("Floor3_1", new Vector3(-87.5f, -5f, -12.5f), Quaternion.Identity, Vector3.One, scene, room3, new BoundingBox(new Vector3(-97.5f, -5, -65), new Vector3(97.5f, 6, 52.5f)))).AddNewComponent<Collider>();
+            //(new GameObject("Floor4_1", new Vector3(-207.5f, -5f, -4.25f), Quaternion.Identity, Vector3.One, scene, room4, new BoundingBox(new Vector3(-40, 1, -5), new Vector3(22.5f, 6, 5)))).AddNewComponent<Collider>();
+            //(new GameObject("Floor4_2", new Vector3(-194, -10f, 12.5f), Quaternion.CreateFromAxisAngle(Vector3.Right, (float)Math.PI/6), Vector3.One, scene, room4, new BoundingBox(new Vector3(-9, -3, -15f), new Vector3(9, 3, 12.5f)))).AddNewComponent<Collider>();
+            (new GameObject("Floor4_1", new Vector3(-207.5f, -62f, -4.25f), Quaternion.Identity, Vector3.One, scene, room4, new BoundingBox(new Vector3(-40, 1, -5), new Vector3(22.5f, 6, 45)))).AddNewComponent<Collider>();
+
+            (new GameObject("Wall1_1", new Vector3(330, -5, 37.5f), Quaternion.Identity, Vector3.One, scene, room, new BoundingBox(new Vector3(-60, -5, -7.5f), new Vector3(60, 55, 7.5f)))).AddNewComponent<Collider>();
+            (new GameObject("Wall1_2", new Vector3(280, -5, -52f), Quaternion.Identity, Vector3.One, scene, room, new BoundingBox(new Vector3(-90, -5, -106f), new Vector3(11, 55, 90f)))).AddNewComponent<Collider>();
+            (new GameObject("Wall1_3", new Vector3(377.5f, -5, -52f), Quaternion.Identity, Vector3.One, scene, room, new BoundingBox(new Vector3(-11, -5, -224f), new Vector3(10, 55, 90f)))).AddNewComponent<Collider>();
+            (new GameObject("Wall1_4", new Vector3(280f, -5, -270f), Quaternion.Identity, Vector3.One, scene, room, new BoundingBox(new Vector3(-90, -5, -7.5f), new Vector3(110, 55, 7.5f)))).AddNewComponent<Collider>();
+            (new GameObject("Wall2_1", new Vector3(185, -5, -52f), Quaternion.Identity, Vector3.One, scene, room2, new BoundingBox(new Vector3(-7.5f, -5, -106f), new Vector3(11, 55, 90f)))).AddNewComponent<Collider>();
+            (new GameObject("Wall2_2", new Vector3(185, -5, -352.5f), Quaternion.Identity, Vector3.One, scene, room2, new BoundingBox(new Vector3(-7.5f, -5, -106f), new Vector3(11, 55, 90f)))).AddNewComponent<Collider>();
+            (new GameObject("Wall2_3", new Vector3(185, -5, -72f), Quaternion.Identity, Vector3.One, scene, room2, new BoundingBox(new Vector3(-187f, -5, -7.5f), new Vector3(11, 55, 7.5f)))).AddNewComponent<Collider>();
+            (new GameObject("Wall2_4", new Vector3(-38, -5, -72f), Quaternion.Identity, Vector3.One, scene, room2, new BoundingBox(new Vector3(-186f, -5, -7.5f), new Vector3(11, 55, 3f)))).AddNewComponent<Collider>();
+            (new GameObject("Wall2_5", new Vector3(185, -5, -348f), Quaternion.Identity, Vector3.One, scene, room2, new BoundingBox(new Vector3(-409f, -5, -7.5f), new Vector3(11, 55, 7.5f)))).AddNewComponent<Collider>();
+            (new GameObject("Wall2_6", new Vector3(-135, -5, -52f), Quaternion.Identity, Vector3.One, scene, room2, new BoundingBox(new Vector3(-7.5f, -5, -406f), new Vector3(11, 55, -16f)))).AddNewComponent<Collider>();
+            (new GameObject("Wall3_1", new Vector3(0, -5, -16f), Quaternion.Identity, Vector3.One, scene, room3, new BoundingBox(new Vector3(-2f, -5, -56f), new Vector3(11, 55, 56f)))).AddNewComponent<Collider>();
+            (new GameObject("Wall3_2", new Vector3(-91, -5, 40f), Quaternion.Identity, Vector3.One, scene, room3, new BoundingBox(new Vector3(-91f, -5, -7.5f), new Vector3(91, 55, 7.5f)))).AddNewComponent<Collider>();
+            (new GameObject("Wall3_3", new Vector3(-96, -5, -16f), Quaternion.Identity, Vector3.One, scene, room3, new BoundingBox(new Vector3(-5f, -5, -56f), new Vector3(16, 55, 7f)))).AddNewComponent<Collider>();
+            (new GameObject("Wall3_4", new Vector3(-160, -5, -16f), Quaternion.Identity, Vector3.One, scene, room3, new BoundingBox(new Vector3(-20f, -5, -12f), new Vector3(35, 55, 6f)))).AddNewComponent<Collider>();
+
+            player = new GameObject("Player", new Vector3(330, 20, 15), Quaternion.Identity, Vector3.One, scene, room2);
+            player.AddNewComponent<PlayerController>();
+            player.AddComponent(new Rigidbody(80, 1.5f));
+            player.GetComponent<Rigidbody>().GravityEnabled = false;
+            Collider playerCol = player.AddNewComponent<Collider>();
+            playerCol.bound = new Engine.Bounding_Volumes.BoundingBox(playerCol, new Vector3(0, -8f, 0), new Vector3(3, 9f, 6));
+            GameObject camera = new GameObject("Camera", new Vector3(0, 0, 0), Quaternion.Identity, Vector3.One, scene, player, null, false);
+            Camera cameraComp = new Camera(45, graphics.GraphicsDevice.Viewport.AspectRatio, 1, 1000);
+            camera.AddComponent(cameraComp);
+            scene.Camera = camera;
+            weapons.Add(new GameObject("Pistol", new Vector3(20, 18, -40), Quaternion.Identity, 0.5f * Vector3.One, scene, room2));
+            weaponColliders.Add(weapons[0].AddNewComponent<Collider>());
+            weaponColliders[0].bound = new Engine.Bounding_Volumes.BoundingBox(weaponColliders[0], Vector3.Zero, new Vector3(0.5f, 0.75f, 2f));
+            weapons[0].AddNewComponent<WeaponInteraction>();
+            weapons.Add(new GameObject("MachineGun", new Vector3(40, 18, -40), Quaternion.Identity, Vector3.One, scene, room2));
+            weaponColliders.Add(weapons[1].AddNewComponent<Collider>());
+            weaponColliders[1].bound = new Engine.Bounding_Volumes.BoundingBox(weaponColliders[1], new Vector3(0, 0, -2f), new Vector3(0.5f, 1.5f, 2.5f));
+            weapons[1].AddNewComponent<WeaponInteraction>();
+            weapons.Add(new GameObject("MachineGun2", new Vector3(40, 18, -40), Quaternion.Identity, Vector3.One, scene, room5));
+            weaponColliders.Add(weapons[2].AddNewComponent<Collider>());
+            weaponColliders[2].bound = new Engine.Bounding_Volumes.BoundingBox(weaponColliders[2], new Vector3(0, 0, -2f), new Vector3(0.5f, 1.5f, 2.5f));
+            weapons[2].AddNewComponent<WeaponInteraction>();
+            weapons[0].AddComponent(new Weapon(WeaponTypes.Pistol, 12, 28, 12, 240, 1000, new Vector3(2.5f, -1.5f, -5.75f)));
+            weapons[1].AddComponent(new Weapon(WeaponTypes.MachineGun, 32, 72, 32, 640, 1000, new Vector3(2f, -1.5f, -5.5f)));
+            weapons[2].AddComponent(new Weapon(WeaponTypes.MachineGun, 32, 72, 32, 640, 1000, new Vector3(2f, -1.5f, -5.5f)));
+            gunfires.Add(new GameObject("Pistol_Gunfire", new Vector3(0, 0.6f, -4), Quaternion.Identity, Vector3.One * 0.5f, scene, weapons[0]));
+            gunfires.Add(new GameObject("MachineGun_Gunfire", new Vector3(0, 0.15f, -8.5f), Quaternion.Identity, Vector3.One, scene, weapons[1]));
+            gunfires.Add(new GameObject("MachineGun_Gunfire", new Vector3(0, 0.15f, -8.5f), Quaternion.Identity, Vector3.One, scene, weapons[2]));
+            enemy = new GameObject("Enemy", new Vector3(30, 20, -150), Quaternion.Identity, Vector3.One, scene, room2);
+            enemy2 = new GameObject("Enemy2", new Vector3(-165, -39, 242), Quaternion.CreateFromAxisAngle(Vector3.Up, MathHelper.ToRadians(-135)), Vector3.One, scene, room5);
+            enemy.AddComponent(new EnemyController(weapons[1], new List<Vector3>()
+            {
+                new Vector3(-120, 20, -250), new Vector3(-120, 20, -100),
+                new Vector3(170, 20, -100), new Vector3(170, 20, -300)
+            }));
+            enemy2.AddComponent(new EnemyController(weapons[2]));
+            enemy.AddComponent(new Rigidbody(80));
+            enemy2.AddComponent(new Rigidbody(80));
+            enemy.GetComponent<Rigidbody>().GravityEnabled = false;
+            enemy2.GetComponent<Rigidbody>().GravityEnabled = false;
+            Collider enemyCol = enemy.AddNewComponent<Collider>();
+            Collider enemyCol2 = enemy2.AddNewComponent<Collider>();
+            enemyCol.bound = new Engine.Bounding_Volumes.BoundingBox(enemyCol, new Vector3(0, -8f, 0), new Vector3(2, 9f, 2));
+            enemyCol2.bound = new Engine.Bounding_Volumes.BoundingBox(enemyCol2, new Vector3(0, -8f, 0), new Vector3(2, 9f, 2));
+            //emitterTimer = 0;
+            objectiveTimer = 2;
+            player.GetComponent<PlayerController>().addWeapon(weapons[0]);
+            particles = new List<SpriteInstance>();
+            particleFireEmitter = new GameObject("Fire_Emitter", new Vector3(45, 12, -50), Quaternion.CreateFromAxisAngle(Vector3.UnitY, MathHelper.ToRadians(90)), Vector3.One * 2, scene, room2);
+            particleExplosionEmitter = new GameObject("Explosion_Emitter", new Vector3(25, 18, -60), Quaternion.CreateFromAxisAngle(Vector3.UnitY, MathHelper.ToRadians(90)), Vector3.One, scene, room2);
+            particleSmokeEmitter = new GameObject("Smoke_Emitter", new Vector3(60, 6, -60), Quaternion.CreateFromAxisAngle(Vector3.UnitY, MathHelper.ToRadians(90)), Vector3.One, scene, room2);
+            particleBloodEmitter = new GameObject("Blood_Emitter", new Vector3(20, 18, -40), Quaternion.CreateFromAxisAngle(Vector3.UnitY, MathHelper.ToRadians(90)), Vector3.One, scene, room2);
+            Physics.Initialize();
+
+            Vector3 deskOffset = new Vector3(19, 0, 23);
+            Vector3 couchOffset = new Vector3(10, 0, 20);
+            propsRoom5.Add(new GameObject("Chair5_1", new Vector3(-253, -57, 140), Quaternion.CreateFromYawPitchRoll(-(float)Math.PI / 2.0f, 0, 0), Vector3.One, scene, room5));
+            propsRoom5.Add(new GameObject("Desk5_1", new Vector3(-260, -57, 140) + Vector3.Transform(deskOffset, Matrix.CreateFromAxisAngle(Vector3.Up, -(float)Math.PI / 2)), Quaternion.CreateFromYawPitchRoll(-(float)Math.PI / 2.0f, 0, 0), Vector3.One, scene, room5));
+            propsRoom5.Add(new GameObject("Chair5_2", new Vector3(-148, -57, 253), Quaternion.Identity, Vector3.One, scene, room5));
+            propsRoom5.Add(new GameObject("Desk5_2", new Vector3(-148, -57, 260) + deskOffset, Quaternion.Identity, Vector3.One, scene, room5));
+            propsRoom5.Add(new GameObject("Chair5_3", new Vector3(-33, -57, 253), Quaternion.Identity, Vector3.One, scene, room5));
+            propsRoom5.Add(new GameObject("Desk5_3", new Vector3(-33, -57, 260) + deskOffset, Quaternion.Identity, Vector3.One, scene, room5));
+            propsRoom5.Add(new GameObject("Couch5_1", new Vector3(-152, -60, 116) + couchOffset, Quaternion.Identity, Vector3.One, scene, room5));
+            propsRoom5.Add(new GameObject("Couch5_2", new Vector3(-130, -60, 141) + Vector3.Transform(couchOffset, Matrix.CreateFromAxisAngle(Vector3.Up, -(float)Math.PI / 2)), Quaternion.CreateFromYawPitchRoll(-(float)Math.PI / 2.0f, 0, 0), Vector3.One, scene, room5));
+
+            bench = new GameObject("Bench", new Vector3(138, 88, -220), Quaternion.Identity, Vector3.One, scene, room);
+            bench1 = new GameObject("Bench1", new Vector3(90, 88, -118), Quaternion.Identity, Vector3.One, scene, room);
+            bench2 = new GameObject("Bench2", new Vector3(90, 88, -275), Quaternion.Identity, Vector3.One, scene, room);
+            bench3 = new GameObject("Bench3", new Vector3(0, 88, -220), Quaternion.Identity, Vector3.One, scene, room);
+            bench4 = new GameObject("Bench4", new Vector3(10, 88, -118), Quaternion.Identity, Vector3.One, scene, room);
+            column2 = new GameObject("column2", new Vector3(10, 88, -275), Quaternion.Identity, Vector3.One, scene, room);
+            bench7 = new GameObject("Bench7", new Vector3(138, 88, -148), Quaternion.Identity, Vector3.One, scene, room);
+            bench8 = new GameObject("Bench8", new Vector3(-80, 88, -118), Quaternion.Identity, Vector3.One, scene, room);
+            bench9 = new GameObject("Bench9", new Vector3(-80, 88, -275), Quaternion.Identity, Vector3.One, scene, room);
+
+            Collider columnCol1 = bench.AddNewComponent<Collider>();
+            Collider columnCol2 = bench1.AddNewComponent<Collider>();
+            Collider columnCol3 = bench2.AddNewComponent<Collider>();
+            Collider columnCol4 = bench3.AddNewComponent<Collider>();
+            Collider columnCol5 = bench4.AddNewComponent<Collider>();
+            Collider columnCol6 = bench7.AddNewComponent<Collider>();
+            Collider columnCol7 = bench8.AddNewComponent<Collider>();
+            Collider columnCol8 = bench9.AddNewComponent<Collider>();
+            Collider columnCol9 = column2.AddNewComponent<Collider>();
+
+            columnCol1.bound = new Engine.Bounding_Volumes.BoundingBox(columnCol1, new Vector3(0, 0f, 0), new Vector3(7.5f, 95f, 7.5f));
+            columnCol2.bound = new Engine.Bounding_Volumes.BoundingBox(columnCol2, new Vector3(0, 0f, 0), new Vector3(7.5f, 95f, 7.5f));
+            columnCol3.bound = new Engine.Bounding_Volumes.BoundingBox(columnCol3, new Vector3(0, 0f, 0), new Vector3(7.5f, 95f, 7.5f));
+            columnCol4.bound = new Engine.Bounding_Volumes.BoundingBox(columnCol4, new Vector3(0, 0f, 0), new Vector3(7.5f, 95f, 7.5f));
+            columnCol5.bound = new Engine.Bounding_Volumes.BoundingBox(columnCol5, new Vector3(0, 0f, 0), new Vector3(7.5f, 95f, 7.5f));
+            columnCol6.bound = new Engine.Bounding_Volumes.BoundingBox(columnCol6, new Vector3(0, 0f, 0), new Vector3(7.5f, 95f, 7.5f));
+            columnCol7.bound = new Engine.Bounding_Volumes.BoundingBox(columnCol7, new Vector3(0, 0f, 0), new Vector3(7.5f, 95f, 7.5f));
+            columnCol8.bound = new Engine.Bounding_Volumes.BoundingBox(columnCol8, new Vector3(0, 0f, 0), new Vector3(7.5f, 95f, 7.5f));
+            columnCol9.bound = new Engine.Bounding_Volumes.BoundingBox(columnCol9, new Vector3(0, 0f, 0), new Vector3(7.5f, 95f, 7.5f));
+
+            int minimapOffset = (int)(graphics.PreferredBackBufferWidth * 0.0075f);
+            int minimapSize = (int)(graphics.PreferredBackBufferWidth * 0.15f);
+            Minimap.Initialize(new Point(minimapSize), new Point(minimapOffset), new List<Vector2>()
+            {
+                new Vector2(-1000,1000)
+            }, player);
+            Minimap.Objectives.Add(new Vector3(50, 100001, 90));
+            Minimap.Objectives.Add(new Vector3(70, 0, -100));
+            Minimap.Enemies.Add(enemy);
+            Minimap.Enemies.Add(enemy2);
+            stepsSounds = new List<SoundEffectInstance>();
+            ouchSounds = new List<SoundEffectInstance>();
+            DrawTutorialTips();
+            hologramRecordingMaxTime = 5.0f;
+        }
+        public void LoadGame()
+        {
+            // Create a new SpriteBatch, which can be used to draw textures.
+            spriteBatch = new SpriteBatch(GraphicsDevice);
+            hologramRecordingShader = Content.Load<Effect>("FX/HologramRecording");
+            hologramRecordingShader.Parameters["RecordingTime"].SetValue(0.0f);
+            hologramRecordingShader.Parameters["RecordingTimeLimit"].SetValue(hologramRecordingMaxTime);
+            healthShader = Content.Load<Effect>("FX/Health");
+            healthShader.Parameters["Health"].SetValue(100.0f);
+            healthShaderTexture = Content.Load<Texture2D>("Textures/Blood_Screen");
+            bloomShader = Content.Load<Effect>("FX/Bloom");
+            pauseMenuShader = Content.Load<Effect>("FX/PauseMenu");
+            gameMenu.LoadContent(Content);
+            Minimap.LoadContent(Content);
+            Model columnModel = Content.Load<Model>("Models/kolumna");
+            floorTexture = Content.Load<Texture2D>("Textures/Ground");
+            gunfireTexture = Content.Load<Texture2D>("Textures/Gunfire");
+            crosshair = Content.Load<Texture2D>("Textures/Crosshair");
+            font = Content.Load<SpriteFont>("Font/Holo-Agent");
+            shot = Content.Load<SoundEffect>("Sounds/Pistol");
+            stepsSounds.Add(Content.Load<SoundEffect>("Sounds/Steps_Walk").CreateInstance());
+            stepsSounds.Add(Content.Load<SoundEffect>("Sounds/Steps_Run").CreateInstance());
+            ouchSounds.Add(Content.Load<SoundEffect>("Sounds/Ouch_1").CreateInstance());
+            ouchSounds.Add(Content.Load<SoundEffect>("Sounds/Ouch_2").CreateInstance());
+            player.GetComponent<PlayerController>().StepsSounds = stepsSounds;
+            player.GetComponent<PlayerController>().OuchSounds = ouchSounds;
+            weapons[0].GetComponent<Weapon>().GunshotSound = shot;
+            weapons[1].GetComponent<Weapon>().GunshotSound = shot;
+
+            Model levelModel = Content.Load<Model>("Models/Level");
+            level.AddComponent(new MeshInstance(levelModel));
+
+            Model playerModel = Content.Load<Model>("Models/new/HD/BONE_2");
+            Model playerPreviewModel = Content.Load<Model>("Models/new/HD/BONE_2_PREVIEW");
+            Model playerHologramModel = Content.Load<Model>("Models/new/HD/BONE_2_HOLOGRAM");
+            Model playerRunAnim = Content.Load<Model>("Models/new/HD/BONE_RUN_2");
+            Model playerWalkAnim = Content.Load<Model>("Models/new/HD/BONE_WALK");
+            Model playerDeathAnim = Content.Load<Model>("Models/new/HD/BONE_DEATH");
+            Model playerJumpAnim = Content.Load<Model>("Models/new/HD/BONE_JUMP");
+            Model playerCrouchAnim = Content.Load<Model>("Models/new/HD/BONE_CROUCH");
+
+
+            foreach (ModelMesh mesh in playerHologramModel.Meshes)
+            {
+                foreach (ModelMeshPart part in mesh.MeshParts)
+                {
+                    if (part.Effect is BasicEffect)
+                    {
+                        (part.Effect as BasicEffect).Alpha = 0.5f;
+                    }
+                    else if (part.Effect is SkinnedEffect)
+                    {
+                        SkinnedEffect seffect = part.Effect as SkinnedEffect;
+                        seffect.Alpha = 0.5f;
+                    }
+                }
+            }
+
+            foreach (ModelMesh mesh in playerPreviewModel.Meshes)
+            {
+                foreach (ModelMeshPart part in mesh.MeshParts)
+                {
+                    if (part.Effect is BasicEffect)
+                    {
+                        (part.Effect as BasicEffect).Alpha = 0.1f;
+                    }
+                    else if (part.Effect is SkinnedEffect)
+                    {
+                        SkinnedEffect seffect = part.Effect as SkinnedEffect;
+                        seffect.Alpha = 0.1f;
+                    }
+                }
+            }
+
+            player.GetComponent<PlayerController>().PlayerMesh = new MeshInstance(playerModel);
+            player.GetComponent<PlayerController>().HologramMesh = new MeshInstance(playerHologramModel);
+            player.GetComponent<PlayerController>().PreviewMesh = new MeshInstance(playerPreviewModel);
+            AnimationClip runClip = (playerRunAnim.Tag as ModelExtra).Clips[0];
+            AnimationClip walkClip = (playerWalkAnim.Tag as ModelExtra).Clips[0];
+            AnimationClip deathClip = (playerDeathAnim.Tag as ModelExtra).Clips[0];
+            AnimationClip jumpClip = (playerJumpAnim.Tag as ModelExtra).Clips[0];
+            AnimationClip crouchClip = (playerCrouchAnim.Tag as ModelExtra).Clips[0];
+            player.GetComponent<PlayerController>().PlayerMesh.Model.Clips.Add(runClip);
+            player.GetComponent<PlayerController>().PlayerMesh.Model.Clips.Add(walkClip);
+            player.GetComponent<PlayerController>().PlayerMesh.Model.Clips.Add(deathClip);
+            player.GetComponent<PlayerController>().PlayerMesh.Model.Clips.Add(jumpClip);
+            player.GetComponent<PlayerController>().PlayerMesh.Model.Clips.Add(crouchClip);
+            player.GetComponent<PlayerController>().PlayerMesh.Offset = new Vector3(0, -17, 0);
+            player.GetComponent<PlayerController>().HologramMesh.Model.Clips.Add(runClip);
+            player.GetComponent<PlayerController>().HologramMesh.Model.Clips.Add(walkClip);
+            player.GetComponent<PlayerController>().HologramMesh.Model.Clips.Add(deathClip);
+            player.GetComponent<PlayerController>().HologramMesh.Model.Clips.Add(jumpClip);
+            player.GetComponent<PlayerController>().HologramMesh.Model.Clips.Add(crouchClip);
+            player.GetComponent<PlayerController>().HologramMesh.Offset = new Vector3(0, -17, 0);
+            player.GetComponent<PlayerController>().PreviewMesh.Model.Clips.Add(runClip);
+            player.GetComponent<PlayerController>().PreviewMesh.Model.Clips.Add(walkClip);
+            player.GetComponent<PlayerController>().PreviewMesh.Model.Clips.Add(deathClip);
+            player.GetComponent<PlayerController>().PreviewMesh.Model.Clips.Add(jumpClip);
+            player.GetComponent<PlayerController>().PreviewMesh.Model.Clips.Add(crouchClip);
+            player.GetComponent<PlayerController>().PreviewMesh.Offset = new Vector3(0, -17, 0);
+
+            Model enemyModel = Content.Load<Model>("Models/cop/cop_t_pose");
+            Model enemyRunAnim = Content.Load<Model>("Models/cop/cop_run");
+            Model enemyDeathAnim = Content.Load<Model>("Models/cop/cop_death");
+            Model enemyShootAnim = Content.Load<Model>("Models/cop/cop_shoot");
+            Model enemyHitAnim = Content.Load<Model>("Models/cop/cop_hit");
+            AnimationClip enemyRunClip = (enemyRunAnim.Tag as ModelExtra).Clips[0];
+            AnimationClip enemyDeathClip = (enemyDeathAnim.Tag as ModelExtra).Clips[0];
+            AnimationClip enemyShootClip = (enemyShootAnim.Tag as ModelExtra).Clips[0];
+            AnimationClip enemyHitClip = (enemyHitAnim.Tag as ModelExtra).Clips[0];
+
+            enemy.AddComponent(new MeshInstance(enemyModel));
+            enemy.GetComponent<MeshInstance>().Offset = new Vector3(0, -17, 0);
+            enemy.GetComponent<MeshInstance>().Model.Clips.Add(enemyRunClip);
+            enemy.GetComponent<MeshInstance>().Model.Clips.Add(enemyDeathClip);
+            enemy.GetComponent<MeshInstance>().Model.Clips.Add(enemyShootClip);
+            enemy.GetComponent<MeshInstance>().Model.Clips.Add(enemyHitClip);
+            enemy.AddNewComponent<AnimationController>();
+            enemy.GetComponent<AnimationController>().SetBindPose(enemyShootClip);
+            enemy.GetComponent<AnimationController>().BindAnimation("run", 1, true);
+            enemy.GetComponent<AnimationController>().BindAnimation("death", 2, false);
+            enemy.GetComponent<AnimationController>().BindAnimation("hit", 3, false);
+            enemy2.AddComponent(new MeshInstance(enemyModel));
+            enemy2.GetComponent<MeshInstance>().Offset = new Vector3(0, -17, 0);
+            enemy2.GetComponent<MeshInstance>().Model.Clips.Add(enemyRunClip);
+            enemy2.GetComponent<MeshInstance>().Model.Clips.Add(enemyDeathClip);
+            enemy2.GetComponent<MeshInstance>().Model.Clips.Add(enemyShootClip);
+            enemy2.GetComponent<MeshInstance>().Model.Clips.Add(enemyHitClip);
+            enemy2.AddNewComponent<AnimationController>();
+            enemy2.GetComponent<AnimationController>().SetBindPose(enemyShootClip);
+            enemy2.GetComponent<AnimationController>().BindAnimation("run", 1, true);
+            enemy2.GetComponent<AnimationController>().BindAnimation("death", 2, false);
+            enemy2.GetComponent<AnimationController>().BindAnimation("hit", 3, false);
+
+            Model doorModel = Content.Load<Model>("Models/door_001");
+            Model pistolModel = Content.Load<Model>("Models/Pistol");
+            weapons[0].AddComponent(new MeshInstance(pistolModel));
+            gunfires[0].AddComponent(new SpriteInstance(gunfireTexture, new Vector3(0, 5, 5), 1, 1, graphics));
+            gunfires[0].GetComponent<SpriteInstance>().Enabled = false;
+            Model machineGunModel = Content.Load<Model>("Models/Machine_Gun");
+            weapons[1].AddComponent(new MeshInstance(machineGunModel));
+            gunfires[1].AddComponent(new SpriteInstance(gunfireTexture, new Vector3(0, 5, 5), 1, 1, graphics));
+            gunfires[1].GetComponent<SpriteInstance>().Enabled = false;
+            weapons[2].AddComponent(new MeshInstance(machineGunModel));
+            gunfires[2].AddComponent(new SpriteInstance(gunfireTexture, new Vector3(0, 5, 5), 1, 1, graphics));
+            gunfires[2].GetComponent<SpriteInstance>().Enabled = false;
+            for (int i = 1; i < 4; i++)
+                particles.Add(new SpriteInstance(Content.Load<Texture2D>("Textures/Particle" + i + " [Fire]"), new Vector3(0, 1, 1), 1, 0.5f, graphics));
+            for (int i = 1; i < 4; i++)
+                particles.Add(new SpriteInstance(Content.Load<Texture2D>("Textures/Particle" + i + " [Explosion]"), new Vector3(0, 5, 5), 1, 1, graphics));
+            for (int i = 1; i < 4; i++)
+                particles.Add(new SpriteInstance(Content.Load<Texture2D>("Textures/Particle" + i + " [Smoke]"), new Vector3(0, 5, 5), 1, 1, graphics));
+            for (int i = 1; i < 4; i++)
+                particles.Add(new SpriteInstance(Content.Load<Texture2D>("Textures/Particle" + i + " [Blood]"), new Vector3(0, 2, 2), 1, 1, graphics));
+            particleFireEmitter.AddComponent(new ParticleSystem(ParticleSystemType.Fire, 400, 2, particles.GetRange(0, 3), 1));
+            particleExplosionEmitter.AddComponent(new ParticleSystem(ParticleSystemType.Explosion, 6, 2, particles.GetRange(3, 3), 0.01f));
+            particleSmokeEmitter.AddComponent(new ParticleSystem(ParticleSystemType.Smoke, 100, 2, particles.GetRange(6, 3), 1));
+            particleBloodEmitter.AddComponent(new ParticleSystem(ParticleSystemType.Jet, 12, 0.25f, particles.GetRange(9, 3), 0.5f));
+            /*particleFireEmitter.GetComponent<ParticleSystem>().Init();
+            particleExplosionEmitter.GetComponent<ParticleSystem>().Init();
+            particleSmokeEmitter.GetComponent<ParticleSystem>().Init();
+            particleBloodEmitter.GetComponent<ParticleSystem>().Init();*/
+
+            Model chairModel = Content.Load<Model>("Models/krzeselko");
+            Model deskModel = Content.Load<Model>("Models/biurko");
+            Model couchModel = Content.Load<Model>("Models/kanapa");
+            propsRoom5[0].AddComponent(new MeshInstance(chairModel));
+            propsRoom5[1].AddComponent(new MeshInstance(deskModel));
+            propsRoom5[2].AddComponent(new MeshInstance(chairModel));
+            propsRoom5[3].AddComponent(new MeshInstance(deskModel));
+            propsRoom5[4].AddComponent(new MeshInstance(chairModel));
+            propsRoom5[5].AddComponent(new MeshInstance(deskModel));
+            propsRoom5[6].AddComponent(new MeshInstance(couchModel));
+            propsRoom5[7].AddComponent(new MeshInstance(couchModel));
+
+            bench.AddComponent(new MeshInstance(columnModel));
+            bench1.AddComponent(new MeshInstance(columnModel));
+            bench2.AddComponent(new MeshInstance(columnModel));
+            bench3.AddComponent(new MeshInstance(columnModel));
+            bench4.AddComponent(new MeshInstance(columnModel));
+            column2.AddComponent(new MeshInstance(columnModel));
+            bench7.AddComponent(new MeshInstance(columnModel));
+            bench8.AddComponent(new MeshInstance(columnModel));
+            bench9.AddComponent(new MeshInstance(columnModel));
+        }
         private void DrawTutorialTips()
         {
             Dialogues.PlayDialogue("Hold W, S, A and D to move", 1, 5);
