@@ -1030,3 +1030,9 @@
 /processorParam:TextureFormat=Compressed
 /build:Font/Holo-Agent.spritefont
 
+#begin FX/GameOver.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:FX/GameOver.fx
+

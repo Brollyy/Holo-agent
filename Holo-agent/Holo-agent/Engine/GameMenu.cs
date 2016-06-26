@@ -8,15 +8,15 @@ namespace Engine
 {
     public class GameMenu
     {
-        private bool isMenu, isPauseMenu;
+        private bool isMenu, isPauseMenu, isGameOverMenu;
         private bool[] isButtonSelected;
         private Texture2D buttonFrame;
         private SpriteFont font;
         private Color[] buttonColor;
         private KeyboardState currentState, oldState;
         private ButtonState currentLeftButtonState, oldLeftButtonState;
-        private string title = "Holo-agent", newGame = "New Game", quitToMenu = "Quit To Menu", quit = "Quit Game", resume = "Resume";
-        private Vector2 titleSize, newGameSize, frame, quitToMenuSize, quitSize, resumeSize;
+        private string title = "Holo-agent", newGame = "New Game", quitToMenu = "Quit To Menu", quit = "Quit Game", resume = "Resume", gameOver = "Game Over";
+        private Vector2 titleSize, newGameSize, frame, quitToMenuSize, quitSize, resumeSize, gameOverSize;
         private Rectangle newGameFrame, quitToMenuFrame, quitFrame, resumeFrame;
         private Point w;
         public GameMenu()
@@ -37,11 +37,13 @@ namespace Engine
                     isMenu = true;
                 if (isPauseMenu)
                     isPauseMenu = false;
+                if (isGameOverMenu)
+                    isGameOverMenu = false;
                 DetectSelection(gameState);
                 ChangeFrameColor();
                 DetectClick(ref gameState, game);
             }
-            else if(gameState.Equals(GameState.NewGame))
+            else if (gameState.Equals(GameState.NewGame))
             {
                 game.InitializeGame();
                 game.LoadGame();
@@ -55,6 +57,8 @@ namespace Engine
                     isPauseMenu = false;
                 if (currentState.IsKeyDown(Keys.Escape) && oldState.IsKeyUp(Keys.Escape))
                     gameState = GameState.Pause;
+                if (game.PlayerHealth <= 0.0f)
+                    gameState = GameState.GameOver;
             }
             else if (gameState.Equals(GameState.Pause))
             {
@@ -62,6 +66,13 @@ namespace Engine
                     isPauseMenu = true;
                 if (currentState.IsKeyDown(Keys.Escape) && oldState.IsKeyUp(Keys.Escape))
                     gameState = GameState.Game;
+                DetectSelection(gameState);
+                ChangeFrameColor();
+                DetectClick(ref gameState, game);
+            }
+            else if (gameState.Equals(GameState.GameOver))
+            {
+                isGameOverMenu = true;
                 DetectSelection(gameState);
                 ChangeFrameColor();
                 DetectClick(ref gameState, game);
@@ -105,6 +116,21 @@ namespace Engine
                 }
                 spriteBatch.End();
             }
+            else if (isGameOverMenu)
+            {
+                spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.AnisotropicWrap, DepthStencilState.Default, RasterizerState.CullNone);
+                if (font != null && buttonFrame != null)
+                {
+                    spriteBatch.DrawString(font, gameOver, new Vector2(w.X / 2 - gameOverSize.X / 2, 0.1f * w.Y), Color.Purple, 0, Vector2.Zero, 0.6f, SpriteEffects.None, 0);
+                    quitToMenuFrame = new Rectangle((int)(w.X / 2 - frame.X / 2), (int)(0.7f * w.Y - frame.Y / 2), (int)frame.X, (int)frame.Y);
+                    spriteBatch.Draw(buttonFrame, quitToMenuFrame, null, buttonColor[2], 0, Vector2.Zero, SpriteEffects.None, 0);
+                    spriteBatch.DrawString(font, quitToMenu, new Vector2(w.X / 2 - quitToMenuSize.X / 2, 0.7f * w.Y - quitToMenuSize.Y / 2), Color.Purple, 0, Vector2.Zero, 0.3f, SpriteEffects.None, 0);
+                    quitFrame = new Rectangle((int)(w.X / 2 - frame.X / 2), (int)(0.9f * w.Y - frame.Y / 2), (int)frame.X, (int)frame.Y);
+                    spriteBatch.Draw(buttonFrame, quitFrame, null, buttonColor[1], 0, Vector2.Zero, SpriteEffects.None, 0);
+                    spriteBatch.DrawString(font, quit, new Vector2(w.X / 2 - quitSize.X / 2, 0.9f * w.Y - quitSize.Y / 2), Color.Purple, 0, Vector2.Zero, 0.3f, SpriteEffects.None, 0);
+                }
+                spriteBatch.End();
+            }
         }
         public void LoadContent(ContentManager content)
         {
@@ -116,14 +142,15 @@ namespace Engine
             quitToMenuSize = 0.3f * font.MeasureString(quitToMenu);
             quitSize = 0.3f * font.MeasureString(quit);
             resumeSize = 0.3f * font.MeasureString(resume);
+            gameOverSize = 0.6f * font.MeasureString(gameOver);
         }
         private void DetectSelection(GameState gameState)
         {
             int x = Mouse.GetState().Position.X;
             int y = Mouse.GetState().Position.Y;
             isButtonSelected[0] = (gameState.Equals(GameState.Menu) && x > newGameFrame.Left && x < newGameFrame.Right) && (y > newGameFrame.Top && y < newGameFrame.Bottom);
-            isButtonSelected[1] = ((gameState.Equals(GameState.Menu) || gameState.Equals(GameState.Pause)) && x > quitFrame.Left && x < quitFrame.Right) && (y > quitFrame.Top && y < quitFrame.Bottom);
-            isButtonSelected[2] = (gameState.Equals(GameState.Pause) && x > quitToMenuFrame.Left && x < quitToMenuFrame.Right) && (y > quitToMenuFrame.Top && y < quitToMenuFrame.Bottom);
+            isButtonSelected[1] = ((gameState.Equals(GameState.Menu) || gameState.Equals(GameState.Pause) || gameState.Equals(GameState.GameOver)) && x > quitFrame.Left && x < quitFrame.Right) && (y > quitFrame.Top && y < quitFrame.Bottom);
+            isButtonSelected[2] = ((gameState.Equals(GameState.Pause) || gameState.Equals(GameState.GameOver)) && x > quitToMenuFrame.Left && x < quitToMenuFrame.Right) && (y > quitToMenuFrame.Top && y < quitToMenuFrame.Bottom);
             isButtonSelected[3] = (gameState.Equals(GameState.Pause) && x > resumeFrame.Left && x < resumeFrame.Right) && (y > resumeFrame.Top && y < resumeFrame.Bottom);
         }
         private void ChangeFrameColor()
@@ -158,6 +185,7 @@ namespace Engine
         Menu = 0,
         NewGame = 1,
         Game = 2,
-        Pause = 3
+        GameOver = 3,
+        Pause = 4
     }
 }

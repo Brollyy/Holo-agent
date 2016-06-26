@@ -29,6 +29,7 @@ namespace Holo_agent
         Effect healthShader;
         Effect bloomShader;
         Effect pauseMenuShader;
+        Effect gameOverShader;
         Texture2D healthShaderTexture;
         Texture2D crosshair;
         SpriteFont font;
@@ -69,6 +70,14 @@ namespace Holo_agent
         private double? startTime;
         StorageDevice device;
         Type[] knownTypes;
+        private float playerHealth;
+        public float PlayerHealth
+        {
+            get
+            {
+                return playerHealth;
+            }
+        }
         public Game1()
         {
             graphics = new GraphicsDeviceManager(this);
@@ -135,6 +144,10 @@ namespace Holo_agent
                 if (!IsMouseVisible)
                     IsMouseVisible = true;
             }
+            if(gameState.Equals(GameState.GameOver))
+            {
+                IsMouseVisible = true;
+            }
             if (gameState.Equals(GameState.Game))
             {
                 if (IsMouseVisible)
@@ -151,7 +164,10 @@ namespace Holo_agent
                 else
                     objectivePosition = Vector2.Lerp(objectivePosition, new Vector2(objectivePosition.X, -250), 0.05f);
                 if (player.GetComponent<PlayerController>() != null)
+                {
                     weapon = player.GetComponent<PlayerController>().getWeapon();
+                    playerHealth = player.GetComponent<PlayerController>().Health;
+                }
                 if (weapon != null)
                     gunfire = weapon.getGunfireInstance();
                 /*emitterTimer += (float)gameTime.ElapsedGameTime.TotalSeconds;
@@ -190,6 +206,19 @@ namespace Holo_agent
                 pauseMenuShader.Parameters["ScreenTexture"].SetValue(texture);
                 pauseMenuShader.CurrentTechnique.Passes[0].Apply();
                 spriteBatch.Draw(pauseMenuShader.Parameters["ScreenTexture"].GetValueTexture2D(), new Rectangle(0, 0, graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight), null, Color.White, 0, Vector2.Zero, SpriteEffects.None, 0);
+                spriteBatch.End();
+                gameMenu.Draw(spriteBatch, graphics);
+            }
+            if(gameState.Equals(GameState.GameOver))
+            {
+                GraphicsDevice.Clear(Color.Transparent);
+                Texture2D texture = DrawSceneToTexture(renderTarget, gameTime);
+                spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.Default, RasterizerState.CullNone);
+                gameOverShader.Parameters["ScreenTexture"].SetValue(texture);
+                gameOverShader.CurrentTechnique.Passes[0].Apply();
+                spriteBatch.Draw(gameOverShader.Parameters["ScreenTexture"].GetValueTexture2D(), new Rectangle(0, 0, graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight), null, Color.White, 0, Vector2.Zero, SpriteEffects.None, 0);
+                healthShader.CurrentTechnique.Passes[0].Apply();
+                spriteBatch.Draw(healthShaderTexture, new Rectangle(0, 0, graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight), null, Color.White, 0, Vector2.Zero, SpriteEffects.None, 0);
                 spriteBatch.End();
                 gameMenu.Draw(spriteBatch, graphics);
             }
@@ -542,6 +571,7 @@ namespace Holo_agent
             healthShaderTexture = Content.Load<Texture2D>("Textures/Blood_Screen");
             bloomShader = Content.Load<Effect>("FX/Bloom");
             pauseMenuShader = Content.Load<Effect>("FX/PauseMenu");
+            gameOverShader = Content.Load<Effect>("FX/GameOver");
             gameMenu.LoadContent(Content);
             Minimap.LoadContent(Content);
             Model columnModel = Content.Load<Model>("Models/kolumna");

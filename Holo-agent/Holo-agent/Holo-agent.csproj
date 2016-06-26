@@ -92,6 +92,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\FX\Bloom.fx" />
+    <Content Include="Content\FX\GameOver.fx" />
     <Content Include="Content\FX\Health.fx" />
     <Content Include="Content\FX\PauseMenu.fx" />
     <Content Include="Icon.ico" />
