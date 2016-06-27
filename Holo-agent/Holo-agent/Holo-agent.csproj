@@ -52,6 +52,7 @@
     <Compile Include="Engine\Components\EnemyController.cs" />
     <Compile Include="Engine\Components\Hologram.cs" />
     <Compile Include="Engine\Components\Interaction.cs" />
+    <Compile Include="Engine\Components\KeypadInteraction.cs" />
     <Compile Include="Engine\Components\MeshInstance.cs" />
     <Compile Include="Engine\Components\ParticleSystem.cs" />
     <Compile Include="Engine\Components\PlayerController.cs" />

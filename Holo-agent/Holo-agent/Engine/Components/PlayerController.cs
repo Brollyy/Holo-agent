@@ -298,10 +298,6 @@ namespace Engine.Components
             movement = Movement.CROUCH;
             Owner.Scene.Camera.LocalPosition = Owner.Scene.Camera.LocalPosition - new Vector3(0, 9, 0);
             playerCameraPosition -= 9 * Vector3.Up;
-            for(int i = 0; i < weapons.Length; ++i)
-            {
-                if (weapons[i] != null) weapons[i].LocalPosition -= 9 * Vector3.Up;
-            }
         }
 
         private void StopCrouching(ReleasedActionArgs args)
@@ -312,10 +308,6 @@ namespace Engine.Components
                 movement = isRunning ? Movement.RUN : Movement.WALK;
                 Owner.Scene.Camera.LocalPosition = Owner.Scene.Camera.LocalPosition + new Vector3(0, 9, 0);
                 playerCameraPosition += 9 * Vector3.Up;
-                for (int i = 0; i < weapons.Length; ++i)
-                {
-                    if (weapons[i] != null) weapons[i].LocalPosition += 9 * Vector3.Up;
-                }
             }
         }
 
@@ -405,13 +397,14 @@ namespace Engine.Components
                 {
                     Owner.AddComponent(PlayerMesh);
                     AnimationController contr = Owner.AddNewComponent<AnimationController>();
-                    contr.SetBindPose(PlayerMesh.Model.Clips[isCrouching ? 5 : 3]);
+                    contr.BindAnimation("idle", isCrouching ? 7 : 6, true);
+                    contr.PlayAnimation("idle");
                 }
                 Stay(null);
-                getWeapon().Owner.Parent = Owner;
-                getWeapon().Owner.LocalPosition = getWeapon().AsChildPosition;
-                getWeapon().Owner.LocalQuaternionRotation = Quaternion.Identity;
-                getWeapon().Owner.LocalScale = Vector3.One;
+                if (getWeapon() != null)
+                {
+                    getWeapon().Owner.IsVisible = false;
+                }
                 player = Owner;
                 playerRotation = Owner.LocalQuaternionRotation;
                 Vector3 rotation = Owner.LocalEulerRotation;
@@ -445,10 +438,10 @@ namespace Engine.Components
             Owner.Scene.Camera.LocalPosition = playerCameraPosition;
             Owner.Scene.Camera.LocalQuaternionRotation = playerCameraRotation;
             Owner.Scene.Camera.LocalScale = playerCameraScale;
-            getWeapon().Owner.Parent = Owner.Scene.Camera;
-            getWeapon().Owner.LocalPosition = getWeapon().AsChildPosition;
-            getWeapon().Owner.LocalQuaternionRotation = Quaternion.Identity;
-            getWeapon().Owner.LocalScale = Vector3.One;
+            if(getWeapon() != null)
+            {
+                getWeapon().Owner.IsVisible = true;
+            }
         }
 
         private void PlaybackButton(PressedActionArgs args)

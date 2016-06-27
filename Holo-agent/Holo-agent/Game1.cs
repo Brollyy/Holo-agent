@@ -600,7 +600,8 @@ namespace Holo_agent
             Model playerDeathAnim = Content.Load<Model>("Models/new/HD/BONE_DEATH");
             Model playerJumpAnim = Content.Load<Model>("Models/new/HD/BONE_JUMP");
             Model playerCrouchAnim = Content.Load<Model>("Models/new/HD/BONE_CROUCH");
-
+            Model playerRecordingStandingAnim = Content.Load<Model>("Models/new/HD/BONE_RECORDING_STANDING");
+            Model playerRecordingCrouchingAnim = Content.Load<Model>("Models/new/HD/BONE_RECORDING_CROUCH");
 
             foreach (ModelMesh mesh in playerHologramModel.Meshes)
             {
@@ -642,11 +643,15 @@ namespace Holo_agent
             AnimationClip deathClip = (playerDeathAnim.Tag as ModelExtra).Clips[0];
             AnimationClip jumpClip = (playerJumpAnim.Tag as ModelExtra).Clips[0];
             AnimationClip crouchClip = (playerCrouchAnim.Tag as ModelExtra).Clips[0];
+            AnimationClip recordingStandingClip = (playerRecordingStandingAnim.Tag as ModelExtra).Clips[0];
+            AnimationClip recordingCrouchingClip = (playerRecordingCrouchingAnim.Tag as ModelExtra).Clips[0];
             player.GetComponent<PlayerController>().PlayerMesh.Model.Clips.Add(runClip);
             player.GetComponent<PlayerController>().PlayerMesh.Model.Clips.Add(walkClip);
             player.GetComponent<PlayerController>().PlayerMesh.Model.Clips.Add(deathClip);
             player.GetComponent<PlayerController>().PlayerMesh.Model.Clips.Add(jumpClip);
             player.GetComponent<PlayerController>().PlayerMesh.Model.Clips.Add(crouchClip);
+            player.GetComponent<PlayerController>().PlayerMesh.Model.Clips.Add(recordingStandingClip);
+            player.GetComponent<PlayerController>().PlayerMesh.Model.Clips.Add(recordingCrouchingClip);
             player.GetComponent<PlayerController>().PlayerMesh.Offset = new Vector3(0, -17, 0);
             player.GetComponent<PlayerController>().HologramMesh.Model.Clips.Add(runClip);
             player.GetComponent<PlayerController>().HologramMesh.Model.Clips.Add(walkClip);

@@ -4,12 +4,14 @@ using System.Runtime.Serialization;
 namespace Engine.Components
 {
     [DataContract]
-    class DoorInteraction : Interaction 
+    public class DoorInteraction : Interaction 
     {
         private static Quaternion DEFAULT_OPENED = Quaternion.CreateFromYawPitchRoll(MathHelper.ToRadians(90), 0, 0);
         private static Quaternion DEFAULT_CLOSED = Quaternion.Identity;
         [DataMember]
         private bool open = false;
+        [DataMember]
+        private bool locked = false;
         private bool interacting = false;
         [DataMember]
         private Quaternion openRotation;
@@ -22,6 +24,8 @@ namespace Engine.Components
         [IgnoreDataMember]
         public bool IsOpen { get { return open; } }
 
+        [IgnoreDataMember]
+        public bool IsLocked { get { return locked; } set { locked = value; } }
 
         public DoorInteraction() : this(null, null, 1)
         {
@@ -57,9 +61,9 @@ namespace Engine.Components
             }
         }
 
-        public override void Interact(GameObject go)
+        public override void Interact(GameObject go, Vector3 point)
         {
-            if(!interacting)
+            if(!locked && !interacting)
             {
                 interacting = true;
                 t = 0.0f;

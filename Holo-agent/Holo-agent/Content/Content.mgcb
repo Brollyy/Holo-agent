@@ -1055,3 +1055,41 @@
 /processorParam:TextureFormat=NoChange
 /build:Models/level2.FBX
 
+#begin Models/new/HD/BONE_RECORDING_CROUCH.FBX
+/importer:FbxImporter
+/processor:AnimationProcessor
+/processorParam:ColorKeyColor=0,0,0,0
+/processorParam:ColorKeyEnabled=True
+/processorParam:DefaultEffect=BasicEffect
+/processorParam:GenerateMipmaps=True
+/processorParam:GenerateTangentFrames=False
+/processorParam:PremultiplyTextureAlpha=True
+/processorParam:PremultiplyVertexColors=True
+/processorParam:ResizeTexturesToPowerOfTwo=False
+/processorParam:RotationX=0
+/processorParam:RotationY=180
+/processorParam:RotationZ=0
+/processorParam:Scale=0.00375
+/processorParam:SwapWindingOrder=False
+/processorParam:TextureFormat=DxtCompressed
+/build:Models/new/HD/BONE_RECORDING_CROUCH.FBX
+
+#begin Models/new/HD/BONE_RECORDING_STANDING.FBX
+/importer:FbxImporter
+/processor:AnimationProcessor
+/processorParam:ColorKeyColor=0,0,0,0
+/processorParam:ColorKeyEnabled=True
+/processorParam:DefaultEffect=BasicEffect
+/processorParam:GenerateMipmaps=True
+/processorParam:GenerateTangentFrames=False
+/processorParam:PremultiplyTextureAlpha=True
+/processorParam:PremultiplyVertexColors=True
+/processorParam:ResizeTexturesToPowerOfTwo=False
+/processorParam:RotationX=0
+/processorParam:RotationY=180
+/processorParam:RotationZ=0
+/processorParam:Scale=0.00375
+/processorParam:SwapWindingOrder=False
+/processorParam:TextureFormat=DxtCompressed
+/build:Models/new/HD/BONE_RECORDING_STANDING.FBX
+
