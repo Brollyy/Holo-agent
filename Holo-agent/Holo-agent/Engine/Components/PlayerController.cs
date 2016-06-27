@@ -67,7 +67,13 @@ namespace Engine.Components
         {
             get { return hologramPlaying; }
         }
-
+        public bool HologramRecording
+        {
+            get
+            {
+                return hologramRecording;
+            }
+        }
         public bool IsPathRecorded(int index)
         {
             if (index < 0 || index >= recordedPaths.Length) return false;

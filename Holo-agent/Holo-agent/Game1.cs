@@ -1,4 +1,4 @@
-﻿#define DRAW_DEBUG_WIREFRAME
+﻿//#define DRAW_DEBUG_WIREFRAME
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -25,11 +25,11 @@ namespace Holo_agent
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
         RenderTarget2D renderTarget;
-        Effect postProcessingEffect;
-        Effect color_time;
-        Effect cameraShader;
+        Effect hologramRecordingShader;
         Effect healthShader;
         Effect bloomShader;
+        Effect pauseMenuShader;
+        Effect gameOverShader;
         Texture2D healthShaderTexture;
         Texture2D crosshair;
         SpriteFont font;
@@ -57,7 +57,8 @@ namespace Holo_agent
         List<Collider> weaponColliders;
         Weapon weapon;
         float /*emitterTimer,*/ objectiveTimer;
-        float special_timer = 0.0f;
+        float hologramRecordingTimer = 0.0f;
+        float hologramRecordingMaxTime;
         SoundEffect shot;
         List<SoundEffectInstance> stepsSounds, ouchSounds;
         Texture2D gunfireTexture;
@@ -67,10 +68,16 @@ namespace Holo_agent
         Vector2 objectivePosition = Vector2.UnitY * -500;
         string objectiveString = "[Some objective]";
         private double? startTime;
-
         StorageDevice device;
         Type[] knownTypes;
-
+        private float playerHealth;
+        public float PlayerHealth
+        {
+            get
+            {
+                return playerHealth;
+            }
+        }
         public Game1()
         {
             graphics = new GraphicsDeviceManager(this);
@@ -96,6 +103,278 @@ namespace Holo_agent
         /// and initialize them as well.
         /// </summary>
         protected override void Initialize()
+        {
+            InitializeGame();
+            base.Initialize();
+        }
+
+        /// <summary>
+        /// LoadContent will be called once per game and is the place to load
+        /// all of your content.
+        /// </summary>
+        protected override void LoadContent()
+        {
+            LoadGame();
+        }
+
+        /// <summary>
+        /// UnloadContent will be called once per game and is the place to unload
+        /// game-specific content.
+        /// </summary>
+        protected override void UnloadContent()
+        {
+            // TODO: Unload any non ContentManager content here
+        }
+
+        /// <summary>
+        /// Allows the game to run logic such as updating the world,
+        /// checking for collisions, gathering input, and playing audio.
+        /// </summary>
+        /// <param name="gameTime">Provides a snapshot of timing values.</param>
+        protected override void Update(GameTime gameTime)
+        {
+            gameState = gameMenu.Update(gameState, this);
+            if (gameState.Equals(GameState.Menu))
+            {
+                if (!IsMouseVisible)
+                    IsMouseVisible = true;
+            }
+            if(gameState.Equals(GameState.Pause))
+            {
+                if (!IsMouseVisible)
+                    IsMouseVisible = true;
+            }
+            if(gameState.Equals(GameState.GameOver))
+            {
+                IsMouseVisible = true;
+            }
+            if (gameState.Equals(GameState.Game))
+            {
+                if (IsMouseVisible)
+                {
+                    IsMouseVisible = false;
+                    Mouse.SetPosition(graphics.PreferredBackBufferWidth / 2, graphics.PreferredBackBufferHeight / 2);
+                }
+                frameCounter.Update(gameTime);
+                Input.Update(gameTime, graphics);
+                scene.Update(gameTime);
+
+                if (objectiveTimer > 0)
+                    objectiveTimer -= (float)gameTime.ElapsedGameTime.TotalSeconds;
+                else
+                    objectivePosition = Vector2.Lerp(objectivePosition, new Vector2(objectivePosition.X, -250), 0.05f);
+                if (player.GetComponent<PlayerController>() != null)
+                {
+                    weapon = player.GetComponent<PlayerController>().getWeapon();
+                    playerHealth = player.GetComponent<PlayerController>().Health;
+                }
+                if (weapon != null)
+                    gunfire = weapon.getGunfireInstance();
+                /*emitterTimer += (float)gameTime.ElapsedGameTime.TotalSeconds;
+                if (emitterTimer >= 6)
+                {
+                    particleFireEmitter.GetComponent<ParticleSystem>().Destroy();
+                    particleFireEmitter.Destroy();
+                    particleSmokeEmitter.GetComponent<ParticleSystem>().Destroy();
+                    particleSmokeEmitter.Destroy();
+                    emitterTimer = 0;
+                }*/
+                /*if (particleBloodEmitter.GetComponent<ParticleSystem>().getParticlesCount() == 0)
+                    particleBloodEmitter.GetComponent<ParticleSystem>().Init();
+                if (particleExplosionEmitter.GetComponent<ParticleSystem>().getParticlesCount() == 0)
+                    particleExplosionEmitter.GetComponent<ParticleSystem>().Init();*/
+            }
+            base.Update(gameTime);
+        }
+
+        /// <summary>
+        /// This is called when the game should draw itself.
+        /// </summary>
+        /// <param name="gameTime">Provides a snapshot of timing values.</param>
+        protected override void Draw(GameTime gameTime)
+        {
+            if (gameState.Equals(GameState.Menu))
+            {
+                GraphicsDevice.Clear(Color.CornflowerBlue);
+                gameMenu.Draw(spriteBatch, graphics);
+            }
+            if (gameState.Equals(GameState.Pause))
+            {
+                GraphicsDevice.Clear(Color.Transparent);
+                Texture2D texture = DrawSceneToTexture(renderTarget, gameTime);
+                spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.Default, RasterizerState.CullNone);
+                pauseMenuShader.Parameters["ScreenTexture"].SetValue(texture);
+                pauseMenuShader.CurrentTechnique.Passes[0].Apply();
+                spriteBatch.Draw(pauseMenuShader.Parameters["ScreenTexture"].GetValueTexture2D(), new Rectangle(0, 0, graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight), null, Color.White, 0, Vector2.Zero, SpriteEffects.None, 0);
+                spriteBatch.End();
+                gameMenu.Draw(spriteBatch, graphics);
+            }
+            if(gameState.Equals(GameState.GameOver))
+            {
+                GraphicsDevice.Clear(Color.Transparent);
+                Texture2D texture = DrawSceneToTexture(renderTarget, gameTime);
+                spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.Default, RasterizerState.CullNone);
+                gameOverShader.Parameters["ScreenTexture"].SetValue(texture);
+                gameOverShader.CurrentTechnique.Passes[0].Apply();
+                spriteBatch.Draw(gameOverShader.Parameters["ScreenTexture"].GetValueTexture2D(), new Rectangle(0, 0, graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight), null, Color.White, 0, Vector2.Zero, SpriteEffects.None, 0);
+                healthShader.CurrentTechnique.Passes[0].Apply();
+                spriteBatch.Draw(healthShaderTexture, new Rectangle(0, 0, graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight), null, Color.White, 0, Vector2.Zero, SpriteEffects.None, 0);
+                spriteBatch.End();
+                gameMenu.Draw(spriteBatch, graphics);
+            }
+            if (gameState.Equals(GameState.Game))
+            {
+                if (startTime == null) startTime = gameTime.TotalGameTime.TotalSeconds;
+                GraphicsDevice.Clear(Color.Black);
+                Texture2D texture = DrawSceneToTexture(renderTarget, gameTime);
+                Texture2D bloomTexture;
+                if (player.GetComponent<PlayerController>() == null)
+                {
+                    if (hologramRecordingTimer < hologramRecordingMaxTime)
+                    {
+                        hologramRecordingTimer += (float)gameTime.ElapsedGameTime.TotalSeconds;
+                        hologramRecordingShader.Parameters["RecordingTime"].SetValue(hologramRecordingTimer / hologramRecordingMaxTime);
+                    }
+                }
+                else if (hologramRecordingTimer > hologramRecordingMaxTime)
+                {
+                    hologramRecordingTimer = 0.0f;
+                    hologramRecordingShader.Parameters["RecordingTime"].SetValue(0.0f);
+                }
+
+                if (player.GetComponent<PlayerController>() == null && hologramRecordingTimer > 0.0f)
+                {
+                    spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.Default, RasterizerState.CullNone, hologramRecordingShader);
+                    spriteBatch.Draw(texture, new Rectangle(0, 0, graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight), null, Color.White, 0, Vector2.Zero, SpriteEffects.None, 0);
+                    spriteBatch.End();
+                }
+                else
+                {
+                    spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.Default, RasterizerState.CullNone);
+                    bloomShader.Parameters["ScreenTexture"].SetValue(texture);
+                    bloomShader.CurrentTechnique.Passes[0].Apply();
+                    bloomTexture = bloomShader.Parameters["ScreenTexture"].GetValueTexture2D();
+                    spriteBatch.Draw(bloomTexture, new Rectangle(0, 0, graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight), null, Color.White, 0, Vector2.Zero, SpriteEffects.None, 0);
+                    spriteBatch.End();
+                }
+
+                if (player.GetComponent<PlayerController>() != null)
+                {
+                    healthShader.Parameters["Health"].SetValue(player.GetComponent<PlayerController>().Health);
+                    spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.Default, RasterizerState.CullNone, healthShader);
+                    spriteBatch.Draw(healthShaderTexture, new Rectangle(0, 0, graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight), null, Color.White, 0, Vector2.Zero, SpriteEffects.None, 0);
+                    spriteBatch.End();
+                }
+
+                spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.AnisotropicWrap, DepthStencilState.Default, RasterizerState.CullNone);
+                Point w = new Point(graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight);
+                Dialogues.Draw(ref spriteBatch, font, w, gameTime);
+                if (enemy.GetComponent<EnemyController>() != null)
+                {
+                    Weapon enemyWeapon = enemy.GetComponent<EnemyController>().Weapon.GetComponent<Weapon>();
+                    if(enemyWeapon != null)
+                    {
+                        GameObject gunfireInstance = enemyWeapon.getGunfireInstance();
+                        if (gunfireInstance != null) gunfireInstance.GetInactiveComponent<SpriteInstance>().Draw(gameTime);
+                    }
+                }
+                if (enemy2.GetComponent<EnemyController>() != null)
+                {
+                    Weapon enemyWeapon = enemy2.GetComponent<EnemyController>().Weapon.GetComponent<Weapon>();
+                    if (enemyWeapon != null)
+                    {
+                        GameObject gunfireInstance = enemyWeapon.getGunfireInstance();
+                        if (gunfireInstance != null) gunfireInstance.GetInactiveComponent<SpriteInstance>().Draw(gameTime);
+                    }
+                }
+                if (player.GetComponent<PlayerController>() != null)
+                {
+                    if (weapon != null)
+                    {
+                        string weaponInfo = weapon.getMagazine() + "/" + weapon.getAmmo();
+                        Vector2 weaponInfoSize = 0.5f*font.MeasureString(weaponInfo);
+                        spriteBatch.DrawString(font, weaponInfo, new Vector2(w.X - 1.05f*weaponInfoSize.X, w.Y - 1.05f*weaponInfoSize.Y), Color.Red, 0, Vector2.Zero, 0.5f, SpriteEffects.None, 0);
+                        /*if (weapon.info != null)
+                            spriteBatch.DrawString(font, weapon.info, new Vector2(50, 60), Color.SeaGreen);*/
+                        GameObject gunfireInstance = weapon.getGunfireInstance();
+                        if(gunfireInstance != null)
+                            gunfireInstance.GetInactiveComponent<SpriteInstance>().Draw(gameTime);
+                    }
+                    int selectedPath = player.GetComponent<PlayerController>().SelectedPath;
+                    int selectedPlaying = player.GetComponent<PlayerController>().PlayingPath;
+                    bool previewing = player.GetComponent<PlayerController>().HologramPreviewing;
+                    bool playing = player.GetComponent<PlayerController>().HologramPlaying;
+                    for(int i = 0; i < 3; ++i)
+                    {
+                        Color color = Color.Black;
+                        bool recorded = player.GetComponent<PlayerController>().IsPathRecorded(i);
+                        float cooldown = player.GetComponent<PlayerController>().PathCooldown(i);
+                        string desc = (i + 1) + ": ";
+                        if (playing && selectedPlaying == i) desc += "Playing for " + ((float)(int)(cooldown * 10)) / 10 + "s";
+                        else if (previewing && selectedPath == i) desc += "Preview";
+                        else if (recorded)
+                        {
+                            if (cooldown > 0.0f) desc += "Ready in " + ((float)(int)(cooldown * 10)) / 10 + "s";
+                            else desc += "Ready";
+                        }
+                        else desc += "Empty";
+                        
+                        if(selectedPath == i)
+                        {
+                            if (playing && selectedPlaying == selectedPath) color = Color.Red;
+                            else if (previewing) color = Color.LightBlue;
+                            else color = Color.White;
+                        }
+                        else
+                        {
+                            if (playing && selectedPlaying == i) color = Color.DarkRed;
+                            else color = Color.Black;
+                        }
+                        Vector2 descSize = 0.2f*font.MeasureString(desc);
+                        spriteBatch.DrawString(font, desc, new Vector2(0.02f*w.X, w.Y - (0.2f*descSize.Y + 1.05f*(3-i)*descSize.Y)), color, 0, Vector2.Zero, 0.2f, SpriteEffects.None, 0);
+                    }
+                    spriteBatch.Draw(crosshair, new Vector2((graphics.PreferredBackBufferWidth / 2) - (crosshair.Width / 2), (graphics.PreferredBackBufferHeight / 2) - (crosshair.Height / 2)), player.GetComponent<PlayerController>().CrosshairColor);
+                    if(player.GetComponent<PlayerController>().CrosshairColor == Color.Lime)
+                    {
+                        string message = "Press F to ";
+                        Interaction inter = player.GetComponent<PlayerController>().ClosestObject.GetComponent<Interaction>();
+                        if (inter is DoorInteraction) message += "open the door.";
+                        if (inter is WeaponInteraction) message += "pick up the gun.";
+                        spriteBatch.DrawString(font, message, new Vector2(w.X / 2 - 0.25f * font.MeasureString(message).X / 2, 0.6f*w.Y), Color.Orange, 0, Vector2.Zero, 0.25f, SpriteEffects.None, 0);
+                    }
+                    Minimap.Draw(ref spriteBatch);
+                }
+                if (Keyboard.GetState().IsKeyDown(Keys.Tab))
+                {
+                    Vector2 objectiveSize = 0.25f*font.MeasureString(objectiveString);
+                    objectivePosition = new Vector2(w.X / 2 - objectiveSize.X / 2, 0.2f*w.Y - objectiveSize.Y / 2);
+                    objectiveTimer = 2;
+                }
+                spriteBatch.DrawString(font, objectiveString, objectivePosition, Color.Orange, 0, Vector2.Zero, 0.25f, SpriteEffects.None, 0);
+#if DRAW_DEBUG_WIREFRAME
+                spriteBatch.DrawString(font, player.GlobalPosition.ToString(), new Vector2(5, 5), Color.Green, 0, Vector2.Zero, 0.2f, SpriteEffects.None, 0);
+#endif
+                /*spriteBatch.DrawString(font, frameCounter.AverageFramesPerSecond.ToString(), new Vector2(50, 45), Color.Black);
+                if (particleFireEmitter.GetComponent<ParticleSystem>().getParticlesCount() != null)
+                    spriteBatch.DrawString(font, "Fire Particles: " + particleFireEmitter.GetComponent<ParticleSystem>().getParticlesCount().ToString(), new Vector2(50, 75), Color.Purple);
+                if (particleExplosionEmitter.GetComponent<ParticleSystem>().getParticlesCount() != null)
+                    spriteBatch.DrawString(font, "Explosion Particles: " + particleExplosionEmitter.GetComponent<ParticleSystem>().getParticlesCount().ToString(), new Vector2(50, 90), Color.Purple);
+                if (particleSmokeEmitter.GetComponent<ParticleSystem>().getParticlesCount() != null)
+                    spriteBatch.DrawString(font, "Smoke Particles: " + particleSmokeEmitter.GetComponent<ParticleSystem>().getParticlesCount().ToString(), new Vector2(50, 105), Color.Purple);
+                if (particleBloodEmitter.GetComponent<ParticleSystem>().getParticlesCount() != null)
+                    spriteBatch.DrawString(font, "Blood Particles: " + particleBloodEmitter.GetComponent<ParticleSystem>().getParticlesCount().ToString(), new Vector2(50, 120), Color.Purple);
+                if (player != null)
+                    spriteBatch.DrawString(font, "Player Y position: " + player.GlobalPosition.Y.ToString() + ", velocity: " + player.GetComponent<Rigidbody>().Velocity.ToString(), new Vector2(50, 15), Color.DarkGreen);
+                if (testBall != null)
+                    spriteBatch.DrawString(font, "TestBall position: " + testBall.GlobalPosition.ToString() + ", velocity: " + testBall.GetComponent<Rigidbody>().Velocity.ToString(), new Vector2(50, 135), Color.DarkGreen);
+                if (testBox != null)
+                    spriteBatch.DrawString(font, "TestBox position: " + testBox.GlobalPosition.ToString() + ", velocity: " + testBox.GetComponent<Rigidbody>().Velocity.ToString(), new Vector2(50, 150), Color.DarkGreen);*/
+                spriteBatch.End();
+                //
+            }
+            base.Draw(gameTime);
+        }
+        public void InitializeGame()
         {
             /*graphics.PreferredBackBufferWidth = GraphicsDevice.DisplayMode.Width;
             graphics.PreferredBackBufferHeight = GraphicsDevice.DisplayMode.Height;
@@ -132,7 +411,7 @@ namespace Holo_agent
             GameObject room11 = new GameObject("Room11", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(new Vector3(-20, -250, 255), new Vector3(160, -210, 510)));
             GameObject room12 = new GameObject("Room12", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(new Vector3(-60, -250, 440), new Vector3(120, -170, 570)));
             GameObject room13 = new GameObject("Room13", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(new Vector3(-160, -250, 400), new Vector3(-55, -170, 620)));
-            level = new GameObject("Level", new Vector3(-100, -226, 550), Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(-1000*Vector3.One, 1000*Vector3.One));
+            level = new GameObject("Level", new Vector3(-100, -226, 550), Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(-1000 * Vector3.One, 1000 * Vector3.One));
 
             scene.AddRoomConnection(room, room2, new BoundingBox());
             scene.AddRoomConnection(room2, room3, new BoundingBox());
@@ -180,7 +459,7 @@ namespace Holo_agent
             Camera cameraComp = new Camera(45, graphics.GraphicsDevice.Viewport.AspectRatio, 1, 1000);
             camera.AddComponent(cameraComp);
             scene.Camera = camera;
-            weapons.Add(new GameObject("Pistol", new Vector3(20, 18, -40), Quaternion.Identity, 0.5f*Vector3.One, scene, room2));
+            weapons.Add(new GameObject("Pistol", new Vector3(20, 18, -40), Quaternion.Identity, 0.5f * Vector3.One, scene, room2));
             weaponColliders.Add(weapons[0].AddNewComponent<Collider>());
             weaponColliders[0].bound = new Engine.Bounding_Volumes.BoundingBox(weaponColliders[0], Vector3.Zero, new Vector3(0.5f, 0.75f, 2f));
             weapons[0].AddNewComponent<WeaponInteraction>();
@@ -226,7 +505,7 @@ namespace Holo_agent
 
             Vector3 deskOffset = new Vector3(19, 0, 23);
             Vector3 couchOffset = new Vector3(10, 0, 20);
-            propsRoom5.Add(new GameObject("Chair5_1", new Vector3(-253, -57, 140), Quaternion.CreateFromYawPitchRoll(-(float)Math.PI/2.0f,0,0), Vector3.One, scene, room5));
+            propsRoom5.Add(new GameObject("Chair5_1", new Vector3(-253, -57, 140), Quaternion.CreateFromYawPitchRoll(-(float)Math.PI / 2.0f, 0, 0), Vector3.One, scene, room5));
             propsRoom5.Add(new GameObject("Desk5_1", new Vector3(-260, -57, 140) + Vector3.Transform(deskOffset, Matrix.CreateFromAxisAngle(Vector3.Up, -(float)Math.PI / 2)), Quaternion.CreateFromYawPitchRoll(-(float)Math.PI / 2.0f, 0, 0), Vector3.One, scene, room5));
             propsRoom5.Add(new GameObject("Chair5_2", new Vector3(-148, -57, 253), Quaternion.Identity, Vector3.One, scene, room5));
             propsRoom5.Add(new GameObject("Desk5_2", new Vector3(-148, -57, 260) + deskOffset, Quaternion.Identity, Vector3.One, scene, room5));
@@ -278,33 +557,28 @@ namespace Holo_agent
             stepsSounds = new List<SoundEffectInstance>();
             ouchSounds = new List<SoundEffectInstance>();
             DrawTutorialTips();
-            base.Initialize();
+            hologramRecordingMaxTime = 5.0f;
         }
-
-        /// <summary>
-        /// LoadContent will be called once per game and is the place to load
-        /// all of your content.
-        /// </summary>
-        protected override void LoadContent()
+        public void LoadGame()
         {
             // Create a new SpriteBatch, which can be used to draw textures.
             spriteBatch = new SpriteBatch(GraphicsDevice);
-            postProcessingEffect = Content.Load<Effect>("FX/PostProcess");
-            color_time = Content.Load<Effect>("FX/Changing_color");
-            color_time.Parameters["Timer"].SetValue(0.0f);
-            color_time.Parameters["Color"].SetValue(Color.White.ToVector4());
-            cameraShader = Content.Load<Effect>("FX/Shader1");
+            hologramRecordingShader = Content.Load<Effect>("FX/HologramRecording");
+            hologramRecordingShader.Parameters["RecordingTime"].SetValue(0.0f);
+            hologramRecordingShader.Parameters["RecordingTimeLimit"].SetValue(hologramRecordingMaxTime);
             healthShader = Content.Load<Effect>("FX/Health");
             healthShader.Parameters["Health"].SetValue(100.0f);
             healthShaderTexture = Content.Load<Texture2D>("Textures/Blood_Screen");
             bloomShader = Content.Load<Effect>("FX/Bloom");
+            pauseMenuShader = Content.Load<Effect>("FX/PauseMenu");
+            gameOverShader = Content.Load<Effect>("FX/GameOver");
             gameMenu.LoadContent(Content);
             Minimap.LoadContent(Content);
             Model columnModel = Content.Load<Model>("Models/kolumna");
             floorTexture = Content.Load<Texture2D>("Textures/Ground");
             gunfireTexture = Content.Load<Texture2D>("Textures/Gunfire");
             crosshair = Content.Load<Texture2D>("Textures/Crosshair");
-            font = Content.Load<SpriteFont>("Textures/Arial");
+            font = Content.Load<SpriteFont>("Font/Holo-Agent");
             shot = Content.Load<SoundEffect>("Sounds/Pistol");
             stepsSounds.Add(Content.Load<SoundEffect>("Sounds/Steps_Walk").CreateInstance());
             stepsSounds.Add(Content.Load<SoundEffect>("Sounds/Steps_Run").CreateInstance());
@@ -326,17 +600,17 @@ namespace Holo_agent
             Model playerDeathAnim = Content.Load<Model>("Models/new/HD/BONE_DEATH");
             Model playerJumpAnim = Content.Load<Model>("Models/new/HD/BONE_JUMP");
             Model playerCrouchAnim = Content.Load<Model>("Models/new/HD/BONE_CROUCH");
-            
-            
+
+
             foreach (ModelMesh mesh in playerHologramModel.Meshes)
             {
                 foreach (ModelMeshPart part in mesh.MeshParts)
                 {
-                    if(part.Effect is BasicEffect)
+                    if (part.Effect is BasicEffect)
                     {
                         (part.Effect as BasicEffect).Alpha = 0.5f;
                     }
-                    else if(part.Effect is SkinnedEffect)
+                    else if (part.Effect is SkinnedEffect)
                     {
                         SkinnedEffect seffect = part.Effect as SkinnedEffect;
                         seffect.Alpha = 0.5f;
@@ -471,226 +745,6 @@ namespace Holo_agent
             bench8.AddComponent(new MeshInstance(columnModel));
             bench9.AddComponent(new MeshInstance(columnModel));
         }
-
-        /// <summary>
-        /// UnloadContent will be called once per game and is the place to unload
-        /// game-specific content.
-        /// </summary>
-        protected override void UnloadContent()
-        {
-            // TODO: Unload any non ContentManager content here
-        }
-
-        /// <summary>
-        /// Allows the game to run logic such as updating the world,
-        /// checking for collisions, gathering input, and playing audio.
-        /// </summary>
-        /// <param name="gameTime">Provides a snapshot of timing values.</param>
-        protected override void Update(GameTime gameTime)
-        {
-            gameMenu.Update(ref gameState, this);
-            if (gameState == GameState.Menu)
-            {
-                if (!IsMouseVisible)
-                    IsMouseVisible = true;
-            }
-            if (gameState == GameState.GameRunning)
-            {
-                if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
-                {
-                    Exit();
-                    return;
-                }
-                if (IsMouseVisible)
-                {
-                    IsMouseVisible = false;
-                    Mouse.SetPosition(graphics.PreferredBackBufferWidth / 2, graphics.PreferredBackBufferHeight / 2);
-                }
-                frameCounter.Update(gameTime);
-                Input.Update(gameTime, graphics);
-                scene.Update(gameTime);
-
-                if (objectiveTimer > 0)
-                    objectiveTimer -= (float)gameTime.ElapsedGameTime.TotalSeconds;
-                else
-                    objectivePosition = Vector2.Lerp(objectivePosition, new Vector2(objectivePosition.X, -250), 0.05f);
-                if (player.GetComponent<PlayerController>() != null)
-                    weapon = player.GetComponent<PlayerController>().getWeapon();
-                if (weapon != null)
-                    gunfire = weapon.getGunfireInstance();
-                /*emitterTimer += (float)gameTime.ElapsedGameTime.TotalSeconds;
-                if (emitterTimer >= 6)
-                {
-                    particleFireEmitter.GetComponent<ParticleSystem>().Destroy();
-                    particleFireEmitter.Destroy();
-                    particleSmokeEmitter.GetComponent<ParticleSystem>().Destroy();
-                    particleSmokeEmitter.Destroy();
-                    emitterTimer = 0;
-                }*/
-                /*if (particleBloodEmitter.GetComponent<ParticleSystem>().getParticlesCount() == 0)
-                    particleBloodEmitter.GetComponent<ParticleSystem>().Init();
-                if (particleExplosionEmitter.GetComponent<ParticleSystem>().getParticlesCount() == 0)
-                    particleExplosionEmitter.GetComponent<ParticleSystem>().Init();*/
-            }
-            base.Update(gameTime);
-        }
-
-        /// <summary>
-        /// This is called when the game should draw itself.
-        /// </summary>
-        /// <param name="gameTime">Provides a snapshot of timing values.</param>
-        protected override void Draw(GameTime gameTime)
-        {
-            if (gameState == GameState.Menu)
-            {
-                GraphicsDevice.Clear(Color.CornflowerBlue);
-                gameMenu.Draw(spriteBatch, graphics);
-            }
-            if (gameState == GameState.GameRunning)
-            {
-                if (startTime == null) startTime = gameTime.TotalGameTime.TotalSeconds;
-                GraphicsDevice.Clear(Color.Black);
-                Texture2D texture = DrawSceneToTexture(renderTarget, gameTime);
-
-                if (player.GetComponent<PlayerController>() == null)
-                {
-                    if (special_timer < 5.0f)
-                    {
-                        special_timer += (float)gameTime.ElapsedGameTime.TotalSeconds;
-                        color_time.Parameters["Timer"].SetValue(special_timer / 5.0f);
-                    }
-                }
-                else if (special_timer > 0.0f)
-                {
-                    special_timer = 0.0f;
-                    color_time.Parameters["Timer"].SetValue(0.0f);
-                }
-                
-                spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.Default, RasterizerState.CullNone, bloomShader);
-                spriteBatch.Draw(texture, new Rectangle(0, 0, graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight), null, Color.White, 0, Vector2.Zero, SpriteEffects.None, 0);
-                spriteBatch.End();
-
-                spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.Default, RasterizerState.CullNone, /*(special_timer > 0.0f ? */color_time/* : cameraShader)*/);
-                spriteBatch.Draw(texture, new Rectangle(0, 0, graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight), null, Color.White, 0, Vector2.Zero, SpriteEffects.None, 0);
-                spriteBatch.End();
-
-                if (player.GetComponent<PlayerController>() != null)
-                {
-                    healthShader.Parameters["Health"].SetValue(player.GetComponent<PlayerController>().Health);
-                    spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.Default, RasterizerState.CullNone, healthShader);
-                    spriteBatch.Draw(healthShaderTexture, new Rectangle(0, 0, graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight), null, Color.White, 0, Vector2.Zero, SpriteEffects.None, 0);
-                    spriteBatch.End();
-                }
-
-                spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.AnisotropicWrap, DepthStencilState.Default, RasterizerState.CullNone);
-                Point w = new Point(graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight);
-                Dialogues.Draw(ref spriteBatch, font, w, gameTime);
-                if (enemy.GetComponent<EnemyController>() != null)
-                {
-                    Weapon enemyWeapon = enemy.GetComponent<EnemyController>().Weapon.GetComponent<Weapon>();
-                    if(enemyWeapon != null)
-                    {
-                        GameObject gunfireInstance = enemyWeapon.getGunfireInstance();
-                        if (gunfireInstance != null) gunfireInstance.GetInactiveComponent<SpriteInstance>().Draw(gameTime);
-                    }
-                }
-                if (enemy2.GetComponent<EnemyController>() != null)
-                {
-                    Weapon enemyWeapon = enemy2.GetComponent<EnemyController>().Weapon.GetComponent<Weapon>();
-                    if (enemyWeapon != null)
-                    {
-                        GameObject gunfireInstance = enemyWeapon.getGunfireInstance();
-                        if (gunfireInstance != null) gunfireInstance.GetInactiveComponent<SpriteInstance>().Draw(gameTime);
-                    }
-                }
-                if (player.GetComponent<PlayerController>() != null)
-                {
-                    if (weapon != null)
-                    {
-                        string weaponInfo = weapon.getMagazine() + "/" + weapon.getAmmo();
-                        Vector2 weaponInfoSize = 0.5f*font.MeasureString(weaponInfo);
-                        spriteBatch.DrawString(font, weaponInfo, new Vector2(w.X - 1.05f*weaponInfoSize.X, w.Y - 1.05f*weaponInfoSize.Y), Color.Red, 0, Vector2.Zero, 0.5f, SpriteEffects.None, 0);
-                        /*if (weapon.info != null)
-                            spriteBatch.DrawString(font, weapon.info, new Vector2(50, 60), Color.SeaGreen);*/
-                        GameObject gunfireInstance = weapon.getGunfireInstance();
-                        if(gunfireInstance != null)
-                            gunfireInstance.GetInactiveComponent<SpriteInstance>().Draw(gameTime);
-                    }
-                    int selectedPath = player.GetComponent<PlayerController>().SelectedPath;
-                    int selectedPlaying = player.GetComponent<PlayerController>().PlayingPath;
-                    bool previewing = player.GetComponent<PlayerController>().HologramPreviewing;
-                    bool playing = player.GetComponent<PlayerController>().HologramPlaying;
-                    for(int i = 0; i < 3; ++i)
-                    {
-                        Color color = Color.Black;
-                        bool recorded = player.GetComponent<PlayerController>().IsPathRecorded(i);
-                        float cooldown = player.GetComponent<PlayerController>().PathCooldown(i);
-                        string desc = (i + 1) + ": ";
-                        if (playing && selectedPlaying == i) desc += "Playing for " + ((float)(int)(cooldown * 10)) / 10 + "s";
-                        else if (previewing && selectedPath == i) desc += "Preview";
-                        else if (recorded)
-                        {
-                            if (cooldown > 0.0f) desc += "Ready in " + ((float)(int)(cooldown * 10)) / 10 + "s";
-                            else desc += "Ready";
-                        }
-                        else desc += "Empty";
-                        
-                        if(selectedPath == i)
-                        {
-                            if (playing && selectedPlaying == selectedPath) color = Color.Red;
-                            else if (previewing) color = Color.LightBlue;
-                            else color = Color.White;
-                        }
-                        else
-                        {
-                            if (playing && selectedPlaying == i) color = Color.DarkRed;
-                            else color = Color.Black;
-                        }
-                        Vector2 descSize = 0.2f*font.MeasureString(desc);
-                        spriteBatch.DrawString(font, desc, new Vector2(0.02f*w.X, w.Y - (0.2f*descSize.Y + 1.05f*(3-i)*descSize.Y)), color, 0, Vector2.Zero, 0.2f, SpriteEffects.None, 0);
-                    }
-                    spriteBatch.Draw(crosshair, new Vector2((graphics.PreferredBackBufferWidth / 2) - (crosshair.Width / 2), (graphics.PreferredBackBufferHeight / 2) - (crosshair.Height / 2)), player.GetComponent<PlayerController>().CrosshairColor);
-                    if(player.GetComponent<PlayerController>().CrosshairColor == Color.Lime)
-                    {
-                        string message = "Press F to ";
-                        Interaction inter = player.GetComponent<PlayerController>().ClosestObject.GetComponent<Interaction>();
-                        if (inter is DoorInteraction) message += "open the door.";
-                        if (inter is WeaponInteraction) message += "pick up the gun.";
-                        spriteBatch.DrawString(font, message, new Vector2(w.X / 2 - 0.25f * font.MeasureString(message).X / 2, 0.6f*w.Y), Color.Orange, 0, Vector2.Zero, 0.25f, SpriteEffects.None, 0);
-                    }
-                    Minimap.Draw(ref spriteBatch);
-                }
-                if (Keyboard.GetState().IsKeyDown(Keys.Tab))
-                {
-                    Vector2 objectiveSize = 0.25f*font.MeasureString(objectiveString);
-                    objectivePosition = new Vector2(w.X / 2 - objectiveSize.X / 2, 0.2f*w.Y - objectiveSize.Y / 2);
-                    objectiveTimer = 2;
-                }
-                spriteBatch.DrawString(font, objectiveString, objectivePosition, Color.Orange, 0, Vector2.Zero, 0.25f, SpriteEffects.None, 0);
-#if DRAW_DEBUG_WIREFRAME
-                spriteBatch.DrawString(font, player.GlobalPosition.ToString(), new Vector2(5, 5), Color.Green, 0, Vector2.Zero, 0.2f, SpriteEffects.None, 0);
-#endif
-                /*spriteBatch.DrawString(font, frameCounter.AverageFramesPerSecond.ToString(), new Vector2(50, 45), Color.Black);
-                if (particleFireEmitter.GetComponent<ParticleSystem>().getParticlesCount() != null)
-                    spriteBatch.DrawString(font, "Fire Particles: " + particleFireEmitter.GetComponent<ParticleSystem>().getParticlesCount().ToString(), new Vector2(50, 75), Color.Purple);
-                if (particleExplosionEmitter.GetComponent<ParticleSystem>().getParticlesCount() != null)
-                    spriteBatch.DrawString(font, "Explosion Particles: " + particleExplosionEmitter.GetComponent<ParticleSystem>().getParticlesCount().ToString(), new Vector2(50, 90), Color.Purple);
-                if (particleSmokeEmitter.GetComponent<ParticleSystem>().getParticlesCount() != null)
-                    spriteBatch.DrawString(font, "Smoke Particles: " + particleSmokeEmitter.GetComponent<ParticleSystem>().getParticlesCount().ToString(), new Vector2(50, 105), Color.Purple);
-                if (particleBloodEmitter.GetComponent<ParticleSystem>().getParticlesCount() != null)
-                    spriteBatch.DrawString(font, "Blood Particles: " + particleBloodEmitter.GetComponent<ParticleSystem>().getParticlesCount().ToString(), new Vector2(50, 120), Color.Purple);
-                if (player != null)
-                    spriteBatch.DrawString(font, "Player Y position: " + player.GlobalPosition.Y.ToString() + ", velocity: " + player.GetComponent<Rigidbody>().Velocity.ToString(), new Vector2(50, 15), Color.DarkGreen);
-                if (testBall != null)
-                    spriteBatch.DrawString(font, "TestBall position: " + testBall.GlobalPosition.ToString() + ", velocity: " + testBall.GetComponent<Rigidbody>().Velocity.ToString(), new Vector2(50, 135), Color.DarkGreen);
-                if (testBox != null)
-                    spriteBatch.DrawString(font, "TestBox position: " + testBox.GlobalPosition.ToString() + ", velocity: " + testBox.GetComponent<Rigidbody>().Velocity.ToString(), new Vector2(50, 150), Color.DarkGreen);*/
-                spriteBatch.End();
-                //
-            }
-            base.Draw(gameTime);
-        }
-
         private void DrawTutorialTips()
         {
             Dialogues.PlayDialogue("Hold W, S, A and D to move", 1, 5);
@@ -747,7 +801,7 @@ namespace Holo_agent
 
         private void SaveGame(PressedActionArgs args)
         {
-            if (gameState == GameState.GameRunning)
+            if (gameState.Equals(GameState.Game))
             {
                 device = null;
                 gameState = GameState.Pause;
@@ -757,7 +811,7 @@ namespace Holo_agent
 
         private void LoadGame(PressedActionArgs args)
         {
-            if(gameState == GameState.GameRunning)
+            if(gameState.Equals(GameState.Game))
             {
                 device = null;
                 gameState = GameState.Pause;
@@ -812,7 +866,7 @@ namespace Holo_agent
             // Dispose the container, to commit changes.
             container.Dispose();
 
-            gameState = GameState.GameRunning;
+            gameState = GameState.Game;
         }
 
         private void DoLoadGame()
@@ -846,7 +900,7 @@ namespace Holo_agent
 
             if (newScene != null) InitializeNewScene(newScene);
 
-            gameState = GameState.GameRunning;
+            gameState = GameState.Game;
         }
 
         private void InitializeNewScene(Scene newScene)

@@ -26,12 +26,6 @@
 /processorParam:TextureFormat=Color
 /build:Textures/Crosshair.png
 
-#begin Textures\Arial
-/importer:FontDescriptionImporter
-/processor:FontDescriptionProcessor
-/processorParam:TextureFormat=Compressed
-/build:Textures\Arial
-
 #begin Models/column_001.FBX
 /importer:FbxImporter
 /processor:ModelProcessor
@@ -723,24 +717,6 @@
 /processorParam:TextureFormat=Color
 /build:Textures/Hologram_Direction.png
 
-#begin FX/Shader1.fx
-/importer:EffectImporter
-/processor:EffectProcessor
-/processorParam:DebugMode=Auto
-/build:FX/Shader1.fx
-
-#begin FX/PostProcess.fx
-/importer:EffectImporter
-/processor:EffectProcessor
-/processorParam:DebugMode=Auto
-/build:FX/PostProcess.fx
-
-#begin FX/Changing_color.fx
-/importer:EffectImporter
-/processor:EffectProcessor
-/processorParam:DebugMode=Auto
-/build:FX/Changing_color.fx
-
 #begin Models/cop/cop_t_pose.FBX
 /importer:FbxImporter
 /processor:AnimationProcessor
@@ -1035,6 +1011,30 @@
 /processor:SoundEffectProcessor
 /processorParam:Quality=Best
 /build:Sounds/Ouch_2.mp3
+
+#begin FX/PauseMenu.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:FX/PauseMenu.fx
+
+#begin FX/HologramRecording.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:FX/HologramRecording.fx
+
+#begin Font/Holo-Agent.spritefont
+/importer:FontDescriptionImporter
+/processor:FontDescriptionProcessor
+/processorParam:TextureFormat=Compressed
+/build:Font/Holo-Agent.spritefont
+
+#begin FX/GameOver.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:FX/GameOver.fx
 
 #begin Models/level2.FBX
 /importer:FbxImporter
