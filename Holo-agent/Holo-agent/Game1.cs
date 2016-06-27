@@ -315,7 +315,7 @@ namespace Holo_agent
             weapons[0].GetComponent<Weapon>().GunshotSound = shot;
             weapons[1].GetComponent<Weapon>().GunshotSound = shot;
 
-            Model levelModel = Content.Load<Model>("Models/Level");
+            Model levelModel = Content.Load<Model>("Models/level2");
             level.AddComponent(new MeshInstance(levelModel));
 
             Model playerModel = Content.Load<Model>("Models/new/HD/BONE_2");

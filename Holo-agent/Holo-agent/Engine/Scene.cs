@@ -198,20 +198,16 @@ namespace Engine
                                 Bounding_Volumes.CollisionResult collision = goCol.Collide(go2Col);
                                 if(collision.CollisionDetected)
                                 {
-                                    if(go.Name == "Player" && go2.Name == "Floor2_1")
-                                    {
-                                        goCol.Collide(go2Col);
-                                    }
                                     float lostVel = Vector3.Dot(collision.CollisionPlane.Value.Normal, rig.Velocity);
                                     if (lostVel < 0.0f)
                                     {
                                         Vector3 lostVelocity = -collision.CollisionPlane.Value.Normal * lostVel;
                                         rig.AddVelocityChange(lostVelocity);
-                                        if(rig.IsGrounded) go.GlobalPosition = go.GlobalPosition + lostVelocity * (float)gameTime.ElapsedGameTime.TotalSeconds;
+                                        if(rig.IsGrounded || !rig.GravityEnabled) go.GlobalPosition = go.GlobalPosition + lostVelocity * (float)gameTime.ElapsedGameTime.TotalSeconds;
                                     }
                                     if (Vector3.Dot(collision.CollisionPlane.Value.Normal, Vector3.Up) > 0.8f)
                                     {
-                                        if(!rig.IsGrounded) go.GlobalPosition = go.GlobalPosition + collision.CollisionPlane.Value.Normal * lostVel * (float)gameTime.ElapsedGameTime.TotalSeconds;
+                                        if(!rig.IsGrounded && rig.GravityEnabled) go.GlobalPosition = go.GlobalPosition + collision.CollisionPlane.Value.Normal * lostVel * (float)gameTime.ElapsedGameTime.TotalSeconds;
                                         rig.IsGrounded = true;
                                         grounded = true; 
                                     }
