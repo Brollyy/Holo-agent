@@ -592,6 +592,7 @@ namespace Holo_agent
             bloomShader = Content.Load<Effect>("FX/Bloom");
             pauseMenuShader = Content.Load<Effect>("FX/PauseMenu");
             gameOverShader = Content.Load<Effect>("FX/GameOver");
+            Effect highlightShader = Content.Load<Effect>("FX/HighlightSkinnedColor");
             gameMenu.LoadContent(Content);
             Minimap.LoadContent(Content);
             Model columnModel = Content.Load<Model>("Models/kolumna");
@@ -657,7 +658,9 @@ namespace Holo_agent
 
             player.GetComponent<PlayerController>().PlayerMesh = new MeshInstance(playerModel);
             player.GetComponent<PlayerController>().HologramMesh = new MeshInstance(playerHologramModel);
+            player.GetComponent<PlayerController>().HologramMesh.Model.PreCustomSkinnedShaders.Add(highlightShader);
             player.GetComponent<PlayerController>().PreviewMesh = new MeshInstance(playerPreviewModel);
+            player.GetComponent<PlayerController>().PreviewMesh.Model.PreCustomSkinnedShaders.Add(highlightShader);
             AnimationClip runClip = (playerRunAnim.Tag as ModelExtra).Clips[0];
             AnimationClip walkClip = (playerWalkAnim.Tag as ModelExtra).Clips[0];
             AnimationClip deathClip = (playerDeathAnim.Tag as ModelExtra).Clips[0];
@@ -697,6 +700,7 @@ namespace Holo_agent
             AnimationClip enemyHitClip = (enemyHitAnim.Tag as ModelExtra).Clips[0];
 
             enemy.AddComponent(new MeshInstance(enemyModel));
+            enemy.GetComponent<MeshInstance>().Model.PreCustomSkinnedShaders.Add(highlightShader);
             enemy.GetComponent<MeshInstance>().Offset = new Vector3(0, -17, 0);
             enemy.GetComponent<MeshInstance>().Model.Clips.Add(enemyRunClip);
             enemy.GetComponent<MeshInstance>().Model.Clips.Add(enemyDeathClip);
@@ -708,6 +712,7 @@ namespace Holo_agent
             enemy.GetComponent<AnimationController>().BindAnimation("death", 2, false);
             enemy.GetComponent<AnimationController>().BindAnimation("hit", 3, false);
             enemy2.AddComponent(new MeshInstance(enemyModel));
+            enemy2.GetComponent<MeshInstance>().Model.PreCustomSkinnedShaders.Add(highlightShader);
             enemy2.GetComponent<MeshInstance>().Offset = new Vector3(0, -17, 0);
             enemy2.GetComponent<MeshInstance>().Model.Clips.Add(enemyRunClip);
             enemy2.GetComponent<MeshInstance>().Model.Clips.Add(enemyDeathClip);

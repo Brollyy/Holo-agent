@@ -1105,3 +1105,15 @@
 /processorParam:TextureFormat=Color
 /build:Textures/Keypad.png
 
+#begin FX/HighlightColor.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:FX/HighlightColor.fx
+
+#begin FX/HighlightSkinnedColor.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:FX/HighlightSkinnedColor.fx
+

@@ -57,6 +57,10 @@ namespace Engine.Utilities
         /// </summary>
         public List<AnimationClip> Clips { get { return modelExtra.Clips; } }
 
+        public List<Effect> PreCustomSkinnedShaders { get; set; } = new List<Effect>();
+
+        public List<Effect> PreCustomShaders { get; set; } = new List<Effect>();
+
         #endregion
 
         #region Construction and Loading
@@ -159,6 +163,42 @@ namespace Engine.Utilities
                 }
             }
 
+            if (skeleton != null)
+            {
+                foreach (Effect effect in PreCustomSkinnedShaders)
+                {
+                    if(effect.Name.Contains("HighlightSkinnedColor"))
+                    {
+                        if(owner.Name.Equals("HologramPreview")) effect.Parameters["LineColor"].SetValue(new Color(0.6f, 0.75f, 0.85f, 0.1f).ToVector4());
+                        if(owner.Name.Equals("HologramPlayback")) effect.Parameters["LineColor"].SetValue(new Color(0.6f, 0.75f, 0.85f, 0.5f).ToVector4());
+                        if(owner.Name.StartsWith("Enemy")) effect.Parameters["LineColor"].SetValue(Color.Red.ToVector4());
+                    }
+                    effect.Parameters["View"].SetValue(camera.ViewMatrix);
+                    effect.Parameters["Projection"].SetValue(camera.ProjectionMatrix);
+                    foreach (ModelMesh modelMesh in model.Meshes)
+                    {
+                        List<Effect> effects = new List<Effect>();
+                        effect.Parameters["World"].SetValue(Matrix.CreateTranslation(offset) * boneTransforms[modelMesh.ParentBone.Index] * owner.LocalToWorldMatrix);
+                        effect.Parameters["Bones"].SetValue(skeleton);
+                        foreach (ModelMeshPart meshPart in modelMesh.MeshParts)
+                        {
+                            effects.Add(meshPart.Effect);
+                            meshPart.Effect = effect;
+                        }
+                        modelMesh.Draw();
+                        for (int i = 0; i < effects.Count; ++i)
+                        {
+                            modelMesh.MeshParts[i].Effect = effects[i];
+                        }
+                    }
+                }
+
+                model.Meshes[0].Effects[0].GraphicsDevice.DepthStencilState = DepthStencilState.Default;
+                RasterizerState rast = new RasterizerState();
+                rast.CullMode = CullMode.CullCounterClockwiseFace;
+                model.Meshes[0].Effects[0].GraphicsDevice.RasterizerState = rast;
+            }
+
             // Draw the model.
             foreach (ModelMesh modelMesh in model.Meshes)
             {
@@ -167,7 +207,7 @@ namespace Engine.Utilities
                     if (effect is BasicEffect)
                     {
                         BasicEffect beffect = effect as BasicEffect;
-                        beffect.World = boneTransforms[modelMesh.ParentBone.Index] * owner.LocalToWorldMatrix;
+                        beffect.World = Matrix.CreateTranslation(offset) * boneTransforms[modelMesh.ParentBone.Index] * owner.LocalToWorldMatrix;
                         beffect.View = camera.ViewMatrix;
                         beffect.Projection = camera.ProjectionMatrix;
                         beffect.EnableDefaultLighting();
@@ -185,7 +225,7 @@ namespace Engine.Utilities
                     }
                     else
                     {
-                        effect.Parameters["World"].SetValue(boneTransforms[modelMesh.ParentBone.Index] * owner.LocalToWorldMatrix);
+                        effect.Parameters["World"].SetValue(Matrix.CreateTranslation(offset) * boneTransforms[modelMesh.ParentBone.Index] * owner.LocalToWorldMatrix);
                         effect.Parameters["View"].SetValue(camera.ViewMatrix);
                         effect.Parameters["Projection"].SetValue(camera.ProjectionMatrix);
                     }

@@ -102,6 +102,8 @@
     <MonoGameContentReference Include="Content\Content.mgcb" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Content\FX\HighlightColor.fx" />
+    <None Include="Content\FX\HighlightSkinnedColor.fx" />
     <None Include="Content\FX\HologramRecording.fx" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
