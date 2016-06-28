@@ -139,7 +139,12 @@ namespace Holo_agent
                 if (!IsMouseVisible)
                     IsMouseVisible = true;
             }
-            if(gameState.Equals(GameState.Pause))
+            if (gameState.Equals(GameState.Keypad))
+            {
+                if (!IsMouseVisible)
+                    IsMouseVisible = true;
+            }
+            if (gameState.Equals(GameState.Pause))
             {
                 if (!IsMouseVisible)
                     IsMouseVisible = true;
@@ -209,7 +214,18 @@ namespace Holo_agent
                 spriteBatch.End();
                 gameMenu.Draw(spriteBatch, graphics);
             }
-            if(gameState.Equals(GameState.GameOver))
+            if (gameState.Equals(GameState.Keypad))
+            {
+                GraphicsDevice.Clear(Color.Transparent);
+                Texture2D texture = DrawSceneToTexture(renderTarget, gameTime);
+                spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.Default, RasterizerState.CullNone);
+                pauseMenuShader.Parameters["ScreenTexture"].SetValue(texture);
+                pauseMenuShader.CurrentTechnique.Passes[0].Apply();
+                spriteBatch.Draw(pauseMenuShader.Parameters["ScreenTexture"].GetValueTexture2D(), new Rectangle(0, 0, graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight), null, Color.White, 0, Vector2.Zero, SpriteEffects.None, 0);
+                spriteBatch.End();
+                gameMenu.Draw(spriteBatch, graphics);
+            }
+            if (gameState.Equals(GameState.GameOver))
             {
                 GraphicsDevice.Clear(Color.Transparent);
                 Texture2D texture = DrawSceneToTexture(renderTarget, gameTime);
@@ -374,6 +390,7 @@ namespace Holo_agent
             }
             base.Draw(gameTime);
         }
+
         public void InitializeGame()
         {
             /*graphics.PreferredBackBufferWidth = GraphicsDevice.DisplayMode.Width;
@@ -520,6 +537,7 @@ namespace Holo_agent
             bench3 = new GameObject("Bench3", new Vector3(0, 88, -220), Quaternion.Identity, Vector3.One, scene, room);
             bench4 = new GameObject("Bench4", new Vector3(10, 88, -118), Quaternion.Identity, Vector3.One, scene, room);
             column2 = new GameObject("column2", new Vector3(10, 88, -275), Quaternion.Identity, Vector3.One, scene, room);
+            column2.AddComponent(new KeypadInteraction("1337", null));
             bench7 = new GameObject("Bench7", new Vector3(138, 88, -148), Quaternion.Identity, Vector3.One, scene, room);
             bench8 = new GameObject("Bench8", new Vector3(-80, 88, -118), Quaternion.Identity, Vector3.One, scene, room);
             bench9 = new GameObject("Bench9", new Vector3(-80, 88, -275), Quaternion.Identity, Vector3.One, scene, room);
@@ -559,6 +577,7 @@ namespace Holo_agent
             DrawTutorialTips();
             hologramRecordingMaxTime = 5.0f;
         }
+
         public void LoadGame()
         {
             // Create a new SpriteBatch, which can be used to draw textures.
@@ -750,6 +769,7 @@ namespace Holo_agent
             bench8.AddComponent(new MeshInstance(columnModel));
             bench9.AddComponent(new MeshInstance(columnModel));
         }
+
         private void DrawTutorialTips()
         {
             Dialogues.PlayDialogue("Hold W, S, A and D to move", 1, 5);

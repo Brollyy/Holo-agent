@@ -1,4 +1,6 @@
-﻿using Holo_agent;
+﻿using System;
+using Engine.Components;
+using Holo_agent;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
@@ -10,6 +12,7 @@ namespace Engine
     {
         private bool isMenu, isPauseMenu, isGameOverMenu;
         private bool[] isButtonSelected;
+        private Texture2D keypadTexture;
         private Texture2D buttonFrame;
         private SpriteFont font;
         private Color[] buttonColor;
@@ -17,8 +20,11 @@ namespace Engine
         private ButtonState currentLeftButtonState, oldLeftButtonState;
         private string title = "Holo-agent", newGame = "New Game", quitToMenu = "Quit To Menu", quit = "Quit Game", resume = "Resume", gameOver = "Game Over";
         private Vector2 titleSize, newGameSize, frame, quitToMenuSize, quitSize, resumeSize, gameOverSize;
-        private Rectangle newGameFrame, quitToMenuFrame, quitFrame, resumeFrame;
+        private Rectangle newGameFrame, quitToMenuFrame, quitFrame, resumeFrame, keypadFrame;
         private Point w;
+        private static KeypadInteraction keypad = null;
+        private static bool isSelectingKeypad = false;
+
         public GameMenu()
         {
             isButtonSelected = new bool[4];
@@ -31,6 +37,9 @@ namespace Engine
         public GameState Update(GameState gameState, Game1 game)
         {
             currentState = Keyboard.GetState();
+
+            if (isSelectingKeypad) gameState = GameState.Keypad;
+
             if (gameState.Equals(GameState.Menu))
             {
                 if (!isMenu)
@@ -39,6 +48,8 @@ namespace Engine
                     isPauseMenu = false;
                 if (isGameOverMenu)
                     isGameOverMenu = false;
+                if (isSelectingKeypad)
+                    isSelectingKeypad = false;
                 DetectSelection(gameState);
                 ChangeFrameColor();
                 DetectClick(ref gameState, game);
@@ -70,6 +81,15 @@ namespace Engine
                 ChangeFrameColor();
                 DetectClick(ref gameState, game);
             }
+            else if(gameState.Equals(GameState.Keypad))
+            {
+                if (currentState.IsKeyDown(Keys.Escape) && oldState.IsKeyUp(Keys.Escape))
+                {
+                    isSelectingKeypad = false;
+                    gameState = GameState.Game;
+                }
+                DetectKeypad(ref gameState, game);
+            }
             else if (gameState.Equals(GameState.GameOver))
             {
                 isGameOverMenu = true;
@@ -80,6 +100,63 @@ namespace Engine
             oldState = currentState;
             return gameState;
         }
+
+        private void DetectKeypad(ref GameState gameState, Game1 game)
+        {
+            currentLeftButtonState = Mouse.GetState().LeftButton;
+            if (currentLeftButtonState.Equals(ButtonState.Pressed) && oldLeftButtonState.Equals(ButtonState.Released))
+            {
+                int x = Mouse.GetState().X;
+                int y = Mouse.GetState().Y;
+                int selection = -1;
+                for (int i = 0; i < 4; ++i)
+                {
+                    for (int j = 0; j < 3; ++j)
+                    {
+                        int bordX = keypadFrame.Left + (int)(10.0 / 240.0 * keypadFrame.Width) + j * (int)(80.0 / 240.0 * keypadFrame.Width);
+                        int bordY = keypadFrame.Bottom - (int)(10.0 / 240.0 * keypadFrame.Width) - (3 - i) * (int)(80.0 / 240.0 * keypadFrame.Width);
+                        if (x >= bordX && x < bordX + (int)(60.0 / 240.0 * keypadFrame.Width) &&
+                           y >= bordY - (int)(60.0 / 240.0 * keypadFrame.Width) && y < bordY)
+                        {
+                            selection = 3 * i + j;
+                            break;
+                        }
+                    }
+                    if (selection > -1) break;
+                }
+
+                if (selection > -1)
+                {
+                    switch (selection)
+                    {
+                        case 0: keypad.Passcode = keypad.Passcode + '1'; break;
+                        case 1: keypad.Passcode = keypad.Passcode + '2'; break;
+                        case 2: keypad.Passcode = keypad.Passcode + '3'; break;
+                        case 3: keypad.Passcode = keypad.Passcode + '4'; break;
+                        case 4: keypad.Passcode = keypad.Passcode + '5'; break;
+                        case 5: keypad.Passcode = keypad.Passcode + '6'; break;
+                        case 6: keypad.Passcode = keypad.Passcode + '7'; break;
+                        case 7: keypad.Passcode = keypad.Passcode + '8'; break;
+                        case 8: keypad.Passcode = keypad.Passcode + '9'; break;
+                        case 9: keypad.Passcode = ""; break;
+                        case 10: keypad.Passcode = keypad.Passcode + '0'; break;
+                        case 11:
+                            {
+                                if (keypad.Check())
+                                {
+                                    isSelectingKeypad = false;
+                                    gameState = GameState.Game;
+                                }
+                                else keypad.Passcode = "";
+                                break;
+                            }
+                    }
+                    if (keypad.Passcode.Length > 4) keypad.Passcode = keypad.Passcode.Substring(0, 4);
+                }
+            }
+            oldLeftButtonState = currentLeftButtonState;
+        }
+
         public void Draw(SpriteBatch spriteBatch, GraphicsDeviceManager graphics)
         {
             w = new Point(graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight);
@@ -116,6 +193,18 @@ namespace Engine
                 }
                 spriteBatch.End();
             }
+            else if (isSelectingKeypad)
+            {
+                spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.AnisotropicWrap, DepthStencilState.Default, RasterizerState.CullNone);
+                if (font != null)
+                {
+                    keypadFrame = new Rectangle((int)(w.X * 0.5f - (int)(w.Y * 0.3f * keypadTexture.Width / keypadTexture.Height)), (int)(w.Y * 0.2f), (int)(w.Y * 0.6f * keypadTexture.Width / keypadTexture.Height), (int)(w.Y * 0.6f));
+                    spriteBatch.Draw(keypadTexture, keypadFrame, null, Color.White);
+                    Vector2 passcodeSize = w.Y * 0.8f * 0.000521f * font.MeasureString(keypad.Passcode);
+                    spriteBatch.DrawString(font, keypad.Passcode, new Vector2(w.X / 2 - passcodeSize.X / 2, keypadFrame.Top + 0.1f * keypadFrame.Height - passcodeSize.Y / 2), Color.Black, 0, Vector2.Zero, w.Y * 0.8f * 0.000521f, SpriteEffects.None, 0);
+                }
+                spriteBatch.End();
+            }
             else if (isGameOverMenu)
             {
                 spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.AnisotropicWrap, DepthStencilState.Default, RasterizerState.CullNone);
@@ -136,6 +225,7 @@ namespace Engine
         {
             font = content.Load<SpriteFont>("Font/Holo-Agent");
             buttonFrame = content.Load<Texture2D>("Textures/Button_Frame");
+            keypadTexture = content.Load<Texture2D>("Textures/Keypad");
             titleSize = 0.6f * font.MeasureString(title);
             newGameSize = 0.3f * font.MeasureString(newGame);
             frame = 1.5f * newGameSize;
@@ -179,6 +269,12 @@ namespace Engine
             }
             oldLeftButtonState = currentLeftButtonState;
         }
+
+        public static void ShowKeypadScreen(KeypadInteraction pad)
+        {
+            isSelectingKeypad = true;
+            keypad = pad;
+        }
     }
     public enum GameState
     {
@@ -186,6 +282,7 @@ namespace Engine
         NewGame = 1,
         Game = 2,
         GameOver = 3,
-        Pause = 4
+        Pause = 4,
+        Keypad = 5
     }
 }

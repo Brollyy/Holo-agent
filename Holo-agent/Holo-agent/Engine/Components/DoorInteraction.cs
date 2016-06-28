@@ -61,7 +61,7 @@ namespace Engine.Components
             }
         }
 
-        public override void Interact(GameObject go, Vector3 point)
+        public override void Interact(GameObject go)
         {
             if(!locked && !interacting)
             {

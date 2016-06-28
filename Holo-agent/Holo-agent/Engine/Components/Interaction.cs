@@ -10,7 +10,7 @@ namespace Engine.Components
         /// 
         /// </summary>
         /// <param name="go"></param>
-        public abstract void Interact(GameObject go, Vector3 point);  
+        public abstract void Interact(GameObject go);  
         //TODO possibility of informing another GameObjects about done interaction.      
     }
 }
