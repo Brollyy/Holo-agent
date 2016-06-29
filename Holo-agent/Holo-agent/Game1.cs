@@ -494,11 +494,26 @@ namespace Holo_agent
             (new GameObject("Wall2_4", new Vector3(100, 5, -72f), Quaternion.Identity, Vector3.One, scene, room2, new BoundingBox(new Vector3(-186f, -5, -7.5f), new Vector3(11, 85, 3f)))).AddNewComponent<Collider>();
            (new GameObject("Wall2_5", new Vector3(185, 5, -348f), Quaternion.Identity, Vector3.One, scene, room2, new BoundingBox(new Vector3(-600f, -5, -7.5f), new Vector3(11, 85, 7.5f)))).AddNewComponent<Collider>();
            (new GameObject("Wall2_6", new Vector3(-370, 5, -65f), Quaternion.Identity, Vector3.One, scene, room2, new BoundingBox(new Vector3(-7.5f, -5, -406f), new Vector3(11, 85, -16f)))).AddNewComponent<Collider>();
-           //(new GameObject("Wall3_1", new Vector3(0, 5, -16f), Quaternion.Identity, Vector3.One, scene, room3, new BoundingBox(new Vector3(-2f, -5, -56f), new Vector3(11, 60, 56f)))).AddNewComponent<Collider>();
-           //(new GameObject("Wall3_2", new Vector3(-91, 5, 40f), Quaternion.Identity, Vector3.One, scene, room3, new BoundingBox(new Vector3(-91f, -5, -7.5f), new Vector3(91, 60, 7.5f)))).AddNewComponent<Collider>();
-           //(new GameObject("Wall3_3", new Vector3(-96, 5, -16f), Quaternion.Identity, Vector3.One, scene, room3, new BoundingBox(new Vector3(-5f, -5, -56f), new Vector3(16, 60, 7f)))).AddNewComponent<Collider>();
-           //(new GameObject("Wall3_4", new Vector3(-160, 5, -16f), Quaternion.Identity, Vector3.One, scene, room3, new BoundingBox(new Vector3(-20f, -5, -12f), new Vector3(35, 60, 6f)))).AddNewComponent<Collider>();
-           //(new GameObject("Wall3_5", new Vector3(-190, -10, -16f), Quaternion.Identity, Vector3.One, scene, room3, new BoundingBox(new Vector3(-20f, -5, -12f), new Vector3(35, 60, 6f)))).AddNewComponent<Collider>();
+            //(new GameObject("Wall3_1", new Vector3(0, 5, -16f), Quaternion.Identity, Vector3.One, scene, room3, new BoundingBox(new Vector3(-2f, -5, -56f), new Vector3(11, 60, 56f)))).AddNewComponent<Collider>();
+            //(new GameObject("Wall3_2", new Vector3(-91, 5, 40f), Quaternion.Identity, Vector3.One, scene, room3, new BoundingBox(new Vector3(-91f, -5, -7.5f), new Vector3(91, 60, 7.5f)))).AddNewComponent<Collider>();
+            //(new GameObject("Wall3_3", new Vector3(-96, 5, -16f), Quaternion.Identity, Vector3.One, scene, room3, new BoundingBox(new Vector3(-5f, -5, -56f), new Vector3(16, 60, 7f)))).AddNewComponent<Collider>();
+            //(new GameObject("Wall3_4", new Vector3(-160, 5, -16f), Quaternion.Identity, Vector3.One, scene, room3, new BoundingBox(new Vector3(-20f, -5, -12f), new Vector3(35, 60, 6f)))).AddNewComponent<Collider>();
+            //(new GameObject("Wall3_5", new Vector3(-190, -10, -16f), Quaternion.Identity, Vector3.One, scene, room3, new BoundingBox(new Vector3(-20f, -5, -12f), new Vector3(35, 60, 6f)))).AddNewComponent<Collider>();
+
+            (new GameObject("Trigger", new Vector3(330, 20, -40), Quaternion.Identity, Vector3.One, scene, room2, new BoundingBox(-20 * Vector3.One, 20 * Vector3.One))).AddComponent(new Collider(true, true, new TriggerAction(() =>
+            {
+                Dialogues.PlayDialogue("Hold W, S, A and D to move", 1, 5);
+                Dialogues.PlayDialogue("Hold Shift to run and C to crouch", 6.5f, 5);
+                Dialogues.PlayDialogue("Press Left Mouse Button to shoot", 12, 5);
+                Dialogues.PlayDialogue("Press R to reload your weapon", 17.5f, 4);
+                Dialogues.PlayDialogue("Press 1, 2, 3 to select the hologram slot", 22, 5);
+                Dialogues.PlayDialogue("Press Q to record hologram into selected slot", 27.5f, 3);
+                Dialogues.PlayDialogue("Press Q again to stop recording earlier", 31, 3);
+                Dialogues.PlayDialogue("Press Z to preview the path hologram will take", 34.5f, 8);
+                Dialogues.PlayDialogue("Press E to start the hologram", 43, 3);
+                Dialogues.PlayDialogue("Press E again to stop the hologram", 46.5f, 5);
+                Dialogues.PlayDialogue("Hold Tab to see your objective", 52, 7);
+            })));
 
             player = new GameObject("Player", new Vector3(330, 20, -40), Quaternion.Identity, Vector3.One, scene, room2);
             player.AddNewComponent<PlayerController>();
@@ -608,7 +623,6 @@ namespace Holo_agent
             Minimap.Enemies.Add(enemy2);
             stepsSounds = new List<SoundEffectInstance>();
             ouchSounds = new List<SoundEffectInstance>();
-            DrawTutorialTips();
             hologramRecordingMaxTime = 5.0f;
         }
 
@@ -810,21 +824,6 @@ namespace Holo_agent
             bench7.AddComponent(new MeshInstance(jeden));
             bench8.AddComponent(new MeshInstance(m_48));
             bench9.AddComponent(new MeshInstance(jeden));
-        }
-
-        private void DrawTutorialTips()
-        {
-            Dialogues.PlayDialogue("Hold W, S, A and D to move", 1, 5);
-            Dialogues.PlayDialogue("Hold Shift to run and C to crouch", 6.5f, 5);
-            Dialogues.PlayDialogue("Press Left Mouse Button to shoot", 12, 5);
-            Dialogues.PlayDialogue("Press R to reload your weapon", 17.5f, 4);
-            Dialogues.PlayDialogue("Press 1, 2, 3 to select the hologram slot", 22, 5);
-            Dialogues.PlayDialogue("Press Q to record hologram into selected slot", 27.5f, 3);
-            Dialogues.PlayDialogue("Press Q again to stop recording earlier", 31, 3);
-            Dialogues.PlayDialogue("Press Z to preview the path hologram will take", 34.5f, 8);
-            Dialogues.PlayDialogue("Press E to start the hologram", 43, 3);
-            Dialogues.PlayDialogue("Press E again to stop the hologram", 46.5f, 5);
-            Dialogues.PlayDialogue("Hold Tab to see your objective", 52, 7);
         }
 
         protected Texture2D DrawSceneToTexture(RenderTarget2D currentRenderTarget, GameTime gameTime)

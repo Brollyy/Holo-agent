@@ -195,21 +195,33 @@ namespace Engine
                             Collider go2Col = go2.GetComponent<Collider>();
                             if(go2Col != null && !go.Equals(go2))
                             {
-                                Bounding_Volumes.CollisionResult collision = goCol.Collide(go2Col);
-                                if(collision.CollisionDetected)
+                                if (go2Col.IsTrigger)
                                 {
-                                    float lostVel = Vector3.Dot(collision.CollisionPlane.Value.Normal, rig.Velocity);
-                                    if (lostVel < 0.0f)
+                                    if (go.Name == "Player")
                                     {
-                                        Vector3 lostVelocity = -collision.CollisionPlane.Value.Normal * lostVel;
-                                        rig.AddVelocityChange(lostVelocity);
-                                        if(rig.IsGrounded || !rig.GravityEnabled) go.GlobalPosition = go.GlobalPosition + lostVelocity * (float)gameTime.ElapsedGameTime.TotalSeconds;
+                                        Bounding_Volumes.CollisionResult col = goCol.Collide(go2Col);
+                                        if (col.CollisionDetected) go2Col.Trigger();
+                                        else go2Col.Untrigger();
                                     }
-                                    if (Vector3.Dot(collision.CollisionPlane.Value.Normal, Vector3.Up) > 0.8f)
+                                }
+                                else
+                                {
+                                    Bounding_Volumes.CollisionResult collision = goCol.Collide(go2Col);
+                                    if (collision.CollisionDetected)
                                     {
-                                        if(!rig.IsGrounded && rig.GravityEnabled) go.GlobalPosition = go.GlobalPosition + collision.CollisionPlane.Value.Normal * lostVel * (float)gameTime.ElapsedGameTime.TotalSeconds;
-                                        rig.IsGrounded = true;
-                                        grounded = true; 
+                                        float lostVel = Vector3.Dot(collision.CollisionPlane.Value.Normal, rig.Velocity);
+                                        if (lostVel < 0.0f)
+                                        {
+                                            Vector3 lostVelocity = -collision.CollisionPlane.Value.Normal * lostVel;
+                                            rig.AddVelocityChange(lostVelocity);
+                                            if (rig.IsGrounded || !rig.GravityEnabled) go.GlobalPosition = go.GlobalPosition + lostVelocity * (float)gameTime.ElapsedGameTime.TotalSeconds;
+                                        }
+                                        if (Vector3.Dot(collision.CollisionPlane.Value.Normal, Vector3.Up) > 0.8f)
+                                        {
+                                            if (!rig.IsGrounded && rig.GravityEnabled) go.GlobalPosition = go.GlobalPosition + collision.CollisionPlane.Value.Normal * lostVel * (float)gameTime.ElapsedGameTime.TotalSeconds;
+                                            rig.IsGrounded = true;
+                                            grounded = true;
+                                        }
                                     }
                                 }
                             }
