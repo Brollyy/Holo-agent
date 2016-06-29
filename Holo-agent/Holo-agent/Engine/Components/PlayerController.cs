@@ -39,6 +39,8 @@ namespace Engine.Components
         private bool isCrouching;
         [DataMember]
         private bool isRunning;
+        [DataMember]
+        private int isMoving;
 
         public List<SoundEffectInstance> StepsSounds
         {
@@ -214,17 +216,16 @@ namespace Engine.Components
             Owner.Scene.Camera.LocalEulerRotation = Vector3.Lerp(Owner.Scene.Camera.LocalEulerRotation, cameraRot, 0.75f);
         }
 
+        private void StartMoving(PressedActionArgs args)
+        {
+            isMoving++;
+        }
+
         private void Move(PressingActionArgs args)
         {
             float speed;
             Rigidbody rigidbody = Owner.GetComponent<Rigidbody>();
             float delta = (float)args.gameTime.ElapsedGameTime.TotalSeconds;
-            if (isRunning)
-                movement = Movement.RUN;
-            else if (isCrouching)
-                movement = Movement.CROUCH;
-            else
-                movement = Movement.WALK;
             switch (movement)
             {
                 case Movement.WALK: speed = walkSpeed; break;
@@ -277,7 +278,7 @@ namespace Engine.Components
                         rigidbody.AddVelocityChange(-vel * direction);
                     }
                 }
-                movement = Movement.IDLE;
+                isMoving--;
             }
         }
         
@@ -580,40 +581,35 @@ namespace Engine.Components
             changeWeapon(Input.getMouseWheelState());
             if (stepsSounds != null && stepsSounds.Count > 0 && !hologramRecording)
             {
-                if (movement.Equals(Movement.WALK) || movement.Equals(Movement.CROUCH))
+                if (isMoving > 0)
                 {
                     int index = stepsSounds.FindIndex(step => step.State.Equals(SoundState.Playing));
-                    if (index != -1 && index != 0)
+                    if (index != -1 && index != (movement.Equals(Movement.RUN) ? 1 : 0))
                         stepsSounds[index].Stop();
-                    stepsSounds[0].Play();
+                    stepsSounds[(movement.Equals(Movement.RUN) ? 1 : 0)].Play();
                 }
-                else if (movement.Equals(Movement.RUN))
+
+                if(isMoving <= 0 || hologramRecording)
                 {
                     int index = stepsSounds.FindIndex(step => step.State.Equals(SoundState.Playing));
-                    if (index != -1 && index != 1)
+                    if (index != -1)
                         stepsSounds[index].Stop();
-                    stepsSounds[1].Play();
-                }
-                else
-                {
-                    if(movement.Equals(Movement.IDLE) || hologramRecording)
-                    {
-                        int index = stepsSounds.FindIndex(step => step.State.Equals(SoundState.Playing));
-                        if (index != -1)
-                            stepsSounds[index].Stop();
-                    }
                 }
             }
         }
 
         public override void Destroy()
         {
+            Input.UnbindActionPress(GameAction.MOVE_FORWARD, StartMoving);
             Input.UnbindActionContinuousPress(GameAction.MOVE_FORWARD, Move);
             Input.UnbindActionRelease(GameAction.MOVE_FORWARD, Stay);
+            Input.UnbindActionPress(GameAction.MOVE_BACKWARD, StartMoving);
             Input.UnbindActionContinuousPress(GameAction.MOVE_BACKWARD, Move);
             Input.UnbindActionRelease(GameAction.MOVE_BACKWARD, Stay);
+            Input.UnbindActionPress(GameAction.STRAFE_LEFT, StartMoving);
             Input.UnbindActionContinuousPress(GameAction.STRAFE_LEFT, Move);
             Input.UnbindActionRelease(GameAction.STRAFE_LEFT, Stay);
+            Input.UnbindActionPress(GameAction.STRAFE_RIGHT, StartMoving);
             Input.UnbindActionContinuousPress(GameAction.STRAFE_RIGHT, Move);
             Input.UnbindActionRelease(GameAction.STRAFE_RIGHT, Stay);
             Input.UnbindActionPress(GameAction.JUMP, Jump);
@@ -669,7 +665,7 @@ namespace Engine.Components
             closestObject = null;
             crosshairColor = Color.Orange;
             weapons = new GameObject[3];
-            movement = Movement.IDLE;
+            movement = Movement.WALK;
             InitializeInput(new StreamingContext());
         }
 
@@ -687,12 +683,16 @@ namespace Engine.Components
         private void InitializeInput(StreamingContext context)
         {
             // Bind actions to input.
+            Input.BindActionPress(GameAction.MOVE_FORWARD, StartMoving);
             Input.BindActionContinuousPress(GameAction.MOVE_FORWARD, Move);
             Input.BindActionRelease(GameAction.MOVE_FORWARD, Stay);
+            Input.BindActionPress(GameAction.MOVE_BACKWARD, StartMoving);
             Input.BindActionContinuousPress(GameAction.MOVE_BACKWARD, Move);
             Input.BindActionRelease(GameAction.MOVE_BACKWARD, Stay);
+            Input.BindActionPress(GameAction.STRAFE_LEFT, StartMoving);
             Input.BindActionContinuousPress(GameAction.STRAFE_LEFT, Move);
             Input.BindActionRelease(GameAction.STRAFE_LEFT, Stay);
+            Input.BindActionPress(GameAction.STRAFE_RIGHT, StartMoving);
             Input.BindActionContinuousPress(GameAction.STRAFE_RIGHT, Move);
             Input.BindActionRelease(GameAction.STRAFE_RIGHT, Stay);
             Input.BindActionPress(GameAction.JUMP, Jump);
