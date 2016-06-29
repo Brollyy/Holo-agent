@@ -10,11 +10,15 @@ sampler TextureSampler = sampler_state
 
 float4 PixelShaderFunction(float4 Position : SV_POSITION, float4 Color : COLOR0, float2 TextureCoordinate : TEXCOORD0) : SV_TARGET0
 {
-	float4 pixelColor = tex2D(TextureSampler, TextureCoordinate);
 	float pixelRing = (TextureCoordinate.x - 0.5f) * (TextureCoordinate.x - 0.5f) + (TextureCoordinate.y - 0.5f) * (TextureCoordinate.y - 0.5f);
-	pixelColor.r /= 1.0f - ((RecordingTime * (RecordingTimeLimit * 0.075f)) + pixelRing);
-	pixelColor.g /= 1.0f - ((RecordingTime * (RecordingTimeLimit * 0.075f)) + pixelRing);
-	pixelColor.b /= 1.0f - ((RecordingTime * (RecordingTimeLimit * 0.075f)) + pixelRing);
+	float4 pixelColor = tex2D(TextureSampler, float2(TextureCoordinate.x + (RecordingTime / RecordingTimeLimit) * (pixelRing * 0.75f), TextureCoordinate.y + (RecordingTime / RecordingTimeLimit) * (pixelRing * 0.75f)));
+	pixelColor += tex2D(TextureSampler, float2(TextureCoordinate.x - (RecordingTime / RecordingTimeLimit) * (pixelRing * 0.75f), TextureCoordinate.y - (RecordingTime / RecordingTimeLimit) * (pixelRing * 0.75f)));
+	pixelColor += tex2D(TextureSampler, float2(TextureCoordinate.x + (RecordingTime / RecordingTimeLimit) * (pixelRing * 0.75f), TextureCoordinate.y - (RecordingTime / RecordingTimeLimit) * (pixelRing * 0.75f)));
+	pixelColor += tex2D(TextureSampler, float2(TextureCoordinate.x - (RecordingTime / RecordingTimeLimit) * (pixelRing * 0.75f), TextureCoordinate.y + (RecordingTime / RecordingTimeLimit) * (pixelRing * 0.75f)));
+	pixelColor *= 0.5f;
+	pixelColor.r += lerp(RecordingTime, 0.0f, pixelColor.r - pixelRing);
+	pixelColor.g += lerp(RecordingTime, 0.0f, pixelColor.g - pixelRing);
+	pixelColor.b += lerp(RecordingTime, 0.0f, pixelColor.b - pixelRing);
 	pixelColor.r = 1.0f - pixelColor.r;
 	pixelColor.g = 1.0f - pixelColor.g;
 	pixelColor.b = 1.0f - pixelColor.b;
