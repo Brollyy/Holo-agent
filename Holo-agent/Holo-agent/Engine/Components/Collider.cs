@@ -6,11 +6,39 @@ using System.Runtime.Serialization;
 
 namespace Engine.Components
 {
+    public delegate void TriggerAction();
+
     [DataContract]
     public class Collider : Component
     {
         [DataMember]
         public BoundingVolume bound;
+        [DataMember]
+        public bool IsTrigger { get; set; }
+        [DataMember]
+        private TriggerAction handler = null;
+        [DataMember]
+        private bool isTriggered = false;
+        [DataMember]
+        private bool canBeTriggeredMultipleTimes = false;
+
+        public void Trigger()
+        {
+            if(!isTriggered)
+            {
+                isTriggered = true;
+                if (handler != null) handler();
+            }
+        }
+
+        public void Untrigger()
+        {
+            if(isTriggered && canBeTriggeredMultipleTimes)
+            {
+                isTriggered = false;
+            }
+        }
+
         public CollisionResult Collide(Collider other)
         {
             if (other == null) return new CollisionResult();
@@ -53,6 +81,13 @@ namespace Engine.Components
         public Collider(BoundingVolume bound)
         {
             this.bound = bound;
+        }
+
+        public Collider(bool isTrigger, bool canBeTriggeredMultipleTimes, TriggerAction handler)
+        {
+            IsTrigger = isTrigger;
+            this.handler = handler;
+            this.canBeTriggeredMultipleTimes = canBeTriggeredMultipleTimes;
         }
     }
 }

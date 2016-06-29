@@ -480,6 +480,11 @@ namespace Engine.Bounding_Volumes
             halfLengths = halfSizes;
         }
 
+        public BoundingBox(Vector3 center, Vector3 halfSizes) : base(null, center)
+        {
+
+        }
+
         public BoundingBox(Collider collider, Pair<Vector3,Vector3> minmax): base(collider, 0.5f*(minmax.First + minmax.Second))
         {
             halfLengths = minmax.Second - Center;

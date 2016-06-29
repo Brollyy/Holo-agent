@@ -87,5 +87,9 @@ namespace Engine.Bounding_Volumes
             Collider = collider;
             Center = center;
         }
+
+        public BoundingVolume(Vector3 center) : this(null, center)
+        {
+        }
     }
 }
