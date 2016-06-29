@@ -48,6 +48,12 @@ namespace Engine
             bindings.Add(GameAction.GO_DOWN, new KeyboardInputSource(Keys.Down));
             bindings.Add(GameAction.SAVE, new KeyboardInputSource(Keys.F5));
             bindings.Add(GameAction.LOAD, new KeyboardInputSource(Keys.F9));
+            bindings.Add(GameAction.GAMMA_UP, new KeyboardInputSource(Keys.NumPad2));
+            bindings.Add(GameAction.GAMMA_DOWN, new KeyboardInputSource(Keys.NumPad1));
+            bindings.Add(GameAction.BRIGHTNESS_UP, new KeyboardInputSource(Keys.NumPad8));
+            bindings.Add(GameAction.BRIGHTNESS_DOWN, new KeyboardInputSource(Keys.NumPad7));
+            bindings.Add(GameAction.CONTRAST_UP, new KeyboardInputSource(Keys.NumPad5));
+            bindings.Add(GameAction.CONTRAST_DOWN, new KeyboardInputSource(Keys.NumPad4));
             pressedDelegates = new Dictionary<GameAction, List<ProcessPressedAction>>();
             releasedDelegates = new Dictionary<GameAction, List<ProcessReleasedAction>>();
             pressingDelegates = new Dictionary<GameAction, List<ProcessPressingAction>>();
@@ -285,7 +291,13 @@ namespace Engine
         GO_UP,
         GO_DOWN,
         SAVE,
-        LOAD
+        LOAD,
+        GAMMA_UP,
+        GAMMA_DOWN,
+        BRIGHTNESS_UP,
+        BRIGHTNESS_DOWN,
+        CONTRAST_UP,
+        CONTRAST_DOWN
     }
 
     internal abstract class InputSource

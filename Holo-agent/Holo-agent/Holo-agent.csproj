@@ -102,6 +102,7 @@
     <MonoGameContentReference Include="Content\Content.mgcb" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Content\FX\ScreenLighting.fx" />
     <None Include="Content\FX\HighlightColor.fx" />
     <None Include="Content\FX\HighlightSkinnedColor.fx" />
     <None Include="Content\FX\HologramRecording.fx" />

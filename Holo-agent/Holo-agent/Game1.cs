@@ -25,9 +25,14 @@ namespace Holo_agent
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
         RenderTarget2D renderTarget;
+        RenderTarget2D screenRenderTarget;
         Effect hologramRecordingShader;
         Effect healthShader;
         Effect bloomShader;
+        Effect screenLightingShader;
+        float gammaValue = 1.0f;
+        float brightnessValue = 0.0f;
+        float contrastValue = 0.0f;
         Effect pauseMenuShader;
         Effect gameOverShader;
         Texture2D healthShaderTexture;
@@ -198,6 +203,7 @@ namespace Holo_agent
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Draw(GameTime gameTime)
         {
+            GraphicsDevice.SetRenderTarget(screenRenderTarget);
             if (gameState.Equals(GameState.Menu))
             {
                 GraphicsDevice.Clear(Color.CornflowerBlue);
@@ -288,7 +294,7 @@ namespace Holo_agent
                 if (enemy.GetComponent<EnemyController>() != null)
                 {
                     Weapon enemyWeapon = enemy.GetComponent<EnemyController>().Weapon.GetComponent<Weapon>();
-                    if(enemyWeapon != null)
+                    if (enemyWeapon != null)
                     {
                         GameObject gunfireInstance = enemyWeapon.getGunfireInstance();
                         if (gunfireInstance != null) gunfireInstance.GetInactiveComponent<SpriteInstance>().Draw(gameTime);
@@ -308,19 +314,19 @@ namespace Holo_agent
                     if (weapon != null)
                     {
                         string weaponInfo = weapon.getMagazine() + "/" + weapon.getAmmo();
-                        Vector2 weaponInfoSize = 0.5f*font.MeasureString(weaponInfo);
-                        spriteBatch.DrawString(font, weaponInfo, new Vector2(w.X - 1.05f*weaponInfoSize.X, w.Y - 1.05f*weaponInfoSize.Y), Color.Red, 0, Vector2.Zero, 0.5f, SpriteEffects.None, 0);
+                        Vector2 weaponInfoSize = 0.5f * font.MeasureString(weaponInfo);
+                        spriteBatch.DrawString(font, weaponInfo, new Vector2(w.X - 1.05f * weaponInfoSize.X, w.Y - 1.05f * weaponInfoSize.Y), Color.Red, 0, Vector2.Zero, 0.5f, SpriteEffects.None, 0);
                         /*if (weapon.info != null)
                             spriteBatch.DrawString(font, weapon.info, new Vector2(50, 60), Color.SeaGreen);*/
                         GameObject gunfireInstance = weapon.getGunfireInstance();
-                        if(gunfireInstance != null)
+                        if (gunfireInstance != null)
                             gunfireInstance.GetInactiveComponent<SpriteInstance>().Draw(gameTime);
                     }
                     int selectedPath = player.GetComponent<PlayerController>().SelectedPath;
                     int selectedPlaying = player.GetComponent<PlayerController>().PlayingPath;
                     bool previewing = player.GetComponent<PlayerController>().HologramPreviewing;
                     bool playing = player.GetComponent<PlayerController>().HologramPlaying;
-                    for(int i = 0; i < 3; ++i)
+                    for (int i = 0; i < 3; ++i)
                     {
                         Color color = Color.Black;
                         bool recorded = player.GetComponent<PlayerController>().IsPathRecorded(i);
@@ -334,8 +340,8 @@ namespace Holo_agent
                             else desc += "Ready";
                         }
                         else desc += "Empty";
-                        
-                        if(selectedPath == i)
+
+                        if (selectedPath == i)
                         {
                             if (playing && selectedPlaying == selectedPath) color = Color.Red;
                             else if (previewing) color = Color.LightBlue;
@@ -346,24 +352,25 @@ namespace Holo_agent
                             if (playing && selectedPlaying == i) color = Color.DarkRed;
                             else color = Color.Black;
                         }
-                        Vector2 descSize = 0.2f*font.MeasureString(desc);
-                        spriteBatch.DrawString(font, desc, new Vector2(0.02f*w.X, w.Y - (0.2f*descSize.Y + 1.05f*(3-i)*descSize.Y)), color, 0, Vector2.Zero, 0.2f, SpriteEffects.None, 0);
+                        Vector2 descSize = 0.2f * font.MeasureString(desc);
+                        spriteBatch.DrawString(font, desc, new Vector2(0.02f * w.X, w.Y - (0.2f * descSize.Y + 1.05f * (3 - i) * descSize.Y)), color, 0, Vector2.Zero, 0.2f, SpriteEffects.None, 0);
                     }
                     spriteBatch.Draw(crosshair, new Vector2((graphics.PreferredBackBufferWidth / 2) - (crosshair.Width / 2), (graphics.PreferredBackBufferHeight / 2) - (crosshair.Height / 2)), player.GetComponent<PlayerController>().CrosshairColor);
-                    if(player.GetComponent<PlayerController>().CrosshairColor == Color.Lime)
+                    if (player.GetComponent<PlayerController>().CrosshairColor == Color.Lime)
                     {
                         string message = "Press F to ";
                         Interaction inter = player.GetComponent<PlayerController>().ClosestObject.GetComponent<Interaction>();
                         if (inter is DoorInteraction) message += "open the door.";
                         if (inter is WeaponInteraction) message += "pick up the gun.";
-                        spriteBatch.DrawString(font, message, new Vector2(w.X / 2 - 0.25f * font.MeasureString(message).X / 2, 0.6f*w.Y), Color.Orange, 0, Vector2.Zero, 0.25f, SpriteEffects.None, 0);
+                        if (inter is KeypadInteraction) message += "enter the code.";
+                        spriteBatch.DrawString(font, message, new Vector2(w.X / 2 - 0.25f * font.MeasureString(message).X / 2, 0.6f * w.Y), Color.Orange, 0, Vector2.Zero, 0.25f, SpriteEffects.None, 0);
                     }
                     Minimap.Draw(ref spriteBatch);
                 }
                 if (Keyboard.GetState().IsKeyDown(Keys.Tab))
                 {
-                    Vector2 objectiveSize = 0.25f*font.MeasureString(objectiveString);
-                    objectivePosition = new Vector2(w.X / 2 - objectiveSize.X / 2, 0.2f*w.Y - objectiveSize.Y / 2);
+                    Vector2 objectiveSize = 0.25f * font.MeasureString(objectiveString);
+                    objectivePosition = new Vector2(w.X / 2 - objectiveSize.X / 2, 0.2f * w.Y - objectiveSize.Y / 2);
                     objectiveTimer = 2;
                 }
                 spriteBatch.DrawString(font, objectiveString, objectivePosition, Color.Orange, 0, Vector2.Zero, 0.25f, SpriteEffects.None, 0);
@@ -387,7 +394,18 @@ namespace Holo_agent
                     spriteBatch.DrawString(font, "TestBox position: " + testBox.GlobalPosition.ToString() + ", velocity: " + testBox.GetComponent<Rigidbody>().Velocity.ToString(), new Vector2(50, 150), Color.DarkGreen);*/
                 spriteBatch.End();
                 //
+
             }
+
+            GraphicsDevice.SetRenderTarget(null);
+            screenLightingShader.Parameters["Gamma"].SetValue(gammaValue);
+            screenLightingShader.Parameters["Brightness"].SetValue(brightnessValue);
+            screenLightingShader.Parameters["Contrast"].SetValue(contrastValue);
+
+            spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.Default, RasterizerState.CullNone, screenLightingShader);
+            spriteBatch.Draw(screenRenderTarget, new Rectangle(0, 0, graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight), null, Color.White, 0, Vector2.Zero, SpriteEffects.None, 0);
+            spriteBatch.End();
+
             base.Draw(gameTime);
         }
 
@@ -400,6 +418,12 @@ namespace Holo_agent
             Input.Initialize();
             Input.BindActionPress(GameAction.SAVE, SaveGame);
             Input.BindActionPress(GameAction.LOAD, LoadGame);
+            Input.BindActionContinuousPress(GameAction.GAMMA_UP, ChangeGamma);
+            Input.BindActionContinuousPress(GameAction.GAMMA_DOWN, ChangeGamma);
+            Input.BindActionContinuousPress(GameAction.BRIGHTNESS_UP, ChangeBrightness);
+            Input.BindActionContinuousPress(GameAction.BRIGHTNESS_DOWN, ChangeBrightness);
+            Input.BindActionContinuousPress(GameAction.CONTRAST_UP, ChangeContrast);
+            Input.BindActionContinuousPress(GameAction.CONTRAST_DOWN, ChangeContrast);
             // TODO: Add your initialization logic here
             frameCounter = new FrameCounter();
             weapons = new List<GameObject>();
@@ -407,6 +431,13 @@ namespace Holo_agent
             weaponColliders = new List<Collider>();
             propsRoom5 = new List<GameObject>();
             renderTarget = new RenderTarget2D(
+                GraphicsDevice,
+                GraphicsDevice.PresentationParameters.BackBufferWidth,
+                GraphicsDevice.PresentationParameters.BackBufferHeight,
+                true,
+                GraphicsDevice.PresentationParameters.BackBufferFormat,
+                DepthFormat.Depth24);
+            screenRenderTarget = new RenderTarget2D(
                 GraphicsDevice,
                 GraphicsDevice.PresentationParameters.BackBufferWidth,
                 GraphicsDevice.PresentationParameters.BackBufferHeight,
@@ -590,6 +621,7 @@ namespace Holo_agent
             healthShader.Parameters["Health"].SetValue(100.0f);
             healthShaderTexture = Content.Load<Texture2D>("Textures/Blood_Screen");
             bloomShader = Content.Load<Effect>("FX/Bloom");
+            screenLightingShader = Content.Load<Effect>("FX/ScreenLighting");
             pauseMenuShader = Content.Load<Effect>("FX/PauseMenu");
             gameOverShader = Content.Load<Effect>("FX/GameOver");
             Effect highlightShader = Content.Load<Effect>("FX/HighlightSkinnedColor");
@@ -793,6 +825,7 @@ namespace Holo_agent
 
         protected Texture2D DrawSceneToTexture(RenderTarget2D currentRenderTarget, GameTime gameTime)
         {
+            RenderTargetBinding[] oldRenderTarget = GraphicsDevice.GetRenderTargets();
             // Set the render target
             GraphicsDevice.SetRenderTarget(currentRenderTarget);
 
@@ -825,9 +858,33 @@ namespace Holo_agent
 #endif
 
             // Drop the render target
-            GraphicsDevice.SetRenderTarget(null);
+            GraphicsDevice.SetRenderTargets(oldRenderTarget);
             // Return the texture in the render target
             return currentRenderTarget;
+        }
+
+        private void ChangeGamma(PressingActionArgs args)
+        {
+            if (args.action == GameAction.GAMMA_UP) gammaValue += (float)args.gameTime.ElapsedGameTime.TotalSeconds;
+            if (args.action == GameAction.GAMMA_DOWN) gammaValue -= (float)args.gameTime.ElapsedGameTime.TotalSeconds;
+            if (gammaValue < 0.0f) gammaValue = 0.0f;
+            if (gammaValue > 5.0f) gammaValue = 5.0f;
+        }
+
+        private void ChangeBrightness(PressingActionArgs args)
+        {
+            if (args.action == GameAction.BRIGHTNESS_UP) brightnessValue +=  0.2f * (float)args.gameTime.ElapsedGameTime.TotalSeconds;
+            if (args.action == GameAction.BRIGHTNESS_DOWN) brightnessValue -= 0.2f * (float)args.gameTime.ElapsedGameTime.TotalSeconds;
+            if (brightnessValue < 0.0f) brightnessValue = 0.0f;
+            if (brightnessValue > 1.0f) brightnessValue = 1.0f;
+        }
+
+        private void ChangeContrast(PressingActionArgs args)
+        {
+            if (args.action == GameAction.CONTRAST_UP) contrastValue +=  0.1f * (float)args.gameTime.ElapsedGameTime.TotalSeconds;
+            if (args.action == GameAction.CONTRAST_DOWN) contrastValue -= 0.1f * (float)args.gameTime.ElapsedGameTime.TotalSeconds;
+            if (contrastValue < -1) contrastValue = -1;
+            if (contrastValue > 1) contrastValue = 1;
         }
 
         private void SaveGame(PressedActionArgs args)
