@@ -252,10 +252,13 @@ namespace Holo_agent
                         hologramRecordingShader.Parameters["RecordingTime"].SetValue(hologramRecordingTimer / hologramRecordingMaxTime);
                     }
                 }
-                else if (hologramRecordingTimer > hologramRecordingMaxTime)
+                else
                 {
-                    hologramRecordingTimer = 0.0f;
-                    hologramRecordingShader.Parameters["RecordingTime"].SetValue(0.0f);
+                    if (hologramRecordingTimer > 0.0f)
+                    {
+                        hologramRecordingTimer = 0.0f;
+                        hologramRecordingShader.Parameters["RecordingTime"].SetValue(0.0f);
+                    }
                 }
 
                 if (player.GetComponent<PlayerController>() == null && hologramRecordingTimer > 0.0f)
