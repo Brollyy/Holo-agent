@@ -854,7 +854,7 @@ namespace Holo_agent
             //Ray
             VertexPosition[] line = new VertexPosition[2];
             line[0].Position = player.GlobalPosition - new Vector3(0, 1, 0);
-            line[1].Position = line[0].Position + player.LocalToWorldMatrix.Forward * 100.0f;
+            line[1].Position = line[0].Position + scene.Camera.LocalToWorldMatrix.Forward * 100.0f;
             graphics.GraphicsDevice.DrawUserPrimitives<VertexPosition>(PrimitiveType.LineList, line, 0, 1);
 
             GraphicsDevice.RasterizerState = originalState;

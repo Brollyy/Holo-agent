@@ -570,7 +570,7 @@ namespace Engine.Components
                 if (recordedPaths[i].Second < 0.0f) recordedPaths[i].Second = 0.0f;
             }
 
-            Ray(1000.0f, Owner.Scene.GetNearbyObjects(Owner), Owner.LocalToWorldMatrix.Forward);
+            Ray(1000.0f, Owner.Scene.GetNearbyObjects(Owner), Owner.Scene.Camera.LocalToWorldMatrix.Forward);
 
             if (canInteract())
                 crosshairColor = Color.Lime;
