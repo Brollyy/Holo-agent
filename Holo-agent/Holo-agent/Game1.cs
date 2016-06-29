@@ -203,6 +203,7 @@ namespace Holo_agent
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Draw(GameTime gameTime)
         {
+            GraphicsDevice.SamplerStates[0] = SamplerState.AnisotropicWrap;
             GraphicsDevice.SetRenderTarget(screenRenderTarget);
             if (gameState.Equals(GameState.Menu))
             {
@@ -415,6 +416,7 @@ namespace Holo_agent
             graphics.PreferredBackBufferHeight = GraphicsDevice.DisplayMode.Height;
             graphics.IsFullScreen = true;
             graphics.ApplyChanges();*/
+
             Input.Initialize();
             Input.BindActionPress(GameAction.SAVE, SaveGame);
             Input.BindActionPress(GameAction.LOAD, LoadGame);
