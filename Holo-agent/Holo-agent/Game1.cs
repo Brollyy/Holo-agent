@@ -447,7 +447,7 @@ namespace Holo_agent
                 GraphicsDevice.PresentationParameters.BackBufferFormat,
                 DepthFormat.Depth24);
             scene = new Scene();
-            //GameObject roomTemp = new GameObject("RoomTemp", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(new Vector3(-10000, -10000, -10000), new Vector3(10000, 10000, 10000)));
+            GameObject roomTemp = new GameObject("RoomTemp", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(new Vector3(-10000, -10000, -10000), new Vector3(10000, 10000, 10000)));
             GameObject room = new GameObject("Room1", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(new Vector3(175, -5, -330), new Vector3(400, 100, 100)));
             GameObject room2 = new GameObject("Room2", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(new Vector3(-400, -5, -425), new Vector3(190, 100, -70)));
             GameObject room3 = new GameObject("Room3", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(new Vector3(-185, -5, -75), new Vector3(110, 40, 40)));
@@ -630,6 +630,8 @@ namespace Holo_agent
             gameMenu.LoadContent(Content);
             Minimap.LoadContent(Content);
             Model columnModel = Content.Load<Model>("Models/kolumna");
+            Model jeden = Content.Load<Model>("Models/jeden");
+            Model m_48 = Content.Load<Model>("Models/48");
             floorTexture = Content.Load<Texture2D>("Textures/Ground");
             gunfireTexture = Content.Load<Texture2D>("Textures/Gunfire");
             crosshair = Content.Load<Texture2D>("Textures/Crosshair");
@@ -799,15 +801,15 @@ namespace Holo_agent
             propsRoom5[6].AddComponent(new MeshInstance(couchModel));
             propsRoom5[7].AddComponent(new MeshInstance(couchModel));
 
-            bench.AddComponent(new MeshInstance(columnModel));
-            bench1.AddComponent(new MeshInstance(columnModel));
-            bench2.AddComponent(new MeshInstance(columnModel));
-            bench3.AddComponent(new MeshInstance(columnModel));
-            bench4.AddComponent(new MeshInstance(columnModel));
-            column2.AddComponent(new MeshInstance(columnModel));
-            bench7.AddComponent(new MeshInstance(columnModel));
-            bench8.AddComponent(new MeshInstance(columnModel));
-            bench9.AddComponent(new MeshInstance(columnModel));
+            bench.AddComponent(new MeshInstance(jeden));
+            bench1.AddComponent(new MeshInstance(m_48));
+            bench2.AddComponent(new MeshInstance(jeden));
+            bench3.AddComponent(new MeshInstance(m_48));
+            bench4.AddComponent(new MeshInstance(jeden));
+            column2.AddComponent(new MeshInstance(m_48));
+            bench7.AddComponent(new MeshInstance(jeden));
+            bench8.AddComponent(new MeshInstance(m_48));
+            bench9.AddComponent(new MeshInstance(jeden));
         }
 
         private void DrawTutorialTips()
