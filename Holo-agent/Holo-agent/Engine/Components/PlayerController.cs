@@ -16,6 +16,7 @@ namespace Engine.Components
         private const float hologramCooldown = 5.0f;
         [DataMember]
         private float turnSpeed;
+        private float speed;
         private bool hologramRecording;
         private bool hologramPlaying;
         private bool hologramPreview;
@@ -216,15 +217,8 @@ namespace Engine.Components
 
         private void Move(PressingActionArgs args)
         {
-            float speed;
             Rigidbody rigidbody = Owner.GetComponent<Rigidbody>();
             float delta = (float)args.gameTime.ElapsedGameTime.TotalSeconds;
-            if (isRunning)
-                movement = Movement.RUN;
-            else if (isCrouching)
-                movement = Movement.CROUCH;
-            else
-                movement = Movement.WALK;
             switch (movement)
             {
                 case Movement.WALK: speed = walkSpeed; break;
@@ -232,7 +226,6 @@ namespace Engine.Components
                 case Movement.CROUCH: speed = crouchSpeed; break;
                 default: speed = 0.0f; break;
             }
-
             Vector3 direction;
             switch(args.action)
             {
@@ -254,6 +247,7 @@ namespace Engine.Components
             Rigidbody rigidbody = Owner.GetComponent<Rigidbody>();
             if (rigidbody != null && (rigidbody.IsGrounded || !rigidbody.GravityEnabled))
             {
+                speed = 0.0f;
                 Vector3 direction;
                 if (args == null)
                 {
@@ -277,7 +271,6 @@ namespace Engine.Components
                         rigidbody.AddVelocityChange(-vel * direction);
                     }
                 }
-                movement = Movement.IDLE;
             }
         }
         
@@ -562,8 +555,7 @@ namespace Engine.Components
         public override void Update(GameTime gameTime)
         {
             base.Update(gameTime);
-
-            for(int i = 0; i < recordedPaths.Length; ++i)
+            for (int i = 0; i < recordedPaths.Length; ++i)
             {
                 recordedPaths[i].Second -= (float)gameTime.ElapsedGameTime.TotalSeconds;
                 if (recordedPaths[i].Second < 0.0f) recordedPaths[i].Second = 0.0f;
@@ -578,9 +570,9 @@ namespace Engine.Components
             else
                 crosshairColor = Color.Orange;
             changeWeapon(Input.getMouseWheelState());
-            if (stepsSounds != null && stepsSounds.Count > 0 && !hologramRecording)
+            if (stepsSounds != null && stepsSounds.Count > 0 && !hologramRecording && speed != 0.0f)
             {
-                if (movement.Equals(Movement.WALK) || movement.Equals(Movement.CROUCH))
+                if ((movement.Equals(Movement.WALK) || movement.Equals(Movement.CROUCH)))
                 {
                     int index = stepsSounds.FindIndex(step => step.State.Equals(SoundState.Playing));
                     if (index != -1 && index != 0)
@@ -594,15 +586,12 @@ namespace Engine.Components
                         stepsSounds[index].Stop();
                     stepsSounds[1].Play();
                 }
-                else
-                {
-                    if(movement.Equals(Movement.IDLE) || hologramRecording)
-                    {
-                        int index = stepsSounds.FindIndex(step => step.State.Equals(SoundState.Playing));
-                        if (index != -1)
-                            stepsSounds[index].Stop();
-                    }
-                }
+            }
+            else
+            {
+                int index = stepsSounds.FindIndex(step => step.State.Equals(SoundState.Playing));
+                if (index != -1)
+                    stepsSounds[index].Stop();
             }
         }
 
@@ -669,7 +658,7 @@ namespace Engine.Components
             closestObject = null;
             crosshairColor = Color.Orange;
             weapons = new GameObject[3];
-            movement = Movement.IDLE;
+            speed = 0.0f;
             InitializeInput(new StreamingContext());
         }
 
