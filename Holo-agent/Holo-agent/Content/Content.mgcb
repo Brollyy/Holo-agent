@@ -190,12 +190,6 @@
 /processorParam:TextureFormat=DxtCompressed
 /build:Models/Pistol.FBX
 
-#begin Sounds/Pistol.mp3
-/importer:Mp3Importer
-/processor:SoundEffectProcessor
-/processorParam:Quality=Best
-/build:Sounds/Pistol.mp3
-
 #begin Textures/Gunfire.png
 /importer:TextureImporter
 /processor:TextureProcessor
@@ -988,30 +982,6 @@
 /processorParam:DebugMode=Auto
 /build:FX/Bloom.fx
 
-#begin Sounds/Steps_Run.mp3
-/importer:Mp3Importer
-/processor:SoundEffectProcessor
-/processorParam:Quality=Best
-/build:Sounds/Steps_Run.mp3
-
-#begin Sounds\Steps_Walk.mp3
-/importer:Mp3Importer
-/processor:SoundEffectProcessor
-/processorParam:Quality=Best
-/build:Sounds\Steps_Walk.mp3
-
-#begin Sounds/Ouch_1.mp3
-/importer:Mp3Importer
-/processor:SoundEffectProcessor
-/processorParam:Quality=Best
-/build:Sounds/Ouch_1.mp3
-
-#begin Sounds/Ouch_2.mp3
-/importer:Mp3Importer
-/processor:SoundEffectProcessor
-/processorParam:Quality=Best
-/build:Sounds/Ouch_2.mp3
-
 #begin FX/PauseMenu.fx
 /importer:EffectImporter
 /processor:EffectProcessor
@@ -1323,4 +1293,34 @@
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
 /build:Textures/Resume.png
+
+#begin Sounds/Ouch_1.ogg
+/importer:OggImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Sounds/Ouch_1.ogg
+
+#begin Sounds/Ouch_2.ogg
+/importer:OggImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Sounds/Ouch_2.ogg
+
+#begin Sounds/Pistol.ogg
+/importer:OggImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Sounds/Pistol.ogg
+
+#begin Sounds/Steps_Run.ogg
+/importer:OggImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Sounds/Steps_Run.ogg
+
+#begin Sounds/Steps_Walk.ogg
+/importer:OggImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Sounds/Steps_Walk.ogg
 
