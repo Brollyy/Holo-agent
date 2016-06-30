@@ -55,6 +55,7 @@ namespace Holo_agent
         GameObject bench8;
         GameObject bench9;
         List<GameObject> propsRoom5;
+        List<GameObject> doors;
         List<SpriteInstance> particles;
         GameObject particleFireEmitter, particleExplosionEmitter, particleSmokeEmitter, particleBloodEmitter;
         List<GameObject> weapons;
@@ -435,6 +436,7 @@ namespace Holo_agent
             weapons = new List<GameObject>();
             gunfires = new List<GameObject>();
             weaponColliders = new List<Collider>();
+            doors = new List<GameObject>();
             propsRoom5 = new List<GameObject>();
             renderTarget = new RenderTarget2D(
                 GraphicsDevice,
@@ -487,7 +489,6 @@ namespace Holo_agent
             //(new GameObject("Floor4_1", new Vector3(-207.5f, -5f, -4.25f), Quaternion.Identity, Vector3.One, scene, room4, new BoundingBox(new Vector3(-40, 1, -5), new Vector3(22.5f, 6, 5)))).AddNewComponent<Collider>();
             //(new GameObject("Floor4_2", new Vector3(-194, -10f, 12.5f), Quaternion.CreateFromAxisAngle(Vector3.Right, (float)Math.PI/6), Vector3.One, scene, room4, new BoundingBox(new Vector3(-9, -3, -15f), new Vector3(9, 3, 12.5f)))).AddNewComponent<Collider>();
             (new GameObject("Floor4_1", new Vector3(-207.5f, -62f, -4.25f), Quaternion.Identity, Vector3.One, scene, room4, new BoundingBox(new Vector3(-40, 1, -5), new Vector3(22.5f, 6, 45)))).AddNewComponent<Collider>();
-
             (new GameObject("Wall1_1", new Vector3(330, 5, -20.0f), Quaternion.Identity, Vector3.One, scene, room, new BoundingBox(new Vector3(-60, -5, -7.5f), new Vector3(60, 60, 7.5f)))).AddNewComponent<Collider>();
             (new GameObject("Wall1_2", new Vector3(287, 5, -110f), Quaternion.Identity, Vector3.One, scene, room, new BoundingBox(new Vector3(-100, -5, -106f), new Vector3(11, 60, 95f)))).AddNewComponent<Collider>();
             (new GameObject("Wall1_3", new Vector3(377.5f, 5, -110f), Quaternion.Identity, Vector3.One, scene, room, new BoundingBox(new Vector3(-11, -5, -224f), new Vector3(10, 60, 90f)))).AddNewComponent<Collider>();
@@ -530,6 +531,8 @@ namespace Holo_agent
                 Dialogues.PlayDialogue("Press E again to stop the hologram", 46.5f, 5);
                 Dialogues.PlayDialogue("Hold Tab to see your objective", 52, 7);
             })));
+
+            doors.Add(new GameObject("Door1", new Vector3(330, 20, -40), Quaternion.Identity, Vector3.One, scene, room2));
 
             player = new GameObject("Player", new Vector3(330, 20, -40), Quaternion.Identity, Vector3.One, scene, room2);
 
@@ -587,7 +590,7 @@ namespace Holo_agent
             Physics.Initialize();
 
             Vector3 deskOffset = new Vector3(19, 0, 23);
-            Vector3 couchOffset = new Vector3(10, 0, 20);
+            Vector3 couchOffset = new Vector3(0, 0, 0);
             propsRoom5.Add(new GameObject("Chair5_1", new Vector3(-253, -57, 140), Quaternion.CreateFromYawPitchRoll(-(float)Math.PI / 2.0f, 0, 0), Vector3.One, scene, room5));
             propsRoom5.Add(new GameObject("Desk5_1", new Vector3(-260, -57, 140) + Vector3.Transform(deskOffset, Matrix.CreateFromAxisAngle(Vector3.Up, -(float)Math.PI / 2)), Quaternion.CreateFromYawPitchRoll(-(float)Math.PI / 2.0f, 0, 0), Vector3.One, scene, room5));
             propsRoom5.Add(new GameObject("Chair5_2", new Vector3(-148, -57, 253), Quaternion.Identity, Vector3.One, scene, room5));
@@ -791,7 +794,9 @@ namespace Holo_agent
             enemy2.GetComponent<AnimationController>().BindAnimation("death", 2, false);
             enemy2.GetComponent<AnimationController>().BindAnimation("hit", 3, false);
 
-            Model doorModel = Content.Load<Model>("Models/door_001");
+            Model doorModel = Content.Load<Model>("Models/door2");
+            doors[0].AddComponent(new MeshInstance(doorModel));
+
             Model pistolModel = Content.Load<Model>("Models/Pistol");
             weapons[0].AddComponent(new MeshInstance(pistolModel));
             gunfires[0].AddComponent(new SpriteInstance(gunfireTexture, new Vector3(0, 5, 5), 1, 1, graphics));
@@ -832,7 +837,7 @@ namespace Holo_agent
             propsRoom5[6].AddComponent(new MeshInstance(couchModel));
             propsRoom5[7].AddComponent(new MeshInstance(couchModel));
 
-            bench.AddComponent(new MeshInstance(couchModel));
+            bench.AddComponent(new MeshInstance(columnModel));
             bench1.AddComponent(new MeshInstance(columnModel));
             bench2.AddComponent(new MeshInstance(columnModel));
             bench3.AddComponent(new MeshInstance(columnModel));
