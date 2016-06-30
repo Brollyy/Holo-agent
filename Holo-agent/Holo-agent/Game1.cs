@@ -558,8 +558,8 @@ namespace Holo_agent
             weaponColliders[2].bound = new Engine.Bounding_Volumes.BoundingBox(weaponColliders[2], new Vector3(0, 0, -2f), new Vector3(0.5f, 1.5f, 2.5f));
             weapons[2].AddNewComponent<WeaponInteraction>();
             weapons[0].AddComponent(new Weapon(WeaponTypes.Pistol, 12, 28, 12, 240, 1000, new Vector3(2.5f, -1.5f, -5.75f)));
-            weapons[1].AddComponent(new Weapon(WeaponTypes.MachineGun, 32, 72, 32, 640, 1000, new Vector3(2f, -1.5f, -5.5f)));
-            weapons[2].AddComponent(new Weapon(WeaponTypes.MachineGun, 32, 72, 32, 640, 1000, new Vector3(2f, -1.5f, -5.5f)));
+            weapons[1].AddComponent(new Weapon(WeaponTypes.MachineGun, 32, 72, 32, 640, 1000, new Vector3(1.5f, -2f, -5.5f)));
+            weapons[2].AddComponent(new Weapon(WeaponTypes.MachineGun, 32, 72, 32, 640, 1000, new Vector3(1.5f, -2f, -5.5f)));
             gunfires.Add(new GameObject("Pistol_Gunfire", new Vector3(0, 0.6f, -4), Quaternion.Identity, Vector3.One * 0.5f, scene, weapons[0]));
             gunfires.Add(new GameObject("MachineGun_Gunfire", new Vector3(0, 0.15f, -8.5f), Quaternion.Identity, Vector3.One, scene, weapons[1]));
             gunfires.Add(new GameObject("MachineGun_Gunfire", new Vector3(0, 0.15f, -8.5f), Quaternion.Identity, Vector3.One, scene, weapons[2]));
@@ -568,7 +568,7 @@ namespace Holo_agent
             enemy.AddComponent(new EnemyController(weapons[1], new List<Vector3>()
             {
                 new Vector3(-120, 20, -330), new Vector3(-120, 20, -100),
-                new Vector3(150, 20, -100), new Vector3(150, 20, -330)
+                new Vector3(160, 20, -100), new Vector3(160, 20, -330)
             }));
             enemy2.AddComponent(new EnemyController(weapons[2]));
             enemy.AddComponent(new Rigidbody(80));

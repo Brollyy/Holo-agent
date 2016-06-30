@@ -398,7 +398,10 @@ namespace Engine.Components
                                 (x => !(x[2] as GameObject).GetComponent<Weapon>().IsLocked), null);
                             {
                                 decisionTree.AddNode(canShootNode, 
-                                    (x => Vector3.Dot(Vector3.Normalize((x[1] as GameObject).GetComponent<Rigidbody>().Velocity),
+                                    (x => (x[1] as GameObject).Name.Equals("Player") && Vector3.Dot(Vector3.Normalize((x[1] as GameObject).GetComponent<Rigidbody>().Velocity),
+                                    Matrix.CreateFromQuaternion((x[0] as EnemyController).Owner.GlobalRotation).Forward) < 0.1f), new PerformAction(Shoot));
+                                decisionTree.AddNode(canShootNode, 
+                                    (x => (x[1] as GameObject).Name.Equals("HologramPlayback") && Vector3.Dot(((x[1] as GameObject).LocalToWorldMatrix.Forward),
                                     Matrix.CreateFromQuaternion((x[0] as EnemyController).Owner.GlobalRotation).Forward) < 0.1f), new PerformAction(Shoot));
                                 decisionTree.AddNode(canShootNode, (x => true), new PerformAction(MoveForward));
                             }
