@@ -1,5 +1,4 @@
-﻿using System;
-using Engine.Components;
+﻿using Engine.Components;
 using Holo_agent;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
@@ -10,19 +9,16 @@ namespace Engine
 {
     public class GameMenu
     {
-        private bool isMenu, isPauseMenu, isGameOverMenu, isIntro;
+        private bool isMenu, isPauseMenu, isGameOverMenu, isIntro, isCredits;
         private bool[] isButtonSelected;
-        private Texture2D keypadTexture;
-        private Texture2D buttonFrame;
-        private Texture2D introTexture;
+        private Texture2D keypadTexture, activeButtonFrame, inactiveButtonFrame, introTexture, menuTexture;
+        private Texture2D titleTexture, newGameTexture, authorsTexture, quitTexture, resumeTexture, quitToMenuTexture, gameOverTexture;
+        private Texture2D[] buttonFrame;
         private SpriteFont font;
-        private Color[] buttonColor;
         private KeyboardState currentState, oldState;
         private ButtonState currentLeftButtonState, oldLeftButtonState;
-        private string title = "Holo-agent", newGame = "New Game", quitToMenu = "Quit To Menu", quit = "Quit Game", resume = "Resume", gameOver = "Game Over";
-        private Vector2 titleSize, newGameSize, frame, quitToMenuSize, quitSize, resumeSize, gameOverSize;
-        private Rectangle newGameFrame, quitToMenuFrame, quitFrame, resumeFrame, keypadFrame;
-        private Point w;
+        private Rectangle titleFrame, newGameFrame, quitToMenuFrame, quitFrame, resumeFrame, keypadFrame, authorsFrame, gameOverFrame;
+        private Point screen;
         private static KeypadInteraction keypad = null;
         private static bool isSelectingKeypad = false;
         private float introTimer;
@@ -30,12 +26,10 @@ namespace Engine
         private Effect introShader;
         public GameMenu()
         {
-            isButtonSelected = new bool[4];
+            isButtonSelected = new bool[5];
             for (int i = 0; i < isButtonSelected.Length; i++)
                 isButtonSelected[i] = false;
-            buttonColor = new Color[4];
-            for (int i = 0; i < buttonColor.Length; i++)
-                buttonColor[i] = Color.Black;
+            buttonFrame = new Texture2D[5];
             introTimer = 0.0f;
             introTime = 3.0f;
         }
@@ -44,7 +38,7 @@ namespace Engine
             currentState = Keyboard.GetState();
             if (isSelectingKeypad)
                 gameState = GameState.Keypad;
-            if(gameState.Equals(GameState.Intro))
+            if (gameState.Equals(GameState.Intro))
             {
                 isIntro = true;
                 introTimer += (float)gameTime.ElapsedGameTime.TotalSeconds;
@@ -52,12 +46,14 @@ namespace Engine
                 if (introTimer >= introTime)
                     gameState = GameState.Menu;
             }
-            if (gameState.Equals(GameState.Menu))
+            else if (gameState.Equals(GameState.Menu))
             {
                 if (!isMenu)
                     isMenu = true;
                 if (isIntro)
                     isIntro = false;
+                if (isCredits)
+                    isCredits = false;
                 if (isPauseMenu)
                     isPauseMenu = false;
                 if (isGameOverMenu)
@@ -65,7 +61,7 @@ namespace Engine
                 if (isSelectingKeypad)
                     isSelectingKeypad = false;
                 DetectSelection(gameState);
-                ChangeFrameColor();
+                ChangeFrame();
                 DetectClick(ref gameState, game);
             }
             else if (gameState.Equals(GameState.NewGame))
@@ -92,10 +88,10 @@ namespace Engine
                 if (currentState.IsKeyDown(Keys.Escape) && oldState.IsKeyUp(Keys.Escape))
                     gameState = GameState.Game;
                 DetectSelection(gameState);
-                ChangeFrameColor();
+                ChangeFrame();
                 DetectClick(ref gameState, game);
             }
-            else if(gameState.Equals(GameState.Keypad))
+            else if (gameState.Equals(GameState.Keypad))
             {
                 if (currentState.IsKeyDown(Keys.Escape) && oldState.IsKeyUp(Keys.Escape))
                 {
@@ -108,8 +104,15 @@ namespace Engine
             {
                 isGameOverMenu = true;
                 DetectSelection(gameState);
-                ChangeFrameColor();
+                ChangeFrame();
                 DetectClick(ref gameState, game);
+            }
+            else if (gameState.Equals(GameState.Credits))
+            {
+                isMenu = false;
+                isCredits = true;
+                if (currentState.IsKeyDown(Keys.Escape) && oldState.IsKeyUp(Keys.Escape))
+                    gameState = GameState.Menu;
             }
             oldState = currentState;
             return gameState;
@@ -170,19 +173,24 @@ namespace Engine
         }
         public void Draw(SpriteBatch spriteBatch, GraphicsDeviceManager graphics)
         {
-            w = new Point(graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight);
+            screen = new Point(graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight);
             if (isMenu)
             {
                 spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.AnisotropicWrap, DepthStencilState.Default, RasterizerState.CullNone);
                 if (font != null && buttonFrame != null)
                 {
-                    newGameFrame = new Rectangle((int)(w.X / 2 - frame.X / 2), (int)(0.7f * w.Y - frame.Y / 2), (int)frame.X, (int)frame.Y);
-                    quitFrame = new Rectangle((int)(w.X / 2 - frame.X / 2), (int)(0.9f * w.Y - frame.Y / 2), (int)frame.X, (int)frame.Y);
-                    spriteBatch.DrawString(font, title, new Vector2(w.X / 2 - titleSize.X / 2, 0.1f * w.Y), Color.Purple, 0, Vector2.Zero, 0.6f, SpriteEffects.None, 0);
-                    spriteBatch.Draw(buttonFrame, newGameFrame, null, buttonColor[0], 0, Vector2.Zero, SpriteEffects.None, 0);
-                    spriteBatch.DrawString(font, newGame, new Vector2(w.X / 2 - newGameSize.X / 2, 0.7f * w.Y - newGameSize.Y / 2), Color.Purple, 0, Vector2.Zero, 0.3f, SpriteEffects.None, 0);
-                    spriteBatch.Draw(buttonFrame, quitFrame, null, buttonColor[1], 0, Vector2.Zero, SpriteEffects.None, 0);
-                    spriteBatch.DrawString(font, quit, new Vector2(w.X / 2 - quitSize.X / 2, 0.9f * w.Y - quitSize.Y / 2), Color.Purple, 0, Vector2.Zero, 0.3f, SpriteEffects.None, 0);
+                    titleFrame = new Rectangle((int)(screen.X * 0.01f), (int)(screen.Y * 0.01f), (int)(screen.X * 0.5f), (int)(screen.Y * 0.2f));
+                    newGameFrame = new Rectangle((int)(screen.X * 0.115f), (int)(screen.Y * 0.35f), (int)(screen.X * 0.3f), (int)(screen.Y * 0.125f));
+                    authorsFrame = new Rectangle((int)(screen.X * 0.115f), (int)(screen.Y * 0.5f), (int)(screen.X * 0.3f), (int)(screen.Y * 0.125f));
+                    quitFrame = new Rectangle((int)(screen.X * 0.115f), (int)(screen.Y * 0.65f), (int)(screen.X * 0.3f), (int)(screen.Y * 0.125f));
+                    spriteBatch.Draw(menuTexture, graphics.GraphicsDevice.Viewport.Bounds, Color.White);
+                    spriteBatch.Draw(titleTexture, titleFrame, null, Color.White, 0, Vector2.Zero, SpriteEffects.None, 0);
+                    spriteBatch.Draw(buttonFrame[0], newGameFrame, null, Color.White, 0, Vector2.Zero, SpriteEffects.None, 0);
+                    spriteBatch.Draw(newGameTexture, new Rectangle((int)(newGameFrame.X + newGameFrame.Width * 0.15f), (int)(newGameFrame.Y + newGameFrame.Height * 0.2f), (int)(newGameFrame.Width * 0.75f), (int)(newGameFrame.Height * 0.6f)), null, Color.White, 0, Vector2.Zero, SpriteEffects.None, 0);
+                    spriteBatch.Draw(buttonFrame[4], authorsFrame, null, Color.White, 0, Vector2.Zero, SpriteEffects.None, 0);
+                    spriteBatch.Draw(authorsTexture, new Rectangle((int)(authorsFrame.X + authorsFrame.Width * 0.15f), (int)(authorsFrame.Y + authorsFrame.Height * 0.2f), (int)(authorsFrame.Width * 0.75f), (int)(authorsFrame.Height * 0.6f)), null, Color.White, 0, Vector2.Zero, SpriteEffects.None, 0);
+                    spriteBatch.Draw(buttonFrame[1], quitFrame, null, Color.White, 0, Vector2.Zero, SpriteEffects.None, 0);
+                    spriteBatch.Draw(quitTexture, new Rectangle((int)(quitFrame.X + quitFrame.Width * 0.15f), (int)(quitFrame.Y + quitFrame.Height * 0.2f), (int)(quitFrame.Width * 0.75f), (int)(quitFrame.Height * 0.6f)), null, Color.White, 0, Vector2.Zero, SpriteEffects.None, 0);
                 }
                 spriteBatch.End();
             }
@@ -191,16 +199,17 @@ namespace Engine
                 spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.AnisotropicWrap, DepthStencilState.Default, RasterizerState.CullNone);
                 if (font != null && buttonFrame != null)
                 {
-                    spriteBatch.DrawString(font, title, new Vector2(w.X / 2 - titleSize.X / 2, 0.1f * w.Y), Color.Purple, 0, Vector2.Zero, 0.6f, SpriteEffects.None, 0);
-                    resumeFrame = new Rectangle((int)(w.X / 2 - frame.X / 2), (int)(0.5f * w.Y - frame.Y / 2), (int)frame.X, (int)frame.Y);
-                    spriteBatch.Draw(buttonFrame, resumeFrame, null, buttonColor[3], 0, Vector2.Zero, SpriteEffects.None, 0);
-                    spriteBatch.DrawString(font, resume, new Vector2(w.X / 2 - resumeSize.X / 2, 0.5f * w.Y - resumeSize.Y / 2), Color.Purple, 0, Vector2.Zero, 0.3f, SpriteEffects.None, 0);
-                    quitToMenuFrame = new Rectangle((int)(w.X / 2 - frame.X / 2), (int)(0.7f * w.Y - frame.Y / 2), (int)frame.X, (int)frame.Y);
-                    spriteBatch.Draw(buttonFrame, quitToMenuFrame, null, buttonColor[2], 0, Vector2.Zero, SpriteEffects.None, 0);
-                    spriteBatch.DrawString(font, quitToMenu, new Vector2(w.X / 2 - quitToMenuSize.X / 2, 0.7f * w.Y - quitToMenuSize.Y / 2), Color.Purple, 0, Vector2.Zero, 0.3f, SpriteEffects.None, 0);
-                    quitFrame = new Rectangle((int)(w.X / 2 - frame.X / 2), (int)(0.9f * w.Y - frame.Y / 2), (int)frame.X, (int)frame.Y);
-                    spriteBatch.Draw(buttonFrame, quitFrame, null, buttonColor[1], 0, Vector2.Zero, SpriteEffects.None, 0);
-                    spriteBatch.DrawString(font, quit, new Vector2(w.X / 2 - quitSize.X / 2, 0.9f * w.Y - quitSize.Y / 2), Color.Purple, 0, Vector2.Zero, 0.3f, SpriteEffects.None, 0);
+                    titleFrame = new Rectangle((int)((screen.X * 0.5f) - (screen.X * 0.25f)), (int)(screen.Y * 0.1f), (int)(screen.X * 0.5f), (int)(screen.Y * 0.2f));
+                    resumeFrame = new Rectangle((int)((screen.X * 0.5f) - ((screen.X * 0.3f) * 0.5f)), (int)(screen.Y * 0.525f), (int)(screen.X * 0.3f), (int)(screen.Y * 0.125f));
+                    quitToMenuFrame = new Rectangle((int)((screen.X * 0.5f) - ((screen.X * 0.3f) * 0.5f)), (int)(screen.Y * 0.675f), (int)(screen.X * 0.3f), (int)(screen.Y * 0.125f));
+                    quitFrame = new Rectangle((int)((screen.X * 0.5f) - ((screen.X * 0.3f) * 0.5f)), (int)(screen.Y * 0.825f), (int)(screen.X * 0.3f), (int)(screen.Y * 0.125f));
+                    spriteBatch.Draw(titleTexture, titleFrame, null, Color.White, 0, Vector2.Zero, SpriteEffects.None, 0);
+                    spriteBatch.Draw(buttonFrame[3], resumeFrame, null, Color.White, 0, Vector2.Zero, SpriteEffects.None, 0);
+                    spriteBatch.Draw(resumeTexture, new Rectangle((int)(resumeFrame.X + resumeFrame.Width * 0.15f), (int)(resumeFrame.Y + resumeFrame.Height * 0.2f), (int)(resumeFrame.Width * 0.75f), (int)(resumeFrame.Height * 0.6f)), null, Color.White, 0, Vector2.Zero, SpriteEffects.None, 0);
+                    spriteBatch.Draw(buttonFrame[2], quitToMenuFrame, null, Color.White, 0, Vector2.Zero, SpriteEffects.None, 0);
+                    spriteBatch.Draw(quitToMenuTexture, new Rectangle((int)(quitToMenuFrame.X + quitToMenuFrame.Width * 0.15f), (int)(quitToMenuFrame.Y + quitToMenuFrame.Height * 0.2f), (int)(quitToMenuFrame.Width * 0.75f), (int)(quitToMenuFrame.Height * 0.6f)), null, Color.White, 0, Vector2.Zero, SpriteEffects.None, 0);
+                    spriteBatch.Draw(buttonFrame[1], quitFrame, null, Color.White, 0, Vector2.Zero, SpriteEffects.None, 0);
+                    spriteBatch.Draw(quitTexture, new Rectangle((int)(quitFrame.X + quitFrame.Width * 0.15f), (int)(quitFrame.Y + quitFrame.Height * 0.2f), (int)(quitFrame.Width * 0.75f), (int)(quitFrame.Height * 0.6f)), null, Color.White, 0, Vector2.Zero, SpriteEffects.None, 0);
                 }
                 spriteBatch.End();
             }
@@ -209,10 +218,10 @@ namespace Engine
                 spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.AnisotropicWrap, DepthStencilState.Default, RasterizerState.CullNone);
                 if (font != null)
                 {
-                    keypadFrame = new Rectangle((int)(w.X * 0.5f - (int)(w.Y * 0.3f * keypadTexture.Width / keypadTexture.Height)), (int)(w.Y * 0.2f), (int)(w.Y * 0.6f * keypadTexture.Width / keypadTexture.Height), (int)(w.Y * 0.6f));
+                    keypadFrame = new Rectangle((int)(screen.X * 0.5f - (int)(screen.Y * 0.3f * keypadTexture.Width / keypadTexture.Height)), (int)(screen.Y * 0.2f), (int)(screen.Y * 0.6f * keypadTexture.Width / keypadTexture.Height), (int)(screen.Y * 0.6f));
                     spriteBatch.Draw(keypadTexture, keypadFrame, null, Color.White);
-                    Vector2 passcodeSize = w.Y * 0.8f * 0.000521f * font.MeasureString(keypad.Passcode);
-                    spriteBatch.DrawString(font, keypad.Passcode, new Vector2(w.X / 2 - passcodeSize.X / 2, keypadFrame.Top + 0.1f * keypadFrame.Height - passcodeSize.Y / 2), Color.Black, 0, Vector2.Zero, w.Y * 0.8f * 0.000521f, SpriteEffects.None, 0);
+                    Vector2 passcodeSize = screen.Y * 0.8f * 0.000521f * font.MeasureString(keypad.Passcode);
+                    spriteBatch.DrawString(font, keypad.Passcode, new Vector2(screen.X / 2 - passcodeSize.X / 2, keypadFrame.Top + 0.1f * keypadFrame.Height - passcodeSize.Y / 2), Color.Black, 0, Vector2.Zero, screen.Y * 0.8f * 0.000521f, SpriteEffects.None, 0);
                 }
                 spriteBatch.End();
             }
@@ -221,13 +230,14 @@ namespace Engine
                 spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.AnisotropicWrap, DepthStencilState.Default, RasterizerState.CullNone);
                 if (font != null && buttonFrame != null)
                 {
-                    spriteBatch.DrawString(font, gameOver, new Vector2(w.X / 2 - gameOverSize.X / 2, 0.1f * w.Y), Color.Purple, 0, Vector2.Zero, 0.6f, SpriteEffects.None, 0);
-                    quitToMenuFrame = new Rectangle((int)(w.X / 2 - frame.X / 2), (int)(0.7f * w.Y - frame.Y / 2), (int)frame.X, (int)frame.Y);
-                    spriteBatch.Draw(buttonFrame, quitToMenuFrame, null, buttonColor[2], 0, Vector2.Zero, SpriteEffects.None, 0);
-                    spriteBatch.DrawString(font, quitToMenu, new Vector2(w.X / 2 - quitToMenuSize.X / 2, 0.7f * w.Y - quitToMenuSize.Y / 2), Color.Purple, 0, Vector2.Zero, 0.3f, SpriteEffects.None, 0);
-                    quitFrame = new Rectangle((int)(w.X / 2 - frame.X / 2), (int)(0.9f * w.Y - frame.Y / 2), (int)frame.X, (int)frame.Y);
-                    spriteBatch.Draw(buttonFrame, quitFrame, null, buttonColor[1], 0, Vector2.Zero, SpriteEffects.None, 0);
-                    spriteBatch.DrawString(font, quit, new Vector2(w.X / 2 - quitSize.X / 2, 0.9f * w.Y - quitSize.Y / 2), Color.Purple, 0, Vector2.Zero, 0.3f, SpriteEffects.None, 0);
+                    gameOverFrame = new Rectangle((int)((screen.X * 0.5f) - (screen.X * 0.25f)), (int)(screen.Y * 0.1f), (int)(screen.X * 0.5f), (int)(screen.Y * 0.2f));
+                    quitToMenuFrame = new Rectangle((int)((screen.X * 0.5f) - ((screen.X * 0.3f) * 0.5f)), (int)(screen.Y * 0.675f), (int)(screen.X * 0.3f), (int)(screen.Y * 0.125f));
+                    quitFrame = new Rectangle((int)((screen.X * 0.5f) - ((screen.X * 0.3f) * 0.5f)), (int)(screen.Y * 0.825f), (int)(screen.X * 0.3f), (int)(screen.Y * 0.125f));
+                    spriteBatch.Draw(gameOverTexture, gameOverFrame, null, Color.White, 0, Vector2.Zero, SpriteEffects.None, 0);
+                    spriteBatch.Draw(buttonFrame[2], quitToMenuFrame, null, Color.White, 0, Vector2.Zero, SpriteEffects.None, 0);
+                    spriteBatch.Draw(quitToMenuTexture, new Rectangle((int)(quitToMenuFrame.X + quitToMenuFrame.Width * 0.15f), (int)(quitToMenuFrame.Y + quitToMenuFrame.Height * 0.2f), (int)(quitToMenuFrame.Width * 0.75f), (int)(quitToMenuFrame.Height * 0.6f)), null, Color.White, 0, Vector2.Zero, SpriteEffects.None, 0);
+                    spriteBatch.Draw(buttonFrame[1], quitFrame, null, Color.White, 0, Vector2.Zero, SpriteEffects.None, 0);
+                    spriteBatch.Draw(quitTexture, new Rectangle((int)(quitFrame.X + quitFrame.Width * 0.15f), (int)(quitFrame.Y + quitFrame.Height * 0.2f), (int)(quitFrame.Width * 0.75f), (int)(quitFrame.Height * 0.6f)), null, Color.White, 0, Vector2.Zero, SpriteEffects.None, 0);
                 }
                 spriteBatch.End();
             }
@@ -237,23 +247,33 @@ namespace Engine
                 spriteBatch.Draw(introTexture, graphics.GraphicsDevice.Viewport.Bounds, Color.White);
                 spriteBatch.End();
             }
+            else if(isCredits)
+            {
+                spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.AnisotropicWrap, DepthStencilState.Default, RasterizerState.CullNone);
+                spriteBatch.DrawString(font, "Work in progress", new Vector2((screen.X * 0.5f), (screen.Y * 0.5f)), Color.Blue, 0, Vector2.Zero, 0.3f, SpriteEffects.None, 0);
+                spriteBatch.End();
+            }
         }
         public void LoadContent(ContentManager content)
         {
-            font = content.Load<SpriteFont>("Font/Holo-Agent");
-            buttonFrame = content.Load<Texture2D>("Textures/Button_Frame");
+            font = content.Load<SpriteFont>("Font/Interface");
             keypadTexture = content.Load<Texture2D>("Textures/Keypad");
             introTexture = content.Load<Texture2D>("Textures/Intro");
             introShader = content.Load<Effect>("FX/Intro");
             introShader.Parameters["IntroTime"].SetValue(introTimer);
             introShader.Parameters["IntroTimeLimit"].SetValue(introTime);
-            titleSize = 0.6f * font.MeasureString(title);
-            newGameSize = 0.3f * font.MeasureString(newGame);
-            frame = 1.5f * newGameSize;
-            quitToMenuSize = 0.3f * font.MeasureString(quitToMenu);
-            quitSize = 0.3f * font.MeasureString(quit);
-            resumeSize = 0.3f * font.MeasureString(resume);
-            gameOverSize = 0.6f * font.MeasureString(gameOver);
+            menuTexture = content.Load<Texture2D>("Textures/Menu");
+            activeButtonFrame = content.Load<Texture2D>("Textures/ActiveButtonFrame");
+            inactiveButtonFrame = content.Load<Texture2D>("Textures/InactiveButtonFrame");
+            titleTexture = content.Load<Texture2D>("Textures/Holo-Agent");
+            newGameTexture = content.Load<Texture2D>("Textures/NewGame");
+            authorsTexture = content.Load<Texture2D>("Textures/Authors");
+            quitTexture = content.Load<Texture2D>("Textures/Quit");
+            resumeTexture = content.Load<Texture2D>("Textures/Resume");
+            quitToMenuTexture = content.Load<Texture2D>("Textures/MainMenu");
+            gameOverTexture = content.Load<Texture2D>("Textures/GameOver");
+            for (int i = 0; i < buttonFrame.Length; i++)
+                buttonFrame[i] = inactiveButtonFrame;
         }
         private void DetectSelection(GameState gameState)
         {
@@ -263,15 +283,16 @@ namespace Engine
             isButtonSelected[1] = ((gameState.Equals(GameState.Menu) || gameState.Equals(GameState.Pause) || gameState.Equals(GameState.GameOver)) && x > quitFrame.Left && x < quitFrame.Right) && (y > quitFrame.Top && y < quitFrame.Bottom);
             isButtonSelected[2] = ((gameState.Equals(GameState.Pause) || gameState.Equals(GameState.GameOver)) && x > quitToMenuFrame.Left && x < quitToMenuFrame.Right) && (y > quitToMenuFrame.Top && y < quitToMenuFrame.Bottom);
             isButtonSelected[3] = (gameState.Equals(GameState.Pause) && x > resumeFrame.Left && x < resumeFrame.Right) && (y > resumeFrame.Top && y < resumeFrame.Bottom);
+            isButtonSelected[4] = (gameState.Equals(GameState.Menu) && x > authorsFrame.Left && x < authorsFrame.Right) && (y > authorsFrame.Top && y < authorsFrame.Bottom);
         }
-        private void ChangeFrameColor()
+        private void ChangeFrame()
         {
             for (int i = 0; i < isButtonSelected.Length; i++)
             {
                 if (!isButtonSelected[i])
-                    buttonColor[i] = Color.Black;
+                    buttonFrame[i] = inactiveButtonFrame;
                 else
-                    buttonColor[i] = Color.Red;
+                    buttonFrame[i] = activeButtonFrame;
             }
         }
         private void DetectClick(ref GameState gameState, Game1 game)
@@ -287,6 +308,8 @@ namespace Engine
                     gameState = GameState.Menu;
                 if (isButtonSelected[3])
                     gameState = GameState.Game;
+                if (isButtonSelected[4])
+                    gameState = GameState.Credits;
             }
             oldLeftButtonState = currentLeftButtonState;
         }
@@ -304,6 +327,7 @@ namespace Engine
         GameOver = 3,
         Pause = 4,
         Intro = 5,
-        Keypad = 6
+        Credits = 6,
+        Keypad = 7
     }
 }
