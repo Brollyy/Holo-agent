@@ -37,7 +37,7 @@ namespace Holo_agent
         Effect gameOverShader;
         Texture2D healthShaderTexture;
         Texture2D crosshair;
-        SpriteFont font;
+        SpriteFont dialogueFont, interfaceFont;
         FrameCounter frameCounter;
         Scene scene;
         GameObject level;
@@ -69,7 +69,7 @@ namespace Holo_agent
         List<SoundEffectInstance> stepsSounds, ouchSounds;
         Texture2D gunfireTexture;
         Texture2D floorTexture;
-        GameState gameState = GameState.Menu;
+        GameState gameState = GameState.Intro;
         GameMenu gameMenu;
         Vector2 objectivePosition = Vector2.UnitY * -500;
         string objectiveString = "[Some objective]";
@@ -140,7 +140,17 @@ namespace Holo_agent
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Update(GameTime gameTime)
         {
-            gameState = gameMenu.Update(gameState, this);
+            gameState = gameMenu.Update(gameState, this, gameTime);
+            if(gameState.Equals(GameState.Intro))
+            {
+                if (IsMouseVisible)
+                    IsMouseVisible = false;
+            }
+            if(gameState.Equals(GameState.Credits))
+            {
+                if (IsMouseVisible)
+                    IsMouseVisible = false;
+            }
             if (gameState.Equals(GameState.Menu))
             {
                 if (!IsMouseVisible)
@@ -207,9 +217,19 @@ namespace Holo_agent
         {
             GraphicsDevice.SamplerStates[0] = SamplerState.AnisotropicWrap;
             GraphicsDevice.SetRenderTarget(screenRenderTarget);
+            if(gameState.Equals(GameState.Intro))
+            {
+                GraphicsDevice.Clear(Color.Black);
+                gameMenu.Draw(spriteBatch, graphics);
+            }
+            if(gameState.Equals(GameState.Credits))
+            {
+                GraphicsDevice.Clear(Color.Black);
+                gameMenu.Draw(spriteBatch, graphics);
+            }
             if (gameState.Equals(GameState.Menu))
             {
-                GraphicsDevice.Clear(Color.CornflowerBlue);
+                GraphicsDevice.Clear(Color.Black);
                 gameMenu.Draw(spriteBatch, graphics);
             }
             if (gameState.Equals(GameState.Pause))
@@ -296,7 +316,7 @@ namespace Holo_agent
 
                 spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.AnisotropicWrap, DepthStencilState.Default, RasterizerState.CullNone);
                 Point w = new Point(graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight);
-                Dialogues.Draw(ref spriteBatch, font, w, gameTime);
+                Dialogues.Draw(ref spriteBatch, dialogueFont, w, gameTime);
                 if (enemy.GetComponent<EnemyController>() != null)
                 {
                     Weapon enemyWeapon = enemy.GetComponent<EnemyController>().Weapon.GetComponent<Weapon>();
@@ -320,10 +340,8 @@ namespace Holo_agent
                     if (weapon != null)
                     {
                         string weaponInfo = weapon.getMagazine() + "/" + weapon.getAmmo();
-                        Vector2 weaponInfoSize = 0.5f * font.MeasureString(weaponInfo);
-                        spriteBatch.DrawString(font, weaponInfo, new Vector2(w.X - 1.05f * weaponInfoSize.X, w.Y - 1.05f * weaponInfoSize.Y), Color.Red, 0, Vector2.Zero, 0.5f, SpriteEffects.None, 0);
-                        /*if (weapon.info != null)
-                            spriteBatch.DrawString(font, weapon.info, new Vector2(50, 60), Color.SeaGreen);*/
+                        Vector2 weaponInfoSize = 0.5f * interfaceFont.MeasureString(weaponInfo);
+                        spriteBatch.DrawString(interfaceFont, weaponInfo, new Vector2(w.X - 1.05f * weaponInfoSize.X, w.Y - 1.05f * weaponInfoSize.Y), Color.Red, 0, Vector2.Zero, 0.5f, SpriteEffects.None, 0);
                         GameObject gunfireInstance = weapon.getGunfireInstance();
                         if (gunfireInstance != null)
                             gunfireInstance.GetInactiveComponent<SpriteInstance>().Draw(gameTime);
@@ -358,8 +376,8 @@ namespace Holo_agent
                             if (playing && selectedPlaying == i) color = Color.DarkRed;
                             else color = Color.Black;
                         }
-                        Vector2 descSize = 0.2f * font.MeasureString(desc);
-                        spriteBatch.DrawString(font, desc, new Vector2(0.02f * w.X, w.Y - (0.2f * descSize.Y + 1.05f * (3 - i) * descSize.Y)), color, 0, Vector2.Zero, 0.2f, SpriteEffects.None, 0);
+                        Vector2 descSize = 0.2f * interfaceFont.MeasureString(desc);
+                        spriteBatch.DrawString(interfaceFont, desc, new Vector2(0.02f * w.X, w.Y - (0.2f * descSize.Y + 1.05f * (3 - i) * descSize.Y)), color, 0, Vector2.Zero, 0.2f, SpriteEffects.None, 0);
                     }
                     spriteBatch.Draw(crosshair, new Vector2((graphics.PreferredBackBufferWidth / 2) - (crosshair.Width / 2), (graphics.PreferredBackBufferHeight / 2) - (crosshair.Height / 2)), player.GetComponent<PlayerController>().CrosshairColor);
                     if (player.GetComponent<PlayerController>().CrosshairColor == Color.Lime)
@@ -369,35 +387,20 @@ namespace Holo_agent
                         if (inter is DoorInteraction) message += "open the door.";
                         if (inter is WeaponInteraction) message += "pick up the gun.";
                         if (inter is KeypadInteraction) message += "enter the code.";
-                        spriteBatch.DrawString(font, message, new Vector2(w.X / 2 - 0.25f * font.MeasureString(message).X / 2, 0.6f * w.Y), Color.Orange, 0, Vector2.Zero, 0.25f, SpriteEffects.None, 0);
+                        spriteBatch.DrawString(interfaceFont, message, new Vector2(w.X / 2 - 0.25f * interfaceFont.MeasureString(message).X / 2, 0.6f * w.Y), Color.Orange, 0, Vector2.Zero, 0.25f, SpriteEffects.None, 0);
                     }
                     Minimap.Draw(ref spriteBatch);
                 }
                 if (Keyboard.GetState().IsKeyDown(Keys.Tab))
                 {
-                    Vector2 objectiveSize = 0.25f * font.MeasureString(objectiveString);
+                    Vector2 objectiveSize = 0.25f * interfaceFont.MeasureString(objectiveString);
                     objectivePosition = new Vector2(w.X / 2 - objectiveSize.X / 2, 0.2f * w.Y - objectiveSize.Y / 2);
                     objectiveTimer = 2;
                 }
-                spriteBatch.DrawString(font, objectiveString, objectivePosition, Color.Orange, 0, Vector2.Zero, 0.25f, SpriteEffects.None, 0);
+                spriteBatch.DrawString(interfaceFont, objectiveString, objectivePosition, Color.Orange, 0, Vector2.Zero, 0.25f, SpriteEffects.None, 0);
 #if DRAW_DEBUG_WIREFRAME
-                spriteBatch.DrawString(font, player.GlobalPosition.ToString(), new Vector2(5, 5), Color.Green, 0, Vector2.Zero, 0.2f, SpriteEffects.None, 0);
+                spriteBatch.DrawString(interfaceFont, player.GlobalPosition.ToString(), new Vector2(5, 5), Color.Green, 0, Vector2.Zero, 0.2f, SpriteEffects.None, 0);
 #endif
-                /*spriteBatch.DrawString(font, frameCounter.AverageFramesPerSecond.ToString(), new Vector2(50, 45), Color.Black);
-                if (particleFireEmitter.GetComponent<ParticleSystem>().getParticlesCount() != null)
-                    spriteBatch.DrawString(font, "Fire Particles: " + particleFireEmitter.GetComponent<ParticleSystem>().getParticlesCount().ToString(), new Vector2(50, 75), Color.Purple);
-                if (particleExplosionEmitter.GetComponent<ParticleSystem>().getParticlesCount() != null)
-                    spriteBatch.DrawString(font, "Explosion Particles: " + particleExplosionEmitter.GetComponent<ParticleSystem>().getParticlesCount().ToString(), new Vector2(50, 90), Color.Purple);
-                if (particleSmokeEmitter.GetComponent<ParticleSystem>().getParticlesCount() != null)
-                    spriteBatch.DrawString(font, "Smoke Particles: " + particleSmokeEmitter.GetComponent<ParticleSystem>().getParticlesCount().ToString(), new Vector2(50, 105), Color.Purple);
-                if (particleBloodEmitter.GetComponent<ParticleSystem>().getParticlesCount() != null)
-                    spriteBatch.DrawString(font, "Blood Particles: " + particleBloodEmitter.GetComponent<ParticleSystem>().getParticlesCount().ToString(), new Vector2(50, 120), Color.Purple);
-                if (player != null)
-                    spriteBatch.DrawString(font, "Player Y position: " + player.GlobalPosition.Y.ToString() + ", velocity: " + player.GetComponent<Rigidbody>().Velocity.ToString(), new Vector2(50, 15), Color.DarkGreen);
-                if (testBall != null)
-                    spriteBatch.DrawString(font, "TestBall position: " + testBall.GlobalPosition.ToString() + ", velocity: " + testBall.GetComponent<Rigidbody>().Velocity.ToString(), new Vector2(50, 135), Color.DarkGreen);
-                if (testBox != null)
-                    spriteBatch.DrawString(font, "TestBox position: " + testBox.GlobalPosition.ToString() + ", velocity: " + testBox.GetComponent<Rigidbody>().Velocity.ToString(), new Vector2(50, 150), Color.DarkGreen);*/
                 spriteBatch.End();
                 //
 
@@ -669,7 +672,8 @@ namespace Holo_agent
             floorTexture = Content.Load<Texture2D>("Textures/Ground");
             gunfireTexture = Content.Load<Texture2D>("Textures/Gunfire");
             crosshair = Content.Load<Texture2D>("Textures/Crosshair");
-            font = Content.Load<SpriteFont>("Font/Holo-Agent");
+            dialogueFont = Content.Load<SpriteFont>("Font/Dialogue");
+            interfaceFont = Content.Load<SpriteFont>("Font/Interface");
             shot = Content.Load<SoundEffect>("Sounds/Pistol");
             stepsSounds.Add(Content.Load<SoundEffect>("Sounds/Steps_Walk").CreateInstance());
             stepsSounds.Add(Content.Load<SoundEffect>("Sounds/Steps_Run").CreateInstance());
