@@ -96,6 +96,8 @@ namespace Engine.Components
         [DataMember]
         private float lastSearch = 0.0f;
         [DataMember]
+        private float waitingForTarget = 0.0f;
+        [DataMember]
         private GameObject weapon;
         [DataMember]
         private List<Vector3> patrolPoints = new List<Vector3>();
@@ -252,9 +254,49 @@ namespace Engine.Components
                 Ray(shootingRange, nearbyObjects, Vector3.Normalize((attributes[1] as GameObject).GlobalPosition - Owner.GlobalPosition));
                 if(ClosestObject != (attributes[1] as GameObject))
                 {
-                    if (patrolPoints.Count > 0) attributes[1] = patrolPoints[patrolIndex];
-                    else attributes[1] = null;
-                    state = EnemyState.Patrolling;
+                    waitingForTarget += 0.5f;
+                    if (waitingForTarget > 5.0f)
+                    {
+                        waitingForTarget = 0.0f;
+                        if (patrolPoints.Count > 0) attributes[1] = patrolPoints[patrolIndex];
+                        else attributes[1] = null;
+                        state = EnemyState.Patrolling;
+                    }
+                    else
+                    {
+                        GameObject found = null;
+                        foreach (GameObject go in nearbyObjects)
+                        {
+                            Vector3 distance = go.GlobalPosition - Owner.GlobalPosition;
+                            if (go.IsVisible && distance.LengthSquared() < shootingRange * shootingRange)
+                            {
+                                if (distance.LengthSquared() > meleeRange * meleeRange && (Vector3.Normalize(distance) - Owner.LocalToWorldMatrix.Forward).LengthSquared() > 1.0f) continue;
+                                distance.Normalize();
+                                if (go.Name.Equals("Player")) // Possibly temporary, but seems good
+                                {
+                                    Ray(shootingRange, nearbyObjects, Vector3.Normalize(go.GlobalPosition - Owner.GlobalPosition));
+                                    if (found == null && ClosestObject == go)
+                                    {
+                                        found = go;
+                                        state = EnemyState.Alert;
+                                    }
+                                }
+
+                                if (go.Name.Equals("HologramPlayback"))
+                                {
+                                    Ray(shootingRange, nearbyObjects, Vector3.Normalize(go.GlobalPosition - Owner.GlobalPosition));
+                                    if (ClosestObject == go)
+                                    {
+                                        found = go;
+                                        state = EnemyState.Alert;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+
+                        if (found != null) attributes[1] = found;
+                    }
                 }
             }
             else
@@ -352,8 +394,14 @@ namespace Engine.Components
                             (x => ((x[0] as EnemyController).Owner.GlobalPosition - (x[1] as GameObject).GlobalPosition).Length() < shootingRange),
                             null);
                         {
-                            decisionTree.AddNode(shootingRangeNode,
-                                (x => !(x[2] as GameObject).GetComponent<Weapon>().IsLocked), new PerformAction(Shoot));
+                            DecisionTreeNode canShootNode = decisionTree.AddNode(shootingRangeNode,
+                                (x => !(x[2] as GameObject).GetComponent<Weapon>().IsLocked), null);
+                            {
+                                decisionTree.AddNode(canShootNode, 
+                                    (x => Vector3.Dot(Vector3.Normalize((x[1] as GameObject).GetComponent<Rigidbody>().Velocity),
+                                    Matrix.CreateFromQuaternion((x[0] as EnemyController).Owner.GlobalRotation).Forward) < 0.1f), new PerformAction(Shoot));
+                                decisionTree.AddNode(canShootNode, (x => true), new PerformAction(MoveForward));
+                            }
                             decisionTree.AddNode(shootingRangeNode,
                                 (x => ((x[0] as EnemyController).Owner.GlobalPosition - (x[1] as GameObject).GlobalPosition).Length() < range),
                                 new PerformAction(StopMoving));
