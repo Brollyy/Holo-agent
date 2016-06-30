@@ -76,6 +76,8 @@ namespace Holo_agent
         StorageDevice device;
         Type[] knownTypes;
         private float playerHealth;
+        private GameObject playerDummy;
+
         public float PlayerHealth
         {
             get
@@ -519,6 +521,7 @@ namespace Holo_agent
             })));
 
             player = new GameObject("Player", new Vector3(330, 20, -40), Quaternion.Identity, Vector3.One, scene, room2);
+
             player.AddNewComponent<PlayerController>();
             player.AddComponent(new Rigidbody(80, 1.5f));
             player.GetComponent<Rigidbody>().GravityEnabled = false;
@@ -666,9 +669,9 @@ namespace Holo_agent
             Model levelModel = Content.Load<Model>("Models/level2");
             level.AddComponent(new MeshInstance(levelModel));
 
-            Model playerModel = Content.Load<Model>("Models/new/HD/BONE_2");
-            Model playerPreviewModel = Content.Load<Model>("Models/new/HD/BONE_2_PREVIEW");
-            Model playerHologramModel = Content.Load<Model>("Models/new/HD/BONE_2_HOLOGRAM");
+            Model playerModel = Content.Load<Model>("Models/new/HD/BONE_3");
+            Model playerPreviewModel = Content.Load<Model>("Models/new/HD/BONE_3_PREVIEW");
+            Model playerHologramModel = Content.Load<Model>("Models/new/HD/BONE_3_HOLOGRAM");
             Model playerRunAnim = Content.Load<Model>("Models/new/HD/BONE_RUN_2");
             Model playerWalkAnim = Content.Load<Model>("Models/new/HD/BONE_WALK");
             Model playerDeathAnim = Content.Load<Model>("Models/new/HD/BONE_DEATH");

@@ -130,7 +130,7 @@ namespace Engine.Utilities
             Camera camera = owner.Scene.Camera.GetComponent<Camera>();
             if (model.Tag == null)
             {
-                model.Draw(owner.LocalToWorldMatrix, camera.ViewMatrix, camera.ProjectionMatrix);
+                model.Draw(Matrix.CreateTranslation(offset) * owner.LocalToWorldMatrix, camera.ViewMatrix, camera.ProjectionMatrix);
                 return;
             }
 
