@@ -10,10 +10,11 @@ namespace Engine
 {
     public class GameMenu
     {
-        private bool isMenu, isPauseMenu, isGameOverMenu;
+        private bool isMenu, isPauseMenu, isGameOverMenu, isIntro;
         private bool[] isButtonSelected;
         private Texture2D keypadTexture;
         private Texture2D buttonFrame;
+        private Texture2D introTexture;
         private SpriteFont font;
         private Color[] buttonColor;
         private KeyboardState currentState, oldState;
@@ -24,7 +25,9 @@ namespace Engine
         private Point w;
         private static KeypadInteraction keypad = null;
         private static bool isSelectingKeypad = false;
-
+        private float introTimer;
+        private readonly float introTime;
+        private Effect introShader;
         public GameMenu()
         {
             isButtonSelected = new bool[4];
@@ -33,17 +36,28 @@ namespace Engine
             buttonColor = new Color[4];
             for (int i = 0; i < buttonColor.Length; i++)
                 buttonColor[i] = Color.Black;
+            introTimer = 0.0f;
+            introTime = 3.0f;
         }
-        public GameState Update(GameState gameState, Game1 game)
+        public GameState Update(GameState gameState, Game1 game, GameTime gameTime)
         {
             currentState = Keyboard.GetState();
-
-            if (isSelectingKeypad) gameState = GameState.Keypad;
-
+            if (isSelectingKeypad)
+                gameState = GameState.Keypad;
+            if(gameState.Equals(GameState.Intro))
+            {
+                isIntro = true;
+                introTimer += (float)gameTime.ElapsedGameTime.TotalSeconds;
+                introShader.Parameters["IntroTime"].SetValue(introTimer);
+                if (introTimer >= introTime)
+                    gameState = GameState.Menu;
+            }
             if (gameState.Equals(GameState.Menu))
             {
                 if (!isMenu)
                     isMenu = true;
+                if (isIntro)
+                    isIntro = false;
                 if (isPauseMenu)
                     isPauseMenu = false;
                 if (isGameOverMenu)
@@ -100,7 +114,6 @@ namespace Engine
             oldState = currentState;
             return gameState;
         }
-
         private void DetectKeypad(ref GameState gameState, Game1 game)
         {
             currentLeftButtonState = Mouse.GetState().LeftButton;
@@ -124,7 +137,6 @@ namespace Engine
                     }
                     if (selection > -1) break;
                 }
-
                 if (selection > -1)
                 {
                     switch (selection)
@@ -156,7 +168,6 @@ namespace Engine
             }
             oldLeftButtonState = currentLeftButtonState;
         }
-
         public void Draw(SpriteBatch spriteBatch, GraphicsDeviceManager graphics)
         {
             w = new Point(graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight);
@@ -220,12 +231,22 @@ namespace Engine
                 }
                 spriteBatch.End();
             }
+            else if(isIntro)
+            {
+                spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.AnisotropicWrap, DepthStencilState.Default, RasterizerState.CullNone, introShader);
+                spriteBatch.Draw(introTexture, graphics.GraphicsDevice.Viewport.Bounds, Color.White);
+                spriteBatch.End();
+            }
         }
         public void LoadContent(ContentManager content)
         {
             font = content.Load<SpriteFont>("Font/Holo-Agent");
             buttonFrame = content.Load<Texture2D>("Textures/Button_Frame");
             keypadTexture = content.Load<Texture2D>("Textures/Keypad");
+            introTexture = content.Load<Texture2D>("Textures/Intro");
+            introShader = content.Load<Effect>("FX/Intro");
+            introShader.Parameters["IntroTime"].SetValue(introTimer);
+            introShader.Parameters["IntroTimeLimit"].SetValue(introTime);
             titleSize = 0.6f * font.MeasureString(title);
             newGameSize = 0.3f * font.MeasureString(newGame);
             frame = 1.5f * newGameSize;
@@ -269,7 +290,6 @@ namespace Engine
             }
             oldLeftButtonState = currentLeftButtonState;
         }
-
         public static void ShowKeypadScreen(KeypadInteraction pad)
         {
             isSelectingKeypad = true;
@@ -283,6 +303,7 @@ namespace Engine
         Game = 2,
         GameOver = 3,
         Pause = 4,
-        Keypad = 5
+        Intro = 5,
+        Keypad = 6
     }
 }

@@ -68,7 +68,7 @@ namespace Holo_agent
         List<SoundEffectInstance> stepsSounds, ouchSounds;
         Texture2D gunfireTexture;
         Texture2D floorTexture;
-        GameState gameState = GameState.Menu;
+        GameState gameState = GameState.Intro;
         GameMenu gameMenu;
         Vector2 objectivePosition = Vector2.UnitY * -500;
         string objectiveString = "[Some objective]";
@@ -138,7 +138,12 @@ namespace Holo_agent
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Update(GameTime gameTime)
         {
-            gameState = gameMenu.Update(gameState, this);
+            gameState = gameMenu.Update(gameState, this, gameTime);
+            if(gameState.Equals(GameState.Intro))
+            {
+                if (IsMouseVisible)
+                    IsMouseVisible = false;
+            }
             if (gameState.Equals(GameState.Menu))
             {
                 if (!IsMouseVisible)
@@ -205,6 +210,11 @@ namespace Holo_agent
         {
             GraphicsDevice.SamplerStates[0] = SamplerState.AnisotropicWrap;
             GraphicsDevice.SetRenderTarget(screenRenderTarget);
+            if(gameState.Equals(GameState.Intro))
+            {
+                GraphicsDevice.Clear(Color.Black);
+                gameMenu.Draw(spriteBatch, graphics);
+            }
             if (gameState.Equals(GameState.Menu))
             {
                 GraphicsDevice.Clear(Color.CornflowerBlue);
