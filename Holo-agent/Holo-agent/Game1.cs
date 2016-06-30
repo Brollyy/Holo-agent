@@ -76,7 +76,6 @@ namespace Holo_agent
         StorageDevice device;
         Type[] knownTypes;
         private float playerHealth;
-        private GameObject playerDummy;
 
         public float PlayerHealth
         {
@@ -452,7 +451,7 @@ namespace Holo_agent
                 GraphicsDevice.PresentationParameters.BackBufferFormat,
                 DepthFormat.Depth24);
             scene = new Scene();
-            GameObject roomTemp = new GameObject("RoomTemp", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(new Vector3(-10000, -10000, -10000), new Vector3(10000, 10000, 10000)));
+            //GameObject roomTemp = new GameObject("RoomTemp", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(new Vector3(-10000, -10000, -10000), new Vector3(10000, 10000, 10000)));
             GameObject room = new GameObject("Room1", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(new Vector3(175, -5, -330), new Vector3(400, 100, 100)));
             GameObject room2 = new GameObject("Room2", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(new Vector3(-400, -5, -425), new Vector3(190, 100, -70)));
             GameObject room3 = new GameObject("Room3", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(new Vector3(-185, -5, -75), new Vector3(130, 40, 90)));
@@ -678,7 +677,7 @@ namespace Holo_agent
             weapons[0].GetComponent<Weapon>().GunshotSound = shot;
             weapons[1].GetComponent<Weapon>().GunshotSound = shot;
 
-            Model levelModel = Content.Load<Model>("Models/level2");
+            Model levelModel = Content.Load<Model>("Models/level3");
             level.AddComponent(new MeshInstance(levelModel));
 
             Model playerModel = Content.Load<Model>("Models/new/HD/BONE_3");
