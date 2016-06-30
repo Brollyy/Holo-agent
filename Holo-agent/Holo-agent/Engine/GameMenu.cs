@@ -11,7 +11,7 @@ namespace Engine
     {
         private bool isMenu, isPauseMenu, isGameOverMenu, isIntro, isCredits;
         private bool[] isButtonSelected;
-        private Texture2D keypadTexture, activeButtonFrame, inactiveButtonFrame, introTexture, menuTexture;
+        private Texture2D keypadTexture, activeButtonFrame, inactiveButtonFrame, introTexture, menuTexture, creditsTexture;
         private Texture2D titleTexture, newGameTexture, authorsTexture, quitTexture, resumeTexture, quitToMenuTexture, gameOverTexture;
         private Texture2D[] buttonFrame;
         private SpriteFont font;
@@ -21,7 +21,7 @@ namespace Engine
         private Point screen;
         private static KeypadInteraction keypad = null;
         private static bool isSelectingKeypad = false;
-        private float introTimer;
+        private float introTimer, creditsPositionY;
         private readonly float introTime;
         private Effect introShader;
         public GameMenu()
@@ -60,6 +60,7 @@ namespace Engine
                     isGameOverMenu = false;
                 if (isSelectingKeypad)
                     isSelectingKeypad = false;
+                creditsPositionY = game.Window.ClientBounds.Height * 0.875f;
                 DetectSelection(gameState);
                 ChangeFrame();
                 DetectClick(ref gameState, game);
@@ -112,6 +113,8 @@ namespace Engine
                 isMenu = false;
                 isCredits = true;
                 if (currentState.IsKeyDown(Keys.Escape) && oldState.IsKeyUp(Keys.Escape))
+                    gameState = GameState.Menu;
+                if (creditsPositionY <= -creditsTexture.Height * 0.4875f)
                     gameState = GameState.Menu;
             }
             oldState = currentState;
@@ -250,7 +253,8 @@ namespace Engine
             else if(isCredits)
             {
                 spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.AnisotropicWrap, DepthStencilState.Default, RasterizerState.CullNone);
-                spriteBatch.DrawString(font, "Work in progress", new Vector2((screen.X * 0.5f), (screen.Y * 0.5f)), Color.Blue, 0, Vector2.Zero, 0.3f, SpriteEffects.None, 0);
+                creditsPositionY -= 2.5f;
+                spriteBatch.Draw(creditsTexture, new Rectangle(0, (int)creditsPositionY, graphics.GraphicsDevice.Viewport.Bounds.Width, (int)(creditsTexture.Height * 0.5f)), Color.White);
                 spriteBatch.End();
             }
         }
@@ -272,6 +276,7 @@ namespace Engine
             resumeTexture = content.Load<Texture2D>("Textures/Resume");
             quitToMenuTexture = content.Load<Texture2D>("Textures/MainMenu");
             gameOverTexture = content.Load<Texture2D>("Textures/GameOver");
+            creditsTexture = content.Load<Texture2D>("Textures/Credits");
             for (int i = 0; i < buttonFrame.Length; i++)
                 buttonFrame[i] = inactiveButtonFrame;
         }
