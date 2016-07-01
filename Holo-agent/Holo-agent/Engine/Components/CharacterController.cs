@@ -41,12 +41,12 @@ namespace Engine.Components
         protected float regenRate = 20;
         protected float regenCooldown = 3;
         protected float regenTimer = 3;
-        private List<SoundEffectInstance> ouchSounds;
-        public List<SoundEffectInstance> OuchSounds
+        private SoundEffectInstance injurySound;
+        public SoundEffectInstance InjurySound
         {
             set
             {
-                ouchSounds = value;
+                injurySound = value;
             }
         }
 
@@ -69,12 +69,9 @@ namespace Engine.Components
 
         public virtual void DealDamage(float amount, Weapon causer)
         {
-            if (ouchSounds != null && ouchSounds.Count > 0)
+            if (injurySound != null)
             {
-                Random random = new Random();
-                int index = random.Next(0, ouchSounds.Count);
-                if(!ouchSounds.Any(ouch => ouch.State.Equals(SoundState.Playing)))
-                    ouchSounds[index].Play();
+                injurySound.Play();
             }
             health -= amount;
             regenTimer = 0;

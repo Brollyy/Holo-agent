@@ -1862,18 +1862,6 @@
 /processorParam:TextureFormat=Color
 /build:Textures/Resume.png
 
-#begin Sounds/Ouch_1.ogg
-/importer:OggImporter
-/processor:SoundEffectProcessor
-/processorParam:Quality=Best
-/build:Sounds/Ouch_1.ogg
-
-#begin Sounds/Ouch_2.ogg
-/importer:OggImporter
-/processor:SoundEffectProcessor
-/processorParam:Quality=Best
-/build:Sounds/Ouch_2.ogg
-
 #begin Sounds/Pistol.ogg
 /importer:OggImporter
 /processor:SoundEffectProcessor
@@ -1903,4 +1891,10 @@
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
 /build:Textures/Credits.png
+
+#begin Sounds/Injury.ogg
+/importer:OggImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Sounds/Injury.ogg
 
