@@ -641,8 +641,7 @@ namespace Holo_agent
             {
                 new Vector2(-1000,1000)
             }, player);
-            Minimap.Objectives.Add(new Vector3(50, 100001, 90));
-            Minimap.Objectives.Add(new Vector3(70, 0, -100));
+            Minimap.Objectives.Add(new Vector3(-660, -140, 50));
             Minimap.Enemies.Add(enemy);
             Minimap.Enemies.Add(enemy2);
             stepsSounds = new List<SoundEffectInstance>();
