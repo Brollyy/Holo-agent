@@ -66,7 +66,8 @@ namespace Holo_agent
         float hologramRecordingTimer = 0.0f;
         float hologramRecordingMaxTime;
         SoundEffect shot;
-        List<SoundEffectInstance> stepsSounds, ouchSounds;
+        SoundEffectInstance injurySound;
+        List<SoundEffectInstance> stepsSounds;
         Texture2D gunfireTexture;
         Texture2D floorTexture;
         GameState gameState = GameState.Intro;
@@ -645,7 +646,6 @@ namespace Holo_agent
             Minimap.Enemies.Add(enemy);
             Minimap.Enemies.Add(enemy2);
             stepsSounds = new List<SoundEffectInstance>();
-            ouchSounds = new List<SoundEffectInstance>();
             hologramRecordingMaxTime = 5.0f;
         }
 
@@ -677,10 +677,9 @@ namespace Holo_agent
             shot = Content.Load<SoundEffect>("Sounds/Pistol");
             stepsSounds.Add(Content.Load<SoundEffect>("Sounds/Steps_Walk").CreateInstance());
             stepsSounds.Add(Content.Load<SoundEffect>("Sounds/Steps_Run").CreateInstance());
-            ouchSounds.Add(Content.Load<SoundEffect>("Sounds/Ouch_1").CreateInstance());
-            ouchSounds.Add(Content.Load<SoundEffect>("Sounds/Ouch_2").CreateInstance());
+            injurySound = Content.Load<SoundEffect>("Sounds/Injury").CreateInstance();
             player.GetComponent<PlayerController>().StepsSounds = stepsSounds;
-            player.GetComponent<PlayerController>().OuchSounds = ouchSounds;
+            player.GetComponent<PlayerController>().InjurySound = injurySound;
             weapons[0].GetComponent<Weapon>().GunshotSound = shot;
             weapons[1].GetComponent<Weapon>().GunshotSound = shot;
 
