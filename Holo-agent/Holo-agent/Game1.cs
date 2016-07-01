@@ -44,6 +44,7 @@ namespace Holo_agent
         GameObject player;
         GameObject enemy;
         GameObject enemy2;
+        GameObject enemy3;
         GameObject gunfire;
         GameObject bench;
         GameObject bench1;
@@ -54,6 +55,8 @@ namespace Holo_agent
         GameObject bench7;
         GameObject bench8;
         GameObject bench9;
+        GameObject biurko1;
+        GameObject krzesełko;
         List<GameObject> propsRoom5;
         List<GameObject> doors;
         List<SpriteInstance> particles;
@@ -66,6 +69,14 @@ namespace Holo_agent
         float hologramRecordingTimer = 0.0f;
         float hologramRecordingMaxTime;
         SoundEffect shot;
+        SoundEffect dialog1;
+        SoundEffect dialog2;
+        SoundEffect dialog3a;
+        SoundEffect dialog3b;
+        SoundEffect dialog3c;
+        SoundEffect dialog4a;
+        SoundEffect dialog4b;
+        int p_dialog1 = 0;
         SoundEffectInstance injurySound;
         List<SoundEffectInstance> stepsSounds;
         Texture2D gunfireTexture;
@@ -73,7 +84,7 @@ namespace Holo_agent
         GameState gameState = GameState.Intro;
         GameMenu gameMenu;
         Vector2 objectivePosition = Vector2.UnitY * -500;
-        string objectiveString = "[Some objective]";
+        string objectiveString = "[Uratuj informatorów]";
         private double? startTime;
         StorageDevice device;
         Type[] knownTypes;
@@ -336,6 +347,15 @@ namespace Holo_agent
                         if (gunfireInstance != null) gunfireInstance.GetInactiveComponent<SpriteInstance>().Draw(gameTime);
                     }
                 }
+                if (enemy3.GetComponent<EnemyController>() != null)
+                {
+                    Weapon enemyWeapon = enemy3.GetComponent<EnemyController>().Weapon.GetComponent<Weapon>();
+                    if (enemyWeapon != null)
+                    {
+                        GameObject gunfireInstance = enemyWeapon.getGunfireInstance();
+                        if (gunfireInstance != null) gunfireInstance.GetInactiveComponent<SpriteInstance>().Draw(gameTime);
+                    }
+                }
                 if (player.GetComponent<PlayerController>() != null)
                 {
                     if (weapon != null)
@@ -383,11 +403,11 @@ namespace Holo_agent
                     spriteBatch.Draw(crosshair, new Vector2((graphics.PreferredBackBufferWidth / 2) - (crosshair.Width / 2), (graphics.PreferredBackBufferHeight / 2) - (crosshair.Height / 2)), player.GetComponent<PlayerController>().CrosshairColor);
                     if (player.GetComponent<PlayerController>().CrosshairColor == Color.Lime)
                     {
-                        string message = "Press F to ";
+                        string message = "Naciśnij F aby ";
                         Interaction inter = player.GetComponent<PlayerController>().ClosestObject.GetComponent<Interaction>();
-                        if (inter is DoorInteraction) message += "open the door.";
-                        if (inter is WeaponInteraction) message += "pick up the gun.";
-                        if (inter is KeypadInteraction) message += "enter the code.";
+                        if (inter is DoorInteraction) message += "otworzyć drzwi.";
+                        if (inter is WeaponInteraction) message += "podnieść broń.";
+                        if (inter is KeypadInteraction) message += "wpisać kod.";
                         spriteBatch.DrawString(interfaceFont, message, new Vector2(w.X / 2 - 0.25f * interfaceFont.MeasureString(message).X / 2, 0.6f * w.Y), Color.Orange, 0, Vector2.Zero, 0.25f, SpriteEffects.None, 0);
                     }
                     Minimap.Draw(ref spriteBatch);
@@ -548,6 +568,12 @@ namespace Holo_agent
             (new GameObject("Wall8_24", new Vector3(-270, -170, -28f), Quaternion.Identity, Vector3.One, scene, room8, new BoundingBox(new Vector3(-294f, -5, 0f), new Vector3(-289, 85, 35f)))).AddNewComponent<Collider>();
             (new GameObject("Trigger", new Vector3(330, 20, -40), Quaternion.Identity, Vector3.One, scene, room2, new BoundingBox(-20 * Vector3.One, 20 * Vector3.One))).AddComponent(new Collider(true, true, new TriggerAction(() =>
             {
+                if (p_dialog1 == 0)
+                {
+                    Dialogues.PlayDialogue(dialog1, 0.5f);
+                    p_dialog1 = 1;
+                }
+                
                 Dialogues.PlayDialogue("Hold W, S, A and D to move", 1, 5);
                 Dialogues.PlayDialogue("Hold Shift to run and C to crouch", 6.5f, 5);
                 Dialogues.PlayDialogue("Press Left Mouse Button to shoot", 12, 5);
@@ -586,28 +612,37 @@ namespace Holo_agent
             weaponColliders.Add(weapons[2].AddNewComponent<Collider>());
             weaponColliders[2].bound = new Engine.Bounding_Volumes.BoundingBox(weaponColliders[2], new Vector3(0, 0, -2f), new Vector3(0.5f, 1.5f, 2.5f));
             weapons[2].AddNewComponent<WeaponInteraction>();
+            weapons.Add(new GameObject("MachineGun3", new Vector3(40, 18, -40), Quaternion.Identity, Vector3.One, scene, room2));
+            weaponColliders.Add(weapons[3].AddNewComponent<Collider>());
+            weaponColliders[3].bound = new Engine.Bounding_Volumes.BoundingBox(weaponColliders[2], new Vector3(0, 0, -2f), new Vector3(0.5f, 1.5f, 2.5f));
+            weapons[3].AddNewComponent<WeaponInteraction>();
+
             weapons[0].AddComponent(new Weapon(WeaponTypes.Pistol, 12, 28, 12, 240, 1000, new Vector3(2.5f, -1.5f, -5.75f)));
             weapons[1].AddComponent(new Weapon(WeaponTypes.MachineGun, 32, 72, 32, 640, 1000, new Vector3(1.5f, -2f, -5.5f)));
             weapons[2].AddComponent(new Weapon(WeaponTypes.MachineGun, 32, 72, 32, 640, 1000, new Vector3(1.5f, -2f, -5.5f)));
+            weapons[3].AddComponent(new Weapon(WeaponTypes.MachineGun, 32, 72, 32, 640, 1000, new Vector3(1.5f, -2f, -5.5f)));
             gunfires.Add(new GameObject("Pistol_Gunfire", new Vector3(0, 0.6f, -4), Quaternion.Identity, Vector3.One * 0.5f, scene, weapons[0]));
             gunfires.Add(new GameObject("MachineGun_Gunfire", new Vector3(0, 0.15f, -8.5f), Quaternion.Identity, Vector3.One, scene, weapons[1]));
             gunfires.Add(new GameObject("MachineGun_Gunfire", new Vector3(0, 0.15f, -8.5f), Quaternion.Identity, Vector3.One, scene, weapons[2]));
-            enemy = new GameObject("Enemy", new Vector3(30, 20, -150), Quaternion.Identity, Vector3.One, scene, room2);
-            enemy2 = new GameObject("Enemy2", new Vector3(-165, -39, 242), Quaternion.CreateFromAxisAngle(Vector3.Up, MathHelper.ToRadians(-45)), Vector3.One, scene, room5);
-            enemy.AddComponent(new EnemyController(weapons[1], new List<Vector3>()
-            {
-                new Vector3(-120, 20, -330), new Vector3(-120, 20, -100),
-                new Vector3(160, 20, -100), new Vector3(160, 20, -330)
-            }));
+            gunfires.Add(new GameObject("MachineGun_Gunfire", new Vector3(0, 0.15f, -8.5f), Quaternion.Identity, Vector3.One, scene, weapons[3]));
+            enemy = new GameObject("Enemy", new Vector3(38, 20, -96), Quaternion.Identity, Vector3.One, scene, room2);
+            enemy2 = new GameObject("Enemy2", new Vector3(-165, -39, 242), Quaternion.CreateFromAxisAngle(Vector3.Up, MathHelper.ToRadians(-85)), Vector3.One, scene, room5);
+            enemy3 = new GameObject("Enemy3", new Vector3(-38, 20, -96), Quaternion.Identity, Vector3.One, scene, room2);
+            enemy.AddComponent(new EnemyController(weapons[1]));
             enemy2.AddComponent(new EnemyController(weapons[2]));
+            enemy3.AddComponent(new EnemyController(weapons[3]));
             enemy.AddComponent(new Rigidbody(80));
             enemy2.AddComponent(new Rigidbody(80));
+            enemy3.AddComponent(new Rigidbody(80));
             enemy.GetComponent<Rigidbody>().GravityEnabled = false;
             enemy2.GetComponent<Rigidbody>().GravityEnabled = false;
+            enemy3.GetComponent<Rigidbody>().GravityEnabled = false;
             Collider enemyCol = enemy.AddNewComponent<Collider>();
             Collider enemyCol2 = enemy2.AddNewComponent<Collider>();
+            Collider enemyCol3 = enemy3.AddNewComponent<Collider>();
             enemyCol.bound = new Engine.Bounding_Volumes.BoundingBox(enemyCol, new Vector3(0, -8f, 0), new Vector3(2, 9f, 2));
             enemyCol2.bound = new Engine.Bounding_Volumes.BoundingBox(enemyCol2, new Vector3(0, -8f, 0), new Vector3(2, 9f, 2));
+            enemyCol3.bound = new Engine.Bounding_Volumes.BoundingBox(enemyCol3, new Vector3(0, -8f, 0), new Vector3(2, 9f, 2));
             //emitterTimer = 0;
             objectiveTimer = 2;
             player.GetComponent<PlayerController>().addWeapon(weapons[0]);
@@ -639,6 +674,9 @@ namespace Holo_agent
             bench7 = new GameObject("Bench7", new Vector3(138, 88, -148), Quaternion.Identity, Vector3.One, scene, room);
             bench8 = new GameObject("Bench8", new Vector3(-80, 88, -118), Quaternion.Identity, Vector3.One, scene, room);
             bench9 = new GameObject("Bench9", new Vector3(-80, 88, -275), Quaternion.Identity, Vector3.One, scene, room);
+
+            biurko1 = new GameObject("Biurko1", new Vector3(70,3,-5), Quaternion.Identity, Vector3.One, scene, room2);
+            krzesełko = new GameObject("Krzeselko", new Vector3(50,3,-15), Quaternion.CreateFromAxisAngle(Vector3.UnitY, MathHelper.ToRadians(180)), Vector3.One, scene, room2);
 
             Collider columnCol1 = bench.AddNewComponent<Collider>();
             Collider columnCol2 = bench1.AddNewComponent<Collider>();
@@ -699,6 +737,13 @@ namespace Holo_agent
             dialogueFont = Content.Load<SpriteFont>("Font/Dialogue");
             interfaceFont = Content.Load<SpriteFont>("Font/Interface");
             shot = Content.Load<SoundEffect>("Sounds/Pistol");
+            dialog1 = Content.Load<SoundEffect>("Sounds/Dialogi/Dialog_korytarz");
+            dialog2 = Content.Load<SoundEffect>("Sounds/Dialogi/Dialog_hol");
+            dialog3a = Content.Load<SoundEffect>("Sounds/Dialogi/Dialog_hologram");
+            dialog3b = Content.Load<SoundEffect>("Sounds/Dialogi/Dialog_hologram_spalony");
+            dialog3c = Content.Load<SoundEffect>("Sounds/Dialogi/Dialog_no_holo");
+            dialog4a = Content.Load<SoundEffect>("Sounds/Dialogi/Korytarz_dobra");
+            dialog4b = Content.Load<SoundEffect>("Sounds/Dialogi/Korytarz_zła");
             stepsSounds.Add(Content.Load<SoundEffect>("Sounds/Steps_Walk").CreateInstance());
             stepsSounds.Add(Content.Load<SoundEffect>("Sounds/Steps_Run").CreateInstance());
             injurySound = Content.Load<SoundEffect>("Sounds/Injury").CreateInstance();
@@ -821,6 +866,19 @@ namespace Holo_agent
             enemy2.GetComponent<AnimationController>().BindAnimation("death", 2, false);
             enemy2.GetComponent<AnimationController>().BindAnimation("hit", 3, false);
 
+            enemy3.AddComponent(new MeshInstance(enemyModel));
+            enemy3.GetComponent<MeshInstance>().Model.PreCustomSkinnedShaders.Add(highlightShader);
+            enemy3.GetComponent<MeshInstance>().Offset = new Vector3(0, -17, 0);
+            enemy3.GetComponent<MeshInstance>().Model.Clips.Add(enemyRunClip);
+            enemy3.GetComponent<MeshInstance>().Model.Clips.Add(enemyDeathClip);
+            enemy3.GetComponent<MeshInstance>().Model.Clips.Add(enemyShootClip);
+            enemy3.GetComponent<MeshInstance>().Model.Clips.Add(enemyHitClip);
+            enemy3.AddNewComponent<AnimationController>();
+            enemy3.GetComponent<AnimationController>().SetBindPose(enemyShootClip);
+            enemy3.GetComponent<AnimationController>().BindAnimation("run", 1, true);
+            enemy3.GetComponent<AnimationController>().BindAnimation("death", 2, false);
+            enemy3.GetComponent<AnimationController>().BindAnimation("hit", 3, false);
+
             Model doorModel = Content.Load<Model>("Models/door2");
             doors[0].AddComponent(new MeshInstance(doorModel));
 
@@ -835,6 +893,10 @@ namespace Holo_agent
             weapons[2].AddComponent(new MeshInstance(machineGunModel));
             gunfires[2].AddComponent(new SpriteInstance(gunfireTexture, new Vector3(0, 5, 5), 1, 1, graphics));
             gunfires[2].GetComponent<SpriteInstance>().Enabled = false;
+
+            weapons[3].AddComponent(new MeshInstance(machineGunModel));
+            gunfires[3].AddComponent(new SpriteInstance(gunfireTexture, new Vector3(0, 5, 5), 1, 1, graphics));
+            gunfires[3].GetComponent<SpriteInstance>().Enabled = false;
             for (int i = 1; i < 4; i++)
                 particles.Add(new SpriteInstance(Content.Load<Texture2D>("Textures/Particle" + i + " [Fire]"), new Vector3(0, 1, 1), 1, 0.5f, graphics));
             for (int i = 1; i < 4; i++)
@@ -873,6 +935,9 @@ namespace Holo_agent
             bench7.AddComponent(new MeshInstance(columnModel));
             bench8.AddComponent(new MeshInstance(columnModel));
             bench9.AddComponent(new MeshInstance(columnModel));
+
+            biurko1.AddComponent(new MeshInstance(deskModel));
+            krzesełko.AddComponent(new MeshInstance(chairModel));
         }
 
         protected Texture2D DrawSceneToTexture(RenderTarget2D currentRenderTarget, GameTime gameTime)
@@ -1072,6 +1137,7 @@ namespace Holo_agent
                 if (newGo.Name == "Player") player = newGo;
                 if (newGo.Name == "Enemy") enemy = newGo;
                 if (newGo.Name == "Enemy2") enemy2 = newGo;
+                if (newGo.Name == "Enemy3") enemy3 = newGo;
             }
 
             

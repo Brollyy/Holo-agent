@@ -1898,3 +1898,45 @@
 /processorParam:Quality=Best
 /build:Sounds/Injury.ogg
 
+#begin Sounds/Dialogi/Dialog_hol.ogg
+/importer:OggImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Sounds/Dialogi/Dialog_hol.ogg
+
+#begin Sounds/Dialogi/Dialog_hologram.ogg
+/importer:OggImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Sounds/Dialogi/Dialog_hologram.ogg
+
+#begin Sounds/Dialogi/Dialog_hologram_spalony.ogg
+/importer:OggImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Sounds/Dialogi/Dialog_hologram_spalony.ogg
+
+#begin Sounds/Dialogi/Dialog_korytarz.ogg
+/importer:OggImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Sounds/Dialogi/Dialog_korytarz.ogg
+
+#begin Sounds/Dialogi/Dialog_no_holo.ogg
+/importer:OggImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Sounds/Dialogi/Dialog_no_holo.ogg
+
+#begin Sounds/Dialogi/Korytarz_dobra.ogg
+/importer:OggImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Sounds/Dialogi/Korytarz_dobra.ogg
+
+#begin Sounds/Dialogi/Korytarz_zła.ogg
+/importer:OggImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Sounds/Dialogi/Korytarz_zła.ogg
+
