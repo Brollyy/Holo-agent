@@ -655,25 +655,25 @@ namespace Holo_agent
 
             Vector3 deskOffset = new Vector3(19, 0, 23);
             Vector3 couchOffset = new Vector3(0, 0, 0);
-            propsRoom5.Add(new GameObject("Chair5_1", new Vector3(-253, -57, 140), Quaternion.CreateFromYawPitchRoll(-(float)Math.PI / 2.0f, 0, 0), Vector3.One, scene, room5));
-            propsRoom5.Add(new GameObject("Desk5_1", new Vector3(-260, -57, 140) + Vector3.Transform(deskOffset, Matrix.CreateFromAxisAngle(Vector3.Up, -(float)Math.PI / 2)), Quaternion.CreateFromYawPitchRoll(-(float)Math.PI / 2.0f, 0, 0), Vector3.One, scene, room5));
-            propsRoom5.Add(new GameObject("Chair5_2", new Vector3(-148, -57, 253), Quaternion.Identity, Vector3.One, scene, room5));
-            propsRoom5.Add(new GameObject("Desk5_2", new Vector3(-148, -57, 260) + deskOffset, Quaternion.Identity, Vector3.One, scene, room5));
-            propsRoom5.Add(new GameObject("Chair5_3", new Vector3(-33, -57, 253), Quaternion.Identity, Vector3.One, scene, room5));
-            propsRoom5.Add(new GameObject("Desk5_3", new Vector3(-33, -57, 260) + deskOffset, Quaternion.Identity, Vector3.One, scene, room5));
-            propsRoom5.Add(new GameObject("Couch5_1", new Vector3(-152, -60, 116) + couchOffset, Quaternion.Identity, Vector3.One, scene, room5));
-            propsRoom5.Add(new GameObject("Couch5_2", new Vector3(-130, -60, 141) + Vector3.Transform(couchOffset, Matrix.CreateFromAxisAngle(Vector3.Up, -(float)Math.PI / 2)), Quaternion.CreateFromYawPitchRoll(-(float)Math.PI / 2.0f, 0, 0), Vector3.One, scene, room5));
+            propsRoom5.Add(new GameObject("Chair5_1", new Vector3(-253, -63.5f, 140), Quaternion.CreateFromYawPitchRoll(-(float)Math.PI / 2.0f, 0, 0), Vector3.One, scene, room5));
+            propsRoom5.Add(new GameObject("Desk5_1", new Vector3(-260, -64, 140) + Vector3.Transform(deskOffset, Matrix.CreateFromAxisAngle(Vector3.Up, -(float)Math.PI / 2)), Quaternion.CreateFromYawPitchRoll(-(float)Math.PI / 2.0f, 0, 0), Vector3.One, scene, room5));
+            propsRoom5.Add(new GameObject("Chair5_2", new Vector3(-148, -63.5f, 253), Quaternion.Identity, Vector3.One, scene, room5));
+            propsRoom5.Add(new GameObject("Desk5_2", new Vector3(-148, -64, 260) + deskOffset, Quaternion.Identity, Vector3.One, scene, room5));
+            propsRoom5.Add(new GameObject("Chair5_3", new Vector3(-33, -63.5f, 253), Quaternion.Identity, Vector3.One, scene, room5));
+            propsRoom5.Add(new GameObject("Desk5_3", new Vector3(-33, -64, 260) + deskOffset, Quaternion.Identity, Vector3.One, scene, room5));
+            propsRoom5.Add(new GameObject("Couch5_1", new Vector3(-142.5f, -64, 135) + couchOffset, Quaternion.Identity, Vector3.One, scene, room5));
+            propsRoom5.Add(new GameObject("Couch5_2", new Vector3(-130, -64, 145) + Vector3.Transform(couchOffset, Matrix.CreateFromAxisAngle(Vector3.Up, -(float)Math.PI / 2)), Quaternion.CreateFromYawPitchRoll(-(float)Math.PI / 2.0f, 0, 0), Vector3.One, scene, room5));
 
-            bench = new GameObject("Bench", new Vector3(138, 88, -220), Quaternion.Identity, Vector3.One, scene, room);
-            bench1 = new GameObject("Bench1", new Vector3(90, 88, -118), Quaternion.Identity, Vector3.One, scene, room);
-            bench2 = new GameObject("Bench2", new Vector3(90, 88, -275), Quaternion.Identity, Vector3.One, scene, room);
-            bench3 = new GameObject("Bench3", new Vector3(0, 88, -220), Quaternion.Identity, Vector3.One, scene, room);
-            bench4 = new GameObject("Bench4", new Vector3(10, 88, -118), Quaternion.Identity, Vector3.One, scene, room);
-            column2 = new GameObject("column2", new Vector3(10, 88, -275), Quaternion.Identity, Vector3.One, scene, room);
+            bench = new GameObject("Bench", new Vector3(138, 100.5f, -220), Quaternion.Identity, Vector3.One, scene, room);
+            bench1 = new GameObject("Bench1", new Vector3(90, 100.5f, -118), Quaternion.Identity, Vector3.One, scene, room);
+            bench2 = new GameObject("Bench2", new Vector3(90, 100.5f, -275), Quaternion.Identity, Vector3.One, scene, room);
+            bench3 = new GameObject("Bench3", new Vector3(0, 100.5f, -220), Quaternion.Identity, Vector3.One, scene, room);
+            bench4 = new GameObject("Bench4", new Vector3(10, 100.5f, -118), Quaternion.Identity, Vector3.One, scene, room);
+            column2 = new GameObject("column2", new Vector3(10, 100.5f, -275), Quaternion.Identity, Vector3.One, scene, room);
             column2.AddComponent(new KeypadInteraction("1337", null));
-            bench7 = new GameObject("Bench7", new Vector3(138, 88, -148), Quaternion.Identity, Vector3.One, scene, room);
-            bench8 = new GameObject("Bench8", new Vector3(-80, 88, -118), Quaternion.Identity, Vector3.One, scene, room);
-            bench9 = new GameObject("Bench9", new Vector3(-80, 88, -275), Quaternion.Identity, Vector3.One, scene, room);
+            bench7 = new GameObject("Bench7", new Vector3(138, 100.5f, -148), Quaternion.Identity, Vector3.One, scene, room);
+            bench8 = new GameObject("Bench8", new Vector3(-80, 100.5f, -118), Quaternion.Identity, Vector3.One, scene, room);
+            bench9 = new GameObject("Bench9", new Vector3(-80, 100.5f, -275), Quaternion.Identity, Vector3.One, scene, room);
 
             biurko1 = new GameObject("Biurko1", new Vector3(70,3,-5), Quaternion.Identity, Vector3.One, scene, room2);
             krzesełko = new GameObject("Krzeselko", new Vector3(50,3,-15), Quaternion.CreateFromAxisAngle(Vector3.UnitY, MathHelper.ToRadians(180)), Vector3.One, scene, room2);
