@@ -577,8 +577,9 @@ namespace Holo_agent
             {
                 if (p_dialog1 == 0)
                 {
-                    Dialogues.PlayDialogue(dialog1, 0.5f);
                     p_dialog1 = 1;
+                    Dialogues.PlayDialogue(dialog1, 0.5f);
+                    
                 }
                 
                 Dialogues.PlayDialogue("Hold W, S, A and D to move", 1, 5);
@@ -633,7 +634,7 @@ namespace Holo_agent
             gunfires.Add(new GameObject("MachineGun_Gunfire", new Vector3(0, 0.15f, -8.5f), Quaternion.Identity, Vector3.One, scene, weapons[2]));
             gunfires.Add(new GameObject("MachineGun_Gunfire", new Vector3(0, 0.15f, -8.5f), Quaternion.Identity, Vector3.One, scene, weapons[3]));
             enemy = new GameObject("Enemy", new Vector3(67, 20, -20), Quaternion.Identity, Vector3.One, scene, room2);
-            enemy2 = new GameObject("Enemy2", new Vector3(-165, -39, 242), Quaternion.CreateFromAxisAngle(Vector3.Up, MathHelper.ToRadians(-85)), Vector3.One, scene, room5);
+            enemy2 = new GameObject("Enemy2", new Vector3(-165, -45, 242), Quaternion.CreateFromAxisAngle(Vector3.Up, MathHelper.ToRadians(-85)), Vector3.One, scene, room5);
             enemy3 = new GameObject("Enemy3", new Vector3(-38, 20, -96), Quaternion.Identity, Vector3.One, scene, room2);
             enemy.AddComponent(new EnemyController(weapons[1]));
             enemy2.AddComponent(new EnemyController(weapons[2]));
