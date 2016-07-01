@@ -589,7 +589,7 @@ namespace Engine.Components
                     stepsSounds[(movement.Equals(Movement.RUN) ? 1 : 0)].Play();
                 }
 
-                if(isMoving <= 0 || hologramRecording)
+                if(isMoving <= 0 || hologramRecording || movement.Equals(Movement.CROUCH))
                 {
                     int index = stepsSounds.FindIndex(step => step.State.Equals(SoundState.Playing));
                     if (index != -1)

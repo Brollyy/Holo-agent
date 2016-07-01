@@ -177,6 +177,8 @@ namespace Engine.Components
         private bool isCrouching;
         private bool isRunning;
 
+        public bool IsCrouching { get { return isCrouching; } }
+
         public void StopPlayback(PressedActionArgs args)
         {
             if (handler != null) handler();

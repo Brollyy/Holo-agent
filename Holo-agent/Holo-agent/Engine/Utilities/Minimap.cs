@@ -50,9 +50,9 @@ namespace Engine.Utilities
             halfSize = new Point((int)(0.5f * size.X), (int)(0.5f * size.Y));
             Offset = new Point(offset.X, offset.Y);
             dest = new Rectangle(Offset, Size);
-            Scale = 1;
-            halfScaledSize = new Point((int)(Scale * halfSize.X), (int)(Scale * halfSize.Y));
-            scaledSize = new Point((int)(Scale * Size.X), (int)(Scale * Size.Y));
+            Scale = 5;
+            halfScaledSize = new Point((int)(halfSize.X / Scale), (int)(halfSize.Y / Scale));
+            scaledSize = new Point((int)(Size.X / Scale), (int)(Size.Y / Scale));
             playerSize = new Point((int)(0.1f * Size.X), (int)(0.1f * Size.Y));
             hologramSize = new Point((int)(0.07f * Size.X), (int)(0.07f * Size.Y));
             halfHologramSize = new Point((int)(0.5f * hologramSize.X), (int)(0.5f * hologramSize.Y));
@@ -106,9 +106,9 @@ namespace Engine.Utilities
                     if (pos.Y >= VerticalBounds[i].X && pos.Y <= VerticalBounds[i].Y) break;
                 }
                 if (i == VerticalBounds.Length) i = 0;
-                Point scaledPlayerPos = new Point((int)(Scale * pos.X), (int)(Scale * pos.Z));
+                Point scaledPlayerPos = new Point((int)(pos.X / Scale), (int)(pos.Z / Scale));
                 Point center = Maps[i].Bounds.Center + scaledPlayerPos;
-                Rectangle src = new Rectangle(center - halfScaledSize, scaledSize);
+                Rectangle src = new Rectangle(center - halfSize, Size);
                 batch.Draw(Maps[i], dest, src, Color.White, 0, Vector2.Zero, SpriteEffects.None, 0);
                 foreach(Vector3 ObjectivePosition in Objectives)
                 {

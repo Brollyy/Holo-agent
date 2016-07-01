@@ -94,6 +94,8 @@ namespace Engine.Components
         [DataMember]
         private float meleeRange;
         [DataMember]
+        private float hearRange = 200;
+        [DataMember]
         private float lastSearch = 0.0f;
         [DataMember]
         private float waitingForTarget = 0.0f;
@@ -270,26 +272,46 @@ namespace Engine.Components
                             Vector3 distance = go.GlobalPosition - Owner.GlobalPosition;
                             if (go.IsVisible && distance.LengthSquared() < shootingRange * shootingRange)
                             {
+
                                 if (distance.LengthSquared() > meleeRange * meleeRange && (Vector3.Normalize(distance) - Owner.LocalToWorldMatrix.Forward).LengthSquared() > 1.0f) continue;
-                                distance.Normalize();
                                 if (go.Name.Equals("Player")) // Possibly temporary, but seems good
                                 {
-                                    Ray(shootingRange, nearbyObjects, Vector3.Normalize(go.GlobalPosition - Owner.GlobalPosition));
-                                    if (found == null && ClosestObject == go)
+                                    if (distance.LengthSquared() < hearRange * hearRange &&
+                                        !go.GetComponent<PlayerController>().Movement.Equals(Movement.CROUCH) &&
+                                        go.GetComponent<Rigidbody>().Velocity.Length() > 1.0f)
                                     {
                                         found = go;
                                         state = EnemyState.Alert;
+                                    }
+                                    else
+                                    {
+                                        Ray(shootingRange, nearbyObjects, Vector3.Normalize(distance));
+                                        if (found == null && ClosestObject == go)
+                                        {
+                                            found = go;
+                                            state = EnemyState.Alert;
+                                        }
                                     }
                                 }
 
                                 if (go.Name.Equals("HologramPlayback"))
                                 {
-                                    Ray(shootingRange, nearbyObjects, Vector3.Normalize(go.GlobalPosition - Owner.GlobalPosition));
-                                    if (ClosestObject == go)
+                                    if (distance.LengthSquared() < hearRange * hearRange &&
+                                        !go.GetComponent<HologramPlayback>().IsCrouching)
                                     {
                                         found = go;
                                         state = EnemyState.Alert;
                                         break;
+                                    }
+                                    else
+                                    {
+                                        Ray(shootingRange, nearbyObjects, Vector3.Normalize(distance));
+                                        if (found == null && ClosestObject == go)
+                                        {
+                                            found = go;
+                                            state = EnemyState.Alert;
+                                            break;
+                                        }
                                     }
                                 }
                             }
@@ -307,26 +329,46 @@ namespace Engine.Components
                     Vector3 distance = go.GlobalPosition - Owner.GlobalPosition;
                     if (go.IsVisible && distance.LengthSquared() < shootingRange * shootingRange)
                     {
+
                         if (distance.LengthSquared() > meleeRange * meleeRange && (Vector3.Normalize(distance) - Owner.LocalToWorldMatrix.Forward).LengthSquared() > 1.0f) continue;
-                        distance.Normalize();
                         if (go.Name.Equals("Player")) // Possibly temporary, but seems good
                         {
-                            Ray(shootingRange, nearbyObjects, Vector3.Normalize(go.GlobalPosition - Owner.GlobalPosition));
-                            if (found == null && ClosestObject == go)
+                            if (distance.LengthSquared() < hearRange * hearRange &&
+                                !go.GetComponent<PlayerController>().Movement.Equals(Movement.CROUCH) &&
+                                go.GetComponent<Rigidbody>().Velocity.Length() > 1.0f)
                             {
                                 found = go;
                                 state = EnemyState.Alert;
+                            }
+                            else
+                            {
+                                Ray(shootingRange, nearbyObjects, Vector3.Normalize(distance));
+                                if (found == null && ClosestObject == go)
+                                {
+                                    found = go;
+                                    state = EnemyState.Alert;
+                                }
                             }
                         }
 
                         if (go.Name.Equals("HologramPlayback"))
                         {
-                            Ray(shootingRange, nearbyObjects, Vector3.Normalize(go.GlobalPosition - Owner.GlobalPosition));
-                            if (ClosestObject == go)
+                            if (distance.LengthSquared() < hearRange * hearRange &&
+                                !go.GetComponent<HologramPlayback>().IsCrouching)
                             {
                                 found = go;
                                 state = EnemyState.Alert;
                                 break;
+                            }
+                            else
+                            {
+                                Ray(shootingRange, nearbyObjects, Vector3.Normalize(distance));
+                                if (found == null && ClosestObject == go)
+                                {
+                                    found = go;
+                                    state = EnemyState.Alert;
+                                    break;
+                                }
                             }
                         }
                     }
@@ -352,7 +394,7 @@ namespace Engine.Components
             base.InitializeNewOwner(newOwner);
         }
 
-        public EnemyController(GameObject weapon, List<Vector3> patrolPoints = null, float range = 500, float shootingRange = 700, float meleeRange = 20) : base()
+        public EnemyController(GameObject weapon, List<Vector3> patrolPoints = null, float range = 500, float shootingRange = 700, float meleeRange = 30) : base()
         {
             movement = Movement.IDLE;
             this.range = range;
