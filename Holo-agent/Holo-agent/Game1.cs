@@ -485,7 +485,7 @@ namespace Holo_agent
             GameObject room4 = new GameObject("Room4", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(new Vector3(-265, -65, -10), new Vector3(-180, 40, 40)));
             GameObject room5 = new GameObject("Room5", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(new Vector3(-300, -65, 35), new Vector3(-180, -25, 230)));
             GameObject room6 = new GameObject("Room6", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(new Vector3(-178, -65, 100), new Vector3(5, -25, 300)));
-            GameObject room7 = new GameObject("Room7", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(new Vector3(-3, -170, 170), new Vector3(80, -25, 215)));
+            GameObject room7 = new GameObject("Room7", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(new Vector3(-3, -170, 170), new Vector3(40, -25, 215)));
             GameObject room8 = new GameObject("Room8", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(new Vector3(-1500, -170, -300), new Vector3(500, -130, 1150)));
             //GameObject room9 = new GameObject("Room9", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(new Vector3(-175, -250, 218), new Vector3(-110, -130, 265)));
             //GameObject room10 = new GameObject("Room10", Vector3.Zero, Quaternion.Identity, Vector3.One, scene, null, new BoundingBox(new Vector3(-255, -250, 260), new Vector3(-10, -170, 420)));
@@ -510,11 +510,11 @@ namespace Holo_agent
 
             (new GameObject("Floor1_1", new Vector3(287.5f, -5, -130), Quaternion.Identity, Vector3.One, scene, room, new BoundingBox(new Vector3(-112.5f, -5, -200), new Vector3(112.5f, 6, 165)))).AddNewComponent<Collider>();
             (new GameObject("Floor2_1", new Vector3(10, -5f, -230), Quaternion.Identity, Vector3.One, scene, room2, new BoundingBox(new Vector3(-400, -5f, -155), new Vector3(180, 6f, 155)))).AddNewComponent<Collider>();
-            (new GameObject("Floor3_1", new Vector3(-87.5f, -5f, -12.5f), Quaternion.Identity, Vector3.One, scene, room3, new BoundingBox(new Vector3(-97.5f, -5, -75), new Vector3(187.5f, 6, 52.5f)))).AddNewComponent<Collider>();
+            (new GameObject("Floor3_1", new Vector3(-87.5f, -5f, -12.5f), Quaternion.Identity, Vector3.One, scene, room3, new BoundingBox(new Vector3(-97.5f, -5, -65), new Vector3(97.5f, 6, 52.5f)))).AddNewComponent<Collider>();
             (new GameObject("Floor4_1", new Vector3(-207.5f, -5f, -4.25f), Quaternion.Identity, Vector3.One, scene, room4, new BoundingBox(new Vector3(-40, 1, -5), new Vector3(22.5f, 6, 5)))).AddNewComponent<Collider>();
             (new GameObject("Floor4_2", new Vector3(-194, -10f, 12.5f), Quaternion.CreateFromAxisAngle(Vector3.Right, (float)Math.PI/6), Vector3.One, scene, room4, new BoundingBox(new Vector3(-9, -3, -15f), new Vector3(9, 3, 12.5f)))).AddNewComponent<Collider>();
             (new GameObject("Floor4_5", new Vector3(-207.5f, -20f, 28f), Quaternion.Identity, Vector3.One, scene, room4, new BoundingBox(new Vector3(-40, 1, -5), new Vector3(22.5f, 6, 5)))).AddNewComponent<Collider>();
-            (new GameObject("Floor4_3", new Vector3(-194, -55f, 16.5f), Quaternion.CreateFromAxisAngle(Vector3.Right, (float)Math.PI / 6f), Vector3.One, scene, room4, new BoundingBox(new Vector3(-9, -3, -15f), new Vector3(9, 3, 12.5f)))).AddNewComponent<Collider>();
+            (new GameObject("Floor4_3", new Vector3(-194, -55f, 16.5f), Quaternion.CreateFromAxisAngle(Vector3.Right, (float)Math.PI / 4.5f), Vector3.One, scene, room4, new BoundingBox(new Vector3(-9, -3, -15f), new Vector3(9, 3, 12.5f)))).AddNewComponent<Collider>();
             (new GameObject("Floor4_4", new Vector3(-221, -30f, 12.5f), Quaternion.CreateFromAxisAngle(Vector3.Right, (float)(-1*Math.PI / 6)), Vector3.One, scene, room4, new BoundingBox(new Vector3(-9, -3, -15f), new Vector3(9, 3, 12.5f)))).AddNewComponent<Collider>();
             (new GameObject("Floor4_6", new Vector3(-207.5f, -45f, -4.25f), Quaternion.Identity, Vector3.One, scene, room4, new BoundingBox(new Vector3(-40, 1, -5), new Vector3(22.5f, 6, 5)))).AddNewComponent<Collider>();
             (new GameObject("Floor5_1", new Vector3(-285f, -67f, -10f), Quaternion.Identity, Vector3.One, scene, room5, new BoundingBox(new Vector3(0, 0, 0), new Vector3(300, 5, 400)))).AddNewComponent<Collider>();
@@ -535,7 +535,6 @@ namespace Holo_agent
             (new GameObject("Wall3_4", new Vector3(-210, 5, -16f), Quaternion.Identity, Vector3.One, scene, room3, new BoundingBox(new Vector3(-50f, -5, -12f), new Vector3(35, 85, 6f)))).AddNewComponent<Collider>();
             (new GameObject("Wall3_5", new Vector3(120, -10, -16f), Quaternion.Identity, Vector3.One, scene, room3, new BoundingBox(new Vector3(-20f, -5, -70f), new Vector3(35, 85, 90f)))).AddNewComponent<Collider>();
             (new GameObject("Wall3_6", new Vector3(60, 5, 73f), Quaternion.Identity, Vector3.One, scene, room3, new BoundingBox(new Vector3(-40f, -5, -7.5f), new Vector3(50, 85, 7.5f)))).AddNewComponent<Collider>();
-            (new GameObject("Wall4_1", new Vector3(-190, 5, 0), Quaternion.Identity, Vector3.One, scene, room4, new BoundingBox(new Vector3(0, -105, -50), new Vector3(10, 0, 50)))).AddNewComponent<Collider>();
             (new GameObject("Wall4_1", new Vector3(0, 5, 80f), Quaternion.Identity, Vector3.One, scene, room4, new BoundingBox(new Vector3(-40f, -5, -7.5f), new Vector3(50, 85, 7.5f)))).AddNewComponent<Collider>();
             (new GameObject("Wall5_1", new Vector3(-220, -65, 40f), Quaternion.Identity, Vector3.One, scene, room5, new BoundingBox(new Vector3(-10f, -5, 0f), new Vector3(0, 85, 90f)))).AddNewComponent<Collider>();
             (new GameObject("Wall5_2", new Vector3(-175, -65, 40f), Quaternion.Identity, Vector3.One, scene, room5, new BoundingBox(new Vector3(-10f, -5, 0f), new Vector3(0, 85, 60f)))).AddNewComponent<Collider>();
@@ -549,7 +548,6 @@ namespace Holo_agent
             (new GameObject("Wall5_10", new Vector3(-175, -65, 95f), Quaternion.Identity, Vector3.One, scene, room5, new BoundingBox(new Vector3(-10f, -5, 0f), new Vector3(70, 85, 15f)))).AddNewComponent<Collider>();
             (new GameObject("Wall5_11", new Vector3(-205, -65, 30f), Quaternion.Identity, Vector3.One, scene, room5, new BoundingBox(new Vector3(-15f, -5, 0f), new Vector3(0, 85, 10f)))).AddNewComponent<Collider>();
             (new GameObject("Wall5_12", new Vector3(10, -65, 214f), Quaternion.Identity, Vector3.One, scene, room5, new BoundingBox(new Vector3(-25f, -5, 0f), new Vector3(0, 85, 7.5f)))).AddNewComponent<Collider>();
-            (new GameObject("Wall7_1", new Vector3(80, -65, 150f), Quaternion.Identity, Vector3.One, scene, room7, new BoundingBox(new Vector3(-10f, -105, 0f), new Vector3(0, 85, 90f)))).AddNewComponent<Collider>();
             (new GameObject("Wall8_1", new Vector3(10, -170, 235f), Quaternion.Identity, Vector3.One, scene, room8, new BoundingBox(new Vector3(-254f, -5, -1f), new Vector3(0, 85, 385f)))).AddNewComponent<Collider>();
             (new GameObject("Wall8_2", new Vector3(10, -170, 155f), Quaternion.Identity, Vector3.One, scene, room8, new BoundingBox(new Vector3(-495f, -5, -301f), new Vector3(0, 85, 7.5f)))).AddNewComponent<Collider>();
             (new GameObject("Wall8_3", new Vector3(-230, -170, 235f), Quaternion.Identity, Vector3.One, scene, room8, new BoundingBox(new Vector3(-257f, -5, -1f), new Vector3(-110, 85, 335f)))).AddNewComponent<Collider>();
@@ -634,7 +632,7 @@ namespace Holo_agent
             gunfires.Add(new GameObject("MachineGun_Gunfire", new Vector3(0, 0.15f, -8.5f), Quaternion.Identity, Vector3.One, scene, weapons[1]));
             gunfires.Add(new GameObject("MachineGun_Gunfire", new Vector3(0, 0.15f, -8.5f), Quaternion.Identity, Vector3.One, scene, weapons[2]));
             gunfires.Add(new GameObject("MachineGun_Gunfire", new Vector3(0, 0.15f, -8.5f), Quaternion.Identity, Vector3.One, scene, weapons[3]));
-            enemy = new GameObject("Enemy", new Vector3(38, 20, -96), Quaternion.Identity, Vector3.One, scene, room2);
+            enemy = new GameObject("Enemy", new Vector3(67, 20, -20), Quaternion.Identity, Vector3.One, scene, room2);
             enemy2 = new GameObject("Enemy2", new Vector3(-165, -39, 242), Quaternion.CreateFromAxisAngle(Vector3.Up, MathHelper.ToRadians(-85)), Vector3.One, scene, room5);
             enemy3 = new GameObject("Enemy3", new Vector3(-38, 20, -96), Quaternion.Identity, Vector3.One, scene, room2);
             enemy.AddComponent(new EnemyController(weapons[1]));
