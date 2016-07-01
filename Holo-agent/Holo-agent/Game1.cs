@@ -575,7 +575,7 @@ namespace Holo_agent
             (new GameObject("Wall8_23", new Vector3(-465, -170, -78f), Quaternion.Identity, Vector3.One, scene, room8, new BoundingBox(new Vector3(-294f, -5, 44f), new Vector3(-289, 85, 251f)))).AddNewComponent<Collider>();
             (new GameObject("Wall8_23", new Vector3(-270, -170, 38f), Quaternion.Identity, Vector3.One, scene, room8, new BoundingBox(new Vector3(-294f, -5, 5f), new Vector3(-289, 85, 130f)))).AddNewComponent<Collider>();
             (new GameObject("Wall8_24", new Vector3(-270, -170, -28f), Quaternion.Identity, Vector3.One, scene, room8, new BoundingBox(new Vector3(-294f, -5, 0f), new Vector3(-289, 85, 35f)))).AddNewComponent<Collider>();
-            (new GameObject("Trigger", new Vector3(330, 20, -40), Quaternion.Identity, Vector3.One, scene, room2, new BoundingBox(-20 * Vector3.One, 20 * Vector3.One))).AddComponent(new Collider(true, true, new TriggerAction(() =>
+            (new GameObject("Trigger", new Vector3(330, 20, -40), Quaternion.Identity, Vector3.One, scene, room2, new BoundingBox(-20 * Vector3.One, 20 * Vector3.One))).AddComponent(new Collider(true, false, new TriggerAction(() =>
             {
                 if (p_dialog1 == 0)
                 {
@@ -583,17 +583,18 @@ namespace Holo_agent
                     p_dialog1 = 1;
                 }
                 
-                Dialogues.PlayDialogue("Hold W, S, A and D to move", 1, 5);
-                Dialogues.PlayDialogue("Hold Shift to run and C to crouch", 6.5f, 5);
-                Dialogues.PlayDialogue("Press Left Mouse Button to shoot", 12, 5);
-                Dialogues.PlayDialogue("Press R to reload your weapon", 17.5f, 4);
-                Dialogues.PlayDialogue("Press 1, 2, 3 to select the hologram slot", 22, 5);
-                Dialogues.PlayDialogue("Press Q to record hologram into selected slot", 27.5f, 3);
-                Dialogues.PlayDialogue("Press Q again to stop recording earlier", 31, 3);
-                Dialogues.PlayDialogue("Press Z to preview the path hologram will take", 34.5f, 8);
-                Dialogues.PlayDialogue("Press E to start the hologram", 43, 3);
-                Dialogues.PlayDialogue("Press E again to stop the hologram", 46.5f, 5);
-                Dialogues.PlayDialogue("Hold Tab to see your objective", 52, 7);
+                Dialogues.PlayDialogue("Poruszaj się klawiszami W, S, A, D", 1, 5);
+                Dialogues.PlayDialogue("Przytrzymaj Shift, by pobiec", 6.5f, 2.5f);
+                Dialogues.PlayDialogue("Przytrzymaj C, by się skradać", 9.5f, 2);
+                Dialogues.PlayDialogue("Strzel naciskając LPM", 12, 5);
+                Dialogues.PlayDialogue("Naciśnij R, by przeładować broń", 17.5f, 4);
+                Dialogues.PlayDialogue("Klawiszami 1, 2, 3 wybierz miejsce na hologram", 22, 5);
+                Dialogues.PlayDialogue("Naciśnij Q by nagrać hologram na wybranym miejscu", 27.5f, 3);
+                Dialogues.PlayDialogue("Naciśnij Q ponownie by zakończyć nagrywanie", 31, 3);
+                Dialogues.PlayDialogue("Naciskając Z uruchomisz podgląd hologramu", 34.5f, 8);
+                Dialogues.PlayDialogue("Naciśnij E by uruchomić hologram", 43, 3);
+                Dialogues.PlayDialogue("Naciśnij E ponownie by zakonćzyć hologram", 46.5f, 5);
+                Dialogues.PlayDialogue("Przytrzymaj Tab, by zobaczyć swój cel", 52, 7);
             })));
 
             doors.Add(new GameObject("Door1", new Vector3(330, 20, -40), Quaternion.Identity, Vector3.One, scene, room2));

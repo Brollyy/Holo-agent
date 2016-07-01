@@ -109,7 +109,7 @@ namespace Engine.Utilities
                 new List<Pair<Pair<Pair<string, Color>, bool>, Pair<Pair<float, float>, Pair<SoundEffectInstance, string>>>>(dialogueQuery);
             foreach (Pair<Pair<Pair<string, Color>, bool>, Pair<Pair<float, float>, Pair<SoundEffectInstance, string>>> dialogue in dialoguesCopy)
             {
-                if (dialogue.Second.Second.First.State == SoundState.Playing)
+                if (dialogue.Second.Second.First != null && dialogue.Second.Second.First.State == SoundState.Playing)
                 {
                     dialogue.Second.Second.First.Stop();
                     dialogueQuery.Remove(dialogue);
@@ -127,6 +127,7 @@ namespace Engine.Utilities
                 dialogue.Second.First.First += (float)gameTime.ElapsedGameTime.TotalSeconds;
                 if(dialogue.Second.First.First > dialogue.Second.First.Second)
                 {
+                    if (dialogue.Second.Second.First != null && dialogue.Second.Second.First.State == SoundState.Playing) dialogue.Second.Second.First.Stop();
                     dialogueQuery.Remove(dialogue);
                 }
                 else if(dialogue.Second.First.First >= 0.0f)
