@@ -1940,3 +1940,9 @@
 /processorParam:Quality=Best
 /build:Sounds/Dialogi/Korytarz_zła.ogg
 
+#begin FX/Mirror.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:FX/Mirror.fx
+

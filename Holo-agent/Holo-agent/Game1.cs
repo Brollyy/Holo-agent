@@ -284,6 +284,7 @@ namespace Holo_agent
                 if (startTime == null) startTime = gameTime.TotalGameTime.TotalSeconds;
                 GraphicsDevice.Clear(Color.Black);
                 Texture2D texture = DrawSceneToTexture(renderTarget, gameTime);
+                Texture2D mirrorTexture = DrawSceneToTexture(renderTarget, gameTime);
                 Texture2D bloomTexture;
                 if (player.GetComponent<PlayerController>() == null)
                 {
@@ -527,7 +528,7 @@ namespace Holo_agent
             (new GameObject("Wall2_2", new Vector3(185, 5, -372.5f), Quaternion.Identity, Vector3.One, scene, room2, new BoundingBox(new Vector3(-7.5f, -5, -106f), new Vector3(11, 85, 90f)))).AddNewComponent<Collider>();
            (new GameObject("Wall2_3", new Vector3(170, 5, -80f), Quaternion.Identity, Vector3.One, scene, room2, new BoundingBox(new Vector3(-205f, -5, -7.5f), new Vector3(11, 85, 7.5f)))).AddNewComponent<Collider>();
             (new GameObject("Wall2_4", new Vector3(-140, 5, -80f), Quaternion.Identity, Vector3.One, scene, room2, new BoundingBox(new Vector3(-350f, -5, -7.5f), new Vector3(61, 85, 5f)))).AddNewComponent<Collider>();
-            (new GameObject("Wall2_5", new Vector3(185, 5, -348f), Quaternion.Identity, Vector3.One, scene, room2, new BoundingBox(new Vector3(-600f, -5, -7.5f), new Vector3(51, 85, 7.5f)))).AddNewComponent<Collider>();
+           // (new GameObject("Wall2_5", new Vector3(185, 5, -348f), Quaternion.Identity, Vector3.One, scene, room2, new BoundingBox(new Vector3(-600f, -5, -7.5f), new Vector3(51, 85, 7.5f)))).AddNewComponent<Collider>();
            (new GameObject("Wall2_6", new Vector3(-370, 5, -65f), Quaternion.Identity, Vector3.One, scene, room2, new BoundingBox(new Vector3(-7.5f, -5, -406f), new Vector3(11, 85, -16f)))).AddNewComponent<Collider>();
             (new GameObject("Wall3_1", new Vector3(5, 5, -36f), Quaternion.Identity, Vector3.One, scene, room3, new BoundingBox(new Vector3(-2f, -5, -52f), new Vector3(11, 85, 45f)))).AddNewComponent<Collider>();
             (new GameObject("Wall3_2", new Vector3(-91, 5, 40f), Quaternion.Identity, Vector3.One, scene, room3, new BoundingBox(new Vector3(-91f, -5, -7.5f), new Vector3(120, 85, 30.5f)))).AddNewComponent<Collider>();
