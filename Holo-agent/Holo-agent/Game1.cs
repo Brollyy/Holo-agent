@@ -57,6 +57,7 @@ namespace Holo_agent
         GameObject bench9;
         GameObject biurko1;
         GameObject krzesełko;
+        GameObject mirror;
         List<GameObject> propsRoom5;
         List<GameObject> doors;
         List<SpriteInstance> particles;
@@ -579,7 +580,7 @@ namespace Holo_agent
                 if (p_dialog1 == 0)
                 {
                     p_dialog1 = 1;
-                    Dialogues.PlayDialogue(dialog1, 0.5f);
+                    //Dialogues.PlayDialogue(dialog1, 0.5f);
                     
                 }
                 
@@ -603,7 +604,7 @@ namespace Holo_agent
 
             player.AddNewComponent<PlayerController>();
             player.AddComponent(new Rigidbody(80, 1.5f));
-            player.GetComponent<Rigidbody>().GravityEnabled = true;
+            player.GetComponent<Rigidbody>().GravityEnabled = false;
             Collider playerCol = player.AddNewComponent<Collider>();
             playerCol.bound = new Engine.Bounding_Volumes.BoundingBox(playerCol, new Vector3(0, -8f, 0), new Vector3(3, 9f, 6));
             GameObject camera = new GameObject("Camera", new Vector3(0, 0, 0), Quaternion.Identity, Vector3.One, scene, player, null, false);
@@ -687,7 +688,7 @@ namespace Holo_agent
 
             biurko1 = new GameObject("Biurko1", new Vector3(70,3,-5), Quaternion.Identity, Vector3.One, scene, room2);
             krzesełko = new GameObject("Krzeselko", new Vector3(50,3,-15), Quaternion.CreateFromAxisAngle(Vector3.UnitY, MathHelper.ToRadians(180)), Vector3.One, scene, room2);
-
+            mirror = new GameObject("Lustro", new Vector3(70, 0, -414), Quaternion.Identity, Vector3.One, scene, room2);
             Collider columnCol1 = bench.AddNewComponent<Collider>();
             Collider columnCol2 = bench1.AddNewComponent<Collider>();
             Collider columnCol3 = bench2.AddNewComponent<Collider>();
@@ -741,6 +742,7 @@ namespace Holo_agent
             Model columnModel = Content.Load<Model>("Models/kolumna");
             Model jeden = Content.Load<Model>("Models/jeden");
             Model m_48 = Content.Load<Model>("Models/48");
+            Model mirrorModel = Content.Load<Model>("Models/mirror");
             floorTexture = Content.Load<Texture2D>("Textures/Ground");
             gunfireTexture = Content.Load<Texture2D>("Textures/Gunfire");
             crosshair = Content.Load<Texture2D>("Textures/Crosshair");
@@ -948,6 +950,7 @@ namespace Holo_agent
 
             biurko1.AddComponent(new MeshInstance(deskModel));
             krzesełko.AddComponent(new MeshInstance(chairModel));
+            mirror.AddComponent(new MeshInstance(mirrorModel));
         }
 
         protected Texture2D DrawSceneToTexture(RenderTarget2D currentRenderTarget, GameTime gameTime)
