@@ -30,9 +30,12 @@ namespace Holo_agent
         Effect healthShader;
         Effect bloomShader;
         Effect screenLightingShader;
+        Effect hitShader;
         float gammaValue = 1.0f;
         float brightnessValue = 0.0f;
         float contrastValue = 0.0f;
+        float hitTime = 0.0f;
+        float TimeElapsedShader = 0.0f;
         Effect pauseMenuShader;
         Effect gameOverShader;
         Texture2D healthShaderTexture;
@@ -193,6 +196,12 @@ namespace Holo_agent
                 frameCounter.Update(gameTime);
                 Input.Update(gameTime, graphics);
                 scene.Update(gameTime);
+                if(scene.hitLastFrame)
+                {
+                    hitTime = -2.0f;
+                    TimeElapsedShader = (float)gameTime.TotalGameTime.TotalMilliseconds;
+                    scene.hitLastFrame = false;
+                }
 
                 if (objectiveTimer > 0)
                     objectiveTimer -= (float)gameTime.ElapsedGameTime.TotalSeconds;
@@ -327,6 +336,19 @@ namespace Holo_agent
                     spriteBatch.Draw(healthShaderTexture, new Rectangle(0, 0, graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight), null, Color.White, 0, Vector2.Zero, SpriteEffects.None, 0);
                     spriteBatch.End();
                 }
+                if(hitTime < 0.0f)
+                {
+                    hitShader.Parameters["TimeFromHit"].SetValue(hitTime);
+                    spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.Default, RasterizerState.CullNone, hitShader);
+                    spriteBatch.Draw(texture, new Rectangle(0, 0, graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight), null, Color.White, 0, Vector2.Zero, SpriteEffects.None, 0);
+                    spriteBatch.End();
+                    hitTime -= ((float)gameTime.TotalGameTime.TotalMilliseconds - TimeElapsedShader);
+                    if(hitTime < 0.0f)
+                    {
+                        hitTime = 0.0f;
+                    }
+
+                }
 
                 spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.AnisotropicWrap, DepthStencilState.Default, RasterizerState.CullNone);
                 Point w = new Point(graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight);
@@ -358,6 +380,7 @@ namespace Holo_agent
                         if (gunfireInstance != null) gunfireInstance.GetInactiveComponent<SpriteInstance>().Draw(gameTime);
                     }
                 }
+         
                 if (player.GetComponent<PlayerController>() != null)
                 {
                     if (weapon != null)
@@ -729,6 +752,7 @@ namespace Holo_agent
             hologramRecordingShader = Content.Load<Effect>("FX/HologramRecording");
             hologramRecordingShader.Parameters["RecordingTime"].SetValue(0.0f);
             hologramRecordingShader.Parameters["RecordingTimeLimit"].SetValue(hologramRecordingMaxTime);
+            hitShader = Content.Load<Effect>("FX/Saturate");
             healthShader = Content.Load<Effect>("FX/Health");
             healthShader.Parameters["Health"].SetValue(100.0f);
             healthShaderTexture = Content.Load<Texture2D>("Textures/Blood_Screen");

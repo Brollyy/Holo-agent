@@ -1965,3 +1965,9 @@
 /processorParam:TextureFormat=DxtCompressed
 /build:Models/mirror.FBX
 
+#begin FX/Saturate.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:FX/Saturate.fx
+

@@ -21,6 +21,7 @@ namespace Engine
     [DataContract]
     public class Scene
     {
+        public bool hitLastFrame = false;
         private List<GameObject> objectsToDestroy = new List<GameObject>();
         [DataMember(Order = 0)]
         private Graph<Room,BoundingBox> roomGraph;

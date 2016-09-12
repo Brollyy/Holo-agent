@@ -117,7 +117,11 @@ namespace Engine.Components
                     if (gameObject != null && distance != null && distance <= 1000.0f)
                     {
                         CharacterController contr = gameObject.GetComponent<CharacterController>();
-                        if (contr != null) contr.DealDamage(10, this);
+                        if (contr != null)
+                       
+                            contr.DealDamage(10, this);
+                            
+                       
                         info = gameObject.Name + " " + distance;
                     }
                     machineGunTimer = MACHINE_GUN_TIMER;
@@ -132,8 +136,12 @@ namespace Engine.Components
                 if (gameObject != null && distance <= 1000.0f)
                 {
                     CharacterController contr = gameObject.GetComponent<CharacterController>();
-                    if (contr != null) contr.DealDamage(20, this);
-                    info = gameObject.Name + " " + distance;
+                    if (contr != null)
+                    {
+                        contr.DealDamage(20, this);
+                        Owner.Parent.Scene.hitLastFrame = true;
+                    }
+                        info = gameObject.Name + " " + distance;
                 }
                 isLocked = true;
             }
