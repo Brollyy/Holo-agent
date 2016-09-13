@@ -35,7 +35,6 @@ namespace Holo_agent
         float brightnessValue = 0.0f;
         float contrastValue = 0.0f;
         float hitTime = 0.0f;
-        float TimeElapsedShader = 0.0f;
         Effect pauseMenuShader;
         Effect gameOverShader;
         Texture2D healthShaderTexture;
@@ -199,7 +198,6 @@ namespace Holo_agent
                 if(scene.hitLastFrame)
                 {
                     hitTime = -2.0f;
-                    TimeElapsedShader = (float)gameTime.TotalGameTime.TotalMilliseconds;
                     scene.hitLastFrame = false;
                 }
 
@@ -342,11 +340,8 @@ namespace Holo_agent
                     spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.Default, RasterizerState.CullNone, hitShader);
                     spriteBatch.Draw(texture, new Rectangle(0, 0, graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight), null, Color.White, 0, Vector2.Zero, SpriteEffects.None, 0);
                     spriteBatch.End();
-                    hitTime -= ((float)gameTime.TotalGameTime.TotalMilliseconds - TimeElapsedShader);
-                    if(hitTime < 0.0f)
-                    {
-                        hitTime = 0.0f;
-                    }
+                    hitTime += (float)gameTime.ElapsedGameTime.TotalSeconds * 2;
+
 
                 }
 
